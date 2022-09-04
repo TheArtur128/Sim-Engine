@@ -84,9 +84,6 @@ class Unit(IUpdatable, ABC):
         self.effects = set()
         self.__previous_actions = list()
 
-    def clear_previous_actions(self) -> None:
-        self.__previous_actions = list()
-
     @property
     def previous_actions(self) -> tuple:
         return tuple(self.__previous_actions)
@@ -104,6 +101,9 @@ class Unit(IUpdatable, ABC):
 
         self.__previous_actions.append(self.__action)
         self.__action = action
+
+    def clear_previous_actions(self) -> None:
+        self.__previous_actions = list()
 
 
 class MixinDiscrete(ABC):
