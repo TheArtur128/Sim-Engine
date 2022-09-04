@@ -1,62 +1,112 @@
 from abc import ABC, abstractmethod
-from dataclass import dataclasses
-from typing import Iterable
+from typing import NamedTuple, Callable, Iterable
+
+from physics import Vector
+from errors.render_errors import UnsupportedResourceError
 
 
-@dataclass(frozen=True)
-class RenderResourcePack:
-    data: any
-    position: tuple[int | float, ]
+class PositionalRenderResource(NamedTuple):
+    resource: any
+    point: Vector
 
 
-class IResourceRender(ABC):
+class IRenderRersourceKeeper(ABC):
+    @property
     @abstractmethod
-    def __call__(self, resource: any, surface: any, point: Vector | None = None) -> None:
-        pass
-
-    @abstractmethod
-    def is_resource_renderable(self, resource: any) -> bool:
-        pass
-
-
-class TypedResourceRender(IResourceRender, ABC):
-    supported_resource_types: tuple[type, ] | None
-
-    def is_resource_renderable(self, resource: any) -> bool:
-        return all(map(
-            lambda supported_type: isinstance(resource, supported_type),
-            self.supported_resource_types
-        )) if self.supported_resource_types else True
-
-
-class IUnitRender(ABC):
-    @abstractmethod
-    def __call__(self, unit: Unit) -> None:
-        pass
-
-    @abstractmethod
-    def _get_resource_from_unit(self, unit: Unit) -> any:
+    def render_resources(self) -> tuple[PositionalRenderResource, ]:
         pass
 
 
-class UnitRender(IUnitRender, ABC):
-    def __init__(self, resource_renders: Iterable[IResourceRender, ], surfaces: Iterable):
-        self._resource_renders = frozenset(resource_renders)
-        self._surfaces = frozenset(surfaces)
+class IResourceHandler(ABC):
+    @abstractmethod
+    def __call__(
+        self,
+        positional_render_resource: PositionalRenderResource,
+        surface: object
+    ) -> None:
+        pass
 
-    def __call__(self, unit: Unit) -> None:
-        resource = self._get_resource_from_unit(unit)
-        resource_position = (
-            unit.position if isinstance(unit, PositionalUnit)
-            else None
-        )
 
-        for resource_render in filter(
-            lambda resource_render: resource_render.is_resource_renderable(resource),
-            self._resource_renders
-        ):
-            for surface in self._surfaces:
-                resource_render(resource, surface, resource_position)
+class Render(ABC):
+    _resource_handler_by_resource_type: dict[type, IResourceHandler] | None = None
 
-    def _get_resource_from_unit(self, unit: Unit) -> any:
-        return unit.avatar.render_resource
+    @property
+    @abstractmethod
+    def surfaces(self) -> tuple:
+        pass
+
+    def __call__(self, positional_resource: PositionalRenderResource) -> None:
+        if not self.is_supported_resource(positional_resource.resource):
+            raise UnsupportedResourceError(
+                f"Render {self} cannot display resource {positional_resource.resource} at {positional_resource.point}"
+            )
+
+        resource_handler = self._get_resource_handler_by(positional_resource)
+
+        for surface in self.surfaces:
+            resource_handler(positional_resource, surface)
+
+    def is_supported_resource(self, resource: any) -> bool:
+        return type(resource) in self._resource_handler_by_resource_type.keys()
+
+    def _get_resource_handler_by(self, positional_resource: PositionalRenderResource) -> IResourceHandler:
+        return self._resource_handler_by_resource_type[type(positional_resource.resource)]
+
+    @classmethod
+    def resource_handler_for(cls, resource_type: type) -> Callable[[IResourceHandler], IResourceHandler]:
+        def decorator(handler: IResourceHandler):
+            if cls._resource_handler_by_resource_type is None:
+                cls._resource_handler_by_resource_type = dict()
+
+            cls._resource_handler_by_resource_type[resource_type] = handler
+            return handler
+
+        return decorator
+
+
+class RenderDelegator(ABC):
+    def __init__(self, render_resource_keeper: IRenderRersourceKeeper, renders: Iterable[Render, ]):
+        self.render_resource_keeper = render_resource_keeper
+        self.renders = tuple(renders)
+
+    def __call__(self) -> None:
+        for render in self.renders:
+            self.__apply_render(render)
+
+    def __apply_render(self, render: Render) -> None:
+        for positional_render_resource in self.render_resource_keeper.render_resources:
+            render(positional_render_resource)
+
+
+class Matrica:
+    def __init__(self, size):
+        self._values = [None for _ in range(size[0])] * size[1]
+        self._size = tuple(size)
+
+    @property
+    def size(self):
+        return self._size
+
+    def __repr__(self) -> str:
+        return f"{self._values[:self._size[0]]}\n{self._values[self._size[0]:]}"
+
+    def __getitem__(self, point) -> any:
+        return self.get_from(point)
+
+    def __setitem__(self, point, value: any) -> None:
+        self.set_to(point, value)
+
+    def get_from(self, point) -> any:
+        return self._values[self._convert_point_to_index(point)]
+
+    def set_to(self, point, value: any) -> None:
+        self._values[self._convert_point_to_index(point)] = value
+
+    def _convert_point_to_index(self, point) -> int:
+        return point[0] + point[1]*self._size[1]
+
+
+
+
+
+
