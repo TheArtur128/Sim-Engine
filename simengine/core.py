@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Iterable, Callable
 from enum import Enum, auto
 
-from interfaces import IProcess, IUpdatable, IAvatar
+from interfaces import IProcess, IUpdatable, IAvatar, IInteractive
 from errors.core_errors import *
 from tools import SpawnContainer
 from physics import Vector
@@ -226,6 +226,19 @@ class RenderResourceParser(FocusedUnitHandler):
     def _handle_unit(self, unit: Unit) -> None:
         unit.avatar.update()
         self._parsed_render_resources.append(unit.avatar.render_resource)
+
+
+class UnitRelationsActivator(UnitHandler):
+    def _handle_units(self, units: Iterable[Unit, ]) -> None:
+        for active_unit in units:
+            if not isinstance(active_unit, IInteractive):
+                continue
+
+            passive_units = set(units)
+            passive_units.remove(active_unit)
+
+            for passive_unit in passive_units:
+                active_unit.react_to(passive_unit)
 
 
 class World(Unit, MixinDiscrete, ABC):
