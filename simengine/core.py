@@ -2,8 +2,6 @@ from abc import ABC, abstractmethod
 from typing import Iterable, Callable
 from enum import Enum, auto
 
-#from beautiful_repr import StylizedMixin, BeautifulRepr, Field, parse_length, TemplateFormatter
-
 from interfaces import IProcess, IUpdatable, IAvatar
 from errors.core_errors import *
 from tools import SpawnContainer
@@ -261,5 +259,3 @@ class World(Unit, MixinDiscrete, ABC):
                 unit_handler(unit)
 
 
-if __name__ == "__main__":
-    pass

@@ -76,37 +76,3 @@ class RenderDelegator(ABC):
     def __apply_render(self, render: Render) -> None:
         for positional_render_resource in self.render_resource_keeper.render_resources:
             render(positional_render_resource)
-
-
-class Matrica:
-    def __init__(self, size):
-        self._values = [None for _ in range(size[0])] * size[1]
-        self._size = tuple(size)
-
-    @property
-    def size(self):
-        return self._size
-
-    def __repr__(self) -> str:
-        return f"{self._values[:self._size[0]]}\n{self._values[self._size[0]:]}"
-
-    def __getitem__(self, point) -> any:
-        return self.get_from(point)
-
-    def __setitem__(self, point, value: any) -> None:
-        self.set_to(point, value)
-
-    def get_from(self, point) -> any:
-        return self._values[self._convert_point_to_index(point)]
-
-    def set_to(self, point, value: any) -> None:
-        self._values[self._convert_point_to_index(point)] = value
-
-    def _convert_point_to_index(self, point) -> int:
-        return point[0] + point[1]*self._size[1]
-
-
-
-
-
-
