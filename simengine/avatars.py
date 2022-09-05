@@ -9,13 +9,6 @@ class Animation(IProcess, ABC):
         self._avatar = avatar
 
 
-@dataclass(frozen=True)
-class RGBColor:
-    red: int = 0
-    green: int = 0
-    blue: int = 0
-
-
 class RainbowAvatar(IAvatar):
     current_color: RGBColor
 

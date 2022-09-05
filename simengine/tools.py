@@ -14,3 +14,10 @@ class SpawnContainer:
 
     def __call__(self) -> any:
         return self.factory(*self.args_for_factory, **self.kwargs_for_factory)
+
+
+@dataclass(frozen=True)
+class RGBColor:
+    red: int = 0
+    green: int = 0
+    blue: int = 0
