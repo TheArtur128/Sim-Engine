@@ -160,40 +160,51 @@ class PositionalUnit(Unit, ABC):
 
 
 class UnitHandler(ABC):
-    def __call__(self, unit: Unit) -> None:
-        if self.is_unit_suitable(unit):
-            raise UnsupportedUnitForHandlerError(f"Unit handler {self} unsupported unit {unit}")
+    def __call__(self, units: Iterable[Unit, ]) -> None:
+        for unit in units:
+            if self.is_unit_suitable(unit):
+                raise UnsupportedUnitForHandlerError(f"Unit handler {self} unsupported unit {unit}")
 
-        self._handle(unit)
+        self._handle_units(units)
 
     def is_unit_suitable(self, unit: Unit) -> bool:
         return isinstance(unit, Unit)
 
     @abstractmethod
-    def _handle(self, unit: Unit) -> None:
+    def _handle_units(self, units: Iterable[Unit, ]) -> None:
         pass
 
 
-class UnitUpdater(UnitHandler):
-    def _handle(self, unit: Unit) -> None:
+class FocusedUnitHandler(UnitHandler, ABC):
+    def _handle_units(self, units: Iterable[Unit, ]) -> None:
+        for unit in units:
+            self._handle_unit(unit)
+
+    @abstractmethod
+    def _handle_unit(self, unit: Unit) -> None:
+        pass
+
+
+class UnitUpdater(FocusedUnitHandler):
+    def _handle_unit(self, unit: Unit) -> None:
         unit.update()
 
 
-class UnitActionActivator(UnitHandler):
+class UnitActionActivator(FocusedUnitHandler):
     def is_unit_suitable(self, unit: Unit) -> bool:
         return super().is_unit_suitable(unit) and unit.action
 
-    def _handle(self, unit: Unit) -> None:
+    def _handle_unit(self, unit: Unit) -> None:
         unit.action.update()
 
 
-class UnitEffectsActivator(UnitHandler):
-    def _handle(self, unit: Unit) -> None:
+class UnitEffectsActivator(FocusedUnitHandler):
+    def _handle_unit(self, unit: Unit) -> None:
         for effect in unit.effects:
             effect.update()
 
 
-class RenderResourceParser(UnitHandler):
+class RenderResourceParser(FocusedUnitHandler):
     def __init__(self):
         super().__init__()
         self._parsed_render_resources = list()
@@ -212,7 +223,8 @@ class RenderResourceParser(UnitHandler):
             unit.avatar is not None
         )
 
-    def _handle(self, unit: Unit) -> None:
+    def _handle_unit(self, unit: Unit) -> None:
+        unit.avatar.update()
         self._parsed_render_resources.append(unit.avatar.render_resource)
 
 
@@ -254,8 +266,9 @@ class World(Unit, MixinDiscrete, ABC):
             self.__use_unit_handler(unit_handler)
 
     def __use_unit_handler(self, handler: UnitHandler) -> None:
-        for unit in self.deep_parts:
-            if unit_handler.is_unit_suitable(unit):
-                unit_handler(unit)
-
-
+        unit_handler(
+            filter(
+                lambda unit: unit_handler.is_unit_suitable(unit),
+                self.deep_parts
+            )
+        )
