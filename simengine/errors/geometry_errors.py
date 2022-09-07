@@ -4,3 +4,7 @@ class GeometricPrimitiveError(Exception):
 
 class FigureIsIncorrectError(GeometricPrimitiveError):
     pass
+
+
+class FigureIsNotConvexError(FigureIsIncorrectError):
+    pass
