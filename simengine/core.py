@@ -174,6 +174,9 @@ class UnitUpdater(FocusedUnitHandler):
         unit.update()
 
 
+class UnitProcessesActivator(FocusedUnitHandler):
+    def is_unit_suitable(self, unit: IUpdatable) -> bool:
+        return super().is_unit_suitable(unit) and isinstance(unit, DependentUnit)
 
     def _handle_unit(self, unit: IUpdatable) -> None:
         unit.clear_completed_processes()
