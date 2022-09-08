@@ -2,9 +2,8 @@ from abc import ABC, abstractmethod
 from typing import Iterable, Callable
 from enum import Enum, auto
 
-from interfaces import IProcess, IUpdatable, IAvatar, IInteractive
+from interfaces import IUpdatable, IAvatar, IInteractive
 from errors.core_errors import *
-from tools import SpawnContainer
 from physics import Vector
 
 
