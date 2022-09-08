@@ -53,55 +53,35 @@ class Process(IUpdatable, ABC):
         self._state = ProcessState.active
 
 
-class Event(Process, ABC):
-    pass
-
-
-class Effect(Process, ABC):
-    def __init__(self, subject: object):
-        self.__subject = subject
-
-    @property
-    def subject(self) -> object:
-        return self.__subject
-
-
-class Action(Process, ABC):
-    def __init__(self, initiator: object):
-        self.__initiator = initiator
-
-    @property
-    def initiator(self) -> object:
-        return self.__initiator
-
-
-class Unit(IUpdatable, ABC):
-    __action = None
-
+class DependentUnit(IUpdatable, ABC):
     def __init__(self):
-        self.effects = set()
-        self.__previous_actions = list()
+        self._processes = set()
+        self.__completed_processes = list()
 
     @property
-    def previous_actions(self) -> tuple:
-        return tuple(self.__previous_actions)
+    def processes(self) -> frozenset[Process, ]:
+        return frozenset(self._processes)
 
     @property
-    def action(self) -> Action | None:
-        return self.__action
+    def completed_processes(self) -> frozenset[Process, ]:
+        return frozenset(self.__completed_processes)
 
-    @action.setter
-    def action(self, action: Action) -> None:
-        if not self.action.state is ProcessState.completed:
-            raise ForcedReplacementOfActionError(
-                f"Replacing the still active action {self.action} with another action {action}"
-            )
+    def add_process(self, process: Process) -> None:
+        self._processes.add(process)
 
-        self.__previous_actions.append(self.__action)
-        self.__action = action
+    def activate_processes(self) -> None:
+        processes_to_update = self._processes
+        self._processes = set()
 
-    def clear_previous_actions(self) -> None:
-        self.__previous_actions = list()
+        for process in processes_to_update:
+            if process.state is ProcessState.completed:
+                self.__completed_processes.append(process)
+            else:
+                self._processes.add(process)
+                process.update()
+
+    def clear_completed_processes(self) -> None:
+        self.__completed_processes = list()
 
 
 class MixinDiscrete(ABC):
@@ -123,7 +103,7 @@ class MixinDiscrete(ABC):
         return found_parts
 
 
-class DiscreteUnit(Unit, MixinDiscrete, ABC):
+class DiscreteUnit(MixinDiscrete, ABC):
     def __init__(self, *args_for_part_init, **kwargs_for_part_init):
         super().__init__()
         self.__init_parts__(*args_for_part_init, **kwargs_for_part_init)
@@ -133,13 +113,17 @@ class DiscreteUnit(Unit, MixinDiscrete, ABC):
         pass
 
 
-class PositionalUnit(Unit, ABC):
-    avatar_factory: Callable[[Unit], IAvatar] = lambda unit: None
+class PositionalUnit(ABC):
+    avatar_factory: Callable[['PositionalUnit'], IAvatar] = lambda unit: None
 
     def __init__(self, position: Vector):
         super().__init__()
         self.__position = self.__previous_position = position
-        self.avatar = self.avatar_factory()
+        self._avatar = self.avatar_factory()
+
+    @property
+    def avatar(self) -> IAvatar:
+        return self._avatar
 
     @property
     def position(self) -> Vector:
@@ -160,48 +144,40 @@ class PositionalUnit(Unit, ABC):
 
 
 class UnitHandler(ABC):
-    def __call__(self, units: Iterable[Unit, ]) -> None:
+    def __call__(self, units: Iterable[IUpdatable, ]) -> None:
         for unit in units:
             if self.is_unit_suitable(unit):
                 raise UnsupportedUnitForHandlerError(f"Unit handler {self} unsupported unit {unit}")
 
         self._handle_units(units)
 
-    def is_unit_suitable(self, unit: Unit) -> bool:
-        return isinstance(unit, Unit)
+    def is_unit_suitable(self, unit: IUpdatable) -> bool:
+        return isinstance(unit, IUpdatable)
 
     @abstractmethod
-    def _handle_units(self, units: Iterable[Unit, ]) -> None:
+    def _handle_units(self, units: Iterable[IUpdatable, ]) -> None:
         pass
 
 
 class FocusedUnitHandler(UnitHandler, ABC):
-    def _handle_units(self, units: Iterable[Unit, ]) -> None:
+    def _handle_units(self, units: Iterable[IUpdatable, ]) -> None:
         for unit in units:
             self._handle_unit(unit)
 
     @abstractmethod
-    def _handle_unit(self, unit: Unit) -> None:
+    def _handle_unit(self, unit: IUpdatable) -> None:
         pass
 
 
 class UnitUpdater(FocusedUnitHandler):
-    def _handle_unit(self, unit: Unit) -> None:
+    def _handle_unit(self, unit: IUpdatable) -> None:
         unit.update()
 
 
-class UnitActionActivator(FocusedUnitHandler):
-    def is_unit_suitable(self, unit: Unit) -> bool:
-        return super().is_unit_suitable(unit) and unit.action
 
-    def _handle_unit(self, unit: Unit) -> None:
-        unit.action.update()
-
-
-class UnitEffectsActivator(FocusedUnitHandler):
-    def _handle_unit(self, unit: Unit) -> None:
-        for effect in unit.effects:
-            effect.update()
+    def _handle_unit(self, unit: IUpdatable) -> None:
+        unit.clear_completed_processes()
+        unit.activate_processes()
 
 
 class RenderResourceParser(FocusedUnitHandler):
@@ -216,20 +192,20 @@ class RenderResourceParser(FocusedUnitHandler):
     def clear_parsed_render_resources(self) -> None:
         self._parsed_render_resources = list()
 
-    def is_unit_suitable(self, unit: Unit) -> bool:
+    def is_unit_suitable(self, unit: IUpdatable) -> bool:
         return (
             super().is_unit_suitable(unit) and
             isinstance(unit, PositionalUnit) and
             unit.avatar is not None
         )
 
-    def _handle_unit(self, unit: Unit) -> None:
+    def _handle_unit(self, unit: IUpdatable) -> None:
         unit.avatar.update()
         self._parsed_render_resources.append(unit.avatar.render_resource)
 
 
 class UnitRelationsActivator(UnitHandler):
-    def _handle_units(self, units: Iterable[Unit, ]) -> None:
+    def _handle_units(self, units: Iterable[IUpdatable, ]) -> None:
         for active_unit in units:
             if not isinstance(active_unit, IInteractive):
                 continue
@@ -241,7 +217,7 @@ class UnitRelationsActivator(UnitHandler):
                 active_unit.react_to(passive_unit)
 
 
-class World(Unit, MixinDiscrete, ABC):
+class World(IUpdatable, MixinDiscrete, ABC):
     _unit_handler_factories: Iterable[Callable[[], UnitHandler], ]
 
     def __init__(self, inhabitants: Iterable):
@@ -263,7 +239,7 @@ class World(Unit, MixinDiscrete, ABC):
         return self._unit_handlers
 
     def is_inhabited_for(self, inhabitant: object) -> bool:
-        return isinstance(inhabitant, Unit)
+        return isinstance(inhabitant, IUpdatable)
 
     def add_inhabitant(self, inhabitant: object) -> None:
         if not self.is_inhabited_for(inhabitant):
