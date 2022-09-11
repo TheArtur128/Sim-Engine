@@ -5,7 +5,7 @@ from dataclasses import dataclass
 class Vector:
     coordinates: tuple[float | int] = tuple()
 
-    def __add__(self, other):
+    def __add__(self, other: 'Vector') -> 'Vector':
         maximum_number_of_measurements = max((len(self.coordinates), len(other.coordinates)))
 
         return self.__class__(
@@ -16,8 +16,8 @@ class Vector:
             ))
         )
 
-    def __sub__(self, other):
-        return self + other.get_reflected()
+    def __sub__(self, other: 'Vector') -> 'Vector':
+        return self + other.get_reflected_by_coordinates()
 
     def __len__(self) -> int:
         return len(self.coordinates)
@@ -26,7 +26,7 @@ class Vector:
         self,
         number_of_measurements: int,
         default_measurement_point: int | float = 0
-    ):
+    ) -> 'Vector':
         measurement_difference = number_of_measurements - len(self.coordinates)
 
         return self.__class__(
