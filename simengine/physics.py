@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Iterable
 
 
 @dataclass(frozen=True)
@@ -34,7 +35,15 @@ class Vector:
             else self.coordinates[:number_of_measurements if number_of_measurements >= 0 else 0]
         )
 
-    def get_reflected(self):
-        return self.__class__(
-            tuple(map(lambda number: -number, self.coordinates))
-        )
+    def get_reflected_by_coordinates(
+        self,
+        coordinate_indexes: Iterable[int, ] | None = None
+    ) -> 'Vector':
+        if coordinate_indexes is None:
+            coordinate_indexes = range(len(self.coordinates))
+
+        return self.__class__(tuple(
+            coordinate * (-1 if coordinate_index in coordinate_indexes else 1)
+            for coordinate_index, coordinate in enumerate(self.coordinates)
+        ))
+
