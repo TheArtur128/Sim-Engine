@@ -47,3 +47,12 @@ class Vector:
             for coordinate_index, coordinate in enumerate(self.coordinates)
         ))
 
+
+@dataclass
+class VirtualVector:
+    start_point: Vector
+    end_point: Vector
+
+    @property
+    def value(self) -> Vector:
+        return self.end_point - self.start_point
