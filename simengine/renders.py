@@ -21,7 +21,8 @@ class IResourceHandler(ABC):
     @abstractmethod
     def __call__(
         self,
-        positional_render_resource: PositionalRenderResource,
+        resource: any,
+        point: tuple[int | float, ],
         surface: object
     ) -> None:
         pass
@@ -44,7 +45,11 @@ class Render(ABC):
         resource_handler = self._get_resource_handler_by(positional_resource)
 
         for surface in self.surfaces:
-            resource_handler(positional_resource, surface)
+            resource_handler(
+                positional_resource.resource,
+                positional_resource.point.coordinates,
+                surface
+            )
 
     def is_supported_resource(self, resource: any) -> bool:
         return type(resource) in self._resource_handler_by_resource_type.keys()
