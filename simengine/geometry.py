@@ -1,45 +1,94 @@
-from typing import Iterable, NoReturn
+from math import copysign
 
-from physics import Vector
-from errors.geometry_errors import FigureIsNotConvexError
+from pyoverload import overload
+
+from physics import Vector, VirtualVector
 
 
-class LineSegment:
-    def __init__(self, points: Iterable[Vector, ]) -> None:
-        self._points = tuple(points)
-        self._is_correnct()
+class Line:
+    _MINIMUM_DISTANCE_BETWEEN_POINTS: int | float = 1
+
+    def __init__(self, first_point: Vector, second_point: Vector):
+        self.__first_point = first_point
+        self.__second_point = second_point
+
+        self._update_all_available_points()
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__} between {self.first_point} and {self.second_point}"
+
+    @overload
+    def __contains__(self, point: Vector) -> bool:
+        return point in self.all_available_points
 
     @property
-    def points(self) -> tuple[Vector, ]:
-        return self._points
+    def first_point(self) -> Vector:
+        return self.__first_point
 
-    def _is_correnct(self) -> NoReturn:
-        pass
+    @first_point.setter
+    def first_point(self, new_point: Vector) -> None:
+        self.__first_point = new_point
+        self._update_all_available_points()
 
+    @property
+    def second_point(self) -> Vector:
+        return self.__second_point
 
-class Figure(LineSegment):
-    def is_point_inside(self, point: Vector) -> bool:
-        сomparisons_by_coordinates_from_reference_point = tuple(map(
-            list, ((False, False),) * len(point.coordinates)
-        ))
+    @second_point.setter
+    def second_point(self, new_point: Vector) -> None:
+        self.__second_point = new_point
+        self._update_all_available_points()
 
-        for active_point in self.points:
-            for coordinate_index, reference_point_coordinate, active_point_coordinate in map(
-                lambda item: (item[0], *item[1:][0]),
-                enumerate(zip(point.coordinates, active_point.coordinates))
-            ):
-                if reference_point_coordinate > active_point_coordinate:
-                    сomparisons_by_coordinates_from_reference_point[coordinate_index][0] = True
+    @property
+    def all_available_points(self) -> tuple[Vector, ]:
+        return self.__all_available_points
 
-                if reference_point_coordinate < active_point_coordinate:
-                    сomparisons_by_coordinates_from_reference_point[coordinate_index][1] = True
+    @overload
+    def __contains__(self, point: Vector) -> bool:
+        return self.is_point_inside(point)
 
-        return all(map(all, сomparisons_by_coordinates_from_reference_point))
+    @overload
+    def __contains__(self, vector: VirtualVector) -> bool:
+        return self.is_vector_passes(vector)
 
-    def _is_correnct(self) -> NoReturn:
-        for point in self.points:
-            self.__check_point(point)
+    def is_vector_passes(self, vector: VirtualVector) -> bool:
+        for point in self.__create_points_from(vector):
+            if self.is_point_inside(point):
+                return True
 
-    def __check_point(self, point: Vector) -> NoReturn:
-        if self.is_point_inside(point):
-            raise FigureIsNotConvexError(f"Figure {self} has a point {point} in it bending it")
+        return False
+
+    def is_point_inside(self, point: Vector) -> bool: # Will be redone
+        return point in self.__all_available_points
+
+    def _update_all_available_points(self) -> None:
+        self.__all_available_points = self.__create_points_from(
+            VirtualVector(self.first_point, self.second_point)
+        )
+
+    def __create_points_from(self, vector: VirtualVector) -> tuple[Vector, ]:
+        points = [vector.start_point]
+        current_point_index = 1
+        vector_to_end_point = vector.value
+
+        while any(vector_to_end_point.coordinates):
+            vector_coordinates_to_created_point = list()
+            new_point_coordinates = list()
+
+            for end_point_vector_coordinate_index, end_point_vector_coordinate in enumerate(vector_to_end_point.coordinates):
+                step = (
+                    copysign(self._MINIMUM_DISTANCE_BETWEEN_POINTS, end_point_vector_coordinate)
+                    if end_point_vector_coordinate != 0 else 0
+                )
+
+                new_point_coordinates.append(
+                    points[current_point_index - 1].coordinates[end_point_vector_coordinate_index] + step
+                )
+
+                vector_coordinates_to_created_point.append(step)
+
+            points.append(Vector(tuple(new_point_coordinates)))
+            current_point_index += 1
+            vector_to_end_point -= Vector(vector_coordinates_to_created_point)
+
+        return tuple(points)
