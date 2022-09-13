@@ -17,10 +17,6 @@ class Line:
     def __repr__(self) -> str:
         return f"{self.__class__.__name__} between {self.first_point} and {self.second_point}"
 
-    @overload
-    def __contains__(self, point: Vector) -> bool:
-        return point in self.all_available_points
-
     @property
     def first_point(self) -> Vector:
         return self.__first_point
