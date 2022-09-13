@@ -8,6 +8,7 @@ from errors.geometry_errors import UnableToDivideVectorIntoPointsError
 
 class Line:
     _DISTANCE_BETWEEN_POINTS: int | float = 1
+    _SHIFT_BY_POINT_ROUNDING_FROM_COMMA: int = 0
 
     def __init__(self, first_point: Vector, second_point: Vector):
         self.__first_point = first_point
@@ -24,7 +25,9 @@ class Line:
 
     @first_point.setter
     def first_point(self, new_point: Vector) -> None:
-        self.__first_point = new_point
+        self.__first_point = new_point.get_rounded_with_comma_shift(
+            self._SHIFT_BY_POINT_ROUNDING_FROM_COMMA
+        )
         self._update_all_available_points()
 
     @property
@@ -33,7 +36,9 @@ class Line:
 
     @second_point.setter
     def second_point(self, new_point: Vector) -> None:
-        self.__second_point = new_point
+        self.__second_point = new_point.get_rounded_with_comma_shift(
+            self._SHIFT_BY_POINT_ROUNDING_FROM_COMMA
+        )
         self._update_all_available_points()
 
     @property
@@ -49,6 +54,8 @@ class Line:
         return self.is_vector_passes(vector)
 
     def is_vector_passes(self, vector: VirtualVector) -> bool:
+        vector = vector.get_rounded_with_comma_shift(self)
+
         for point in self.__create_points_from(vector):
             if self.is_point_inside(point):
                 return True
