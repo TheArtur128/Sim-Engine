@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from math import sqrt
 from typing import Iterable
 
+from tools import round_number_with_comma_shift
+
 
 @dataclass(frozen=True)
 class Vector:
@@ -52,6 +54,12 @@ class Vector:
             for coordinate_index, coordinate in enumerate(self.coordinates)
         ))
 
+    def get_rounded_with_comma_shift(self, comma_shift: int) -> 'Vector':
+        return self.__class__(tuple(
+            round_number_with_comma_shift(coordinate, comma_shift)
+            for coordinate in self.coordinates
+        ))
+
 
 @dataclass
 class VirtualVector:
@@ -61,3 +69,9 @@ class VirtualVector:
     @property
     def value(self) -> Vector:
         return self.end_point - self.start_point
+
+    def get_rounded_with_comma_shift(self, comma_shift: int) -> None:
+        return self.__class__(
+            self.start_point.get_rounded_with_comma_shift(comma_shift),
+            self.end_point.get_rounded_with_comma_shift(comma_shift)
+        )
