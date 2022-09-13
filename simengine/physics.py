@@ -1,10 +1,15 @@
 from dataclasses import dataclass
+from math import sqrt
 from typing import Iterable
 
 
 @dataclass(frozen=True)
 class Vector:
     coordinates: tuple[float | int] = tuple()
+
+    @property
+    def length(self) -> float:
+        return sqrt(sum(coordinate**2 for coordinate in self.coordinates))
 
     def __add__(self, other: 'Vector') -> 'Vector':
         maximum_number_of_measurements = max((len(self.coordinates), len(other.coordinates)))
