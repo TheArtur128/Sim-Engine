@@ -1,12 +1,13 @@
-from math import copysign
+from math import modf
 
 from pyoverload import overload
 
 from physics import Vector, VirtualVector
+from errors.geometry_errors import UnableToDivideVectorIntoPointsError
 
 
 class Line:
-    _MINIMUM_DISTANCE_BETWEEN_POINTS: int | float = 1
+    _DISTANCE_BETWEEN_POINTS: int | float = 1
 
     def __init__(self, first_point: Vector, second_point: Vector):
         self.__first_point = first_point
@@ -63,28 +64,29 @@ class Line:
         )
 
     def __create_points_from(self, vector: VirtualVector) -> tuple[Vector, ]:
-        points = [vector.start_point]
-        current_point_index = 1
-        vector_to_end_point = vector.value
+        factor = vector.value.length / self._DISTANCE_BETWEEN_POINTS
 
-        while any(vector_to_end_point.coordinates):
-            vector_coordinates_to_created_point = list()
-            new_point_coordinates = list()
+        vector_to_next_point = Vector(tuple(
+            coordinate / factor for coordinate in vector.value.coordinates
+        ))
 
-            for end_point_vector_coordinate_index, end_point_vector_coordinate in enumerate(vector_to_end_point.coordinates):
-                step = (
-                    copysign(self._MINIMUM_DISTANCE_BETWEEN_POINTS, end_point_vector_coordinate)
-                    if end_point_vector_coordinate != 0 else 0
+        number_of_points_to_create = vector.value.length / vector_to_next_point.length
+
+        if number_of_points_to_create <= 0 or modf(number_of_points_to_create)[0]:
+            raise UnableToDivideVectorIntoPointsError(
+                "Can't divide vector {vector} into {point_number} points with distance {distance}".format(
+                    vector=vector,
+                    point_number=number_of_points_to_create,
+                    distance=self._DISTANCE_BETWEEN_POINTS
                 )
+            )
 
-                new_point_coordinates.append(
-                    points[current_point_index - 1].coordinates[end_point_vector_coordinate_index] + step
-                )
+        created_points = [vector.start_point]
 
-                vector_coordinates_to_created_point.append(step)
+        for created_point_index in range(1, int(number_of_points_to_create)):
+            created_points.append(
+                created_points[created_point_index - 1] + vector_to_next_point
+            )
 
-            points.append(Vector(tuple(new_point_coordinates)))
-            current_point_index += 1
-            vector_to_end_point -= Vector(vector_coordinates_to_created_point)
-
-        return tuple(points)
+        return tuple(created_points)
+        
