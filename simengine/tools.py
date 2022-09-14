@@ -5,6 +5,7 @@ from typing import Iterable
 from math import floor, copysign
 
 from interfaces import IUpdatable
+from errors.tool_error import UnableToDivideError
 
 
 class LoopUpdater:
@@ -100,3 +101,24 @@ class Report:
             error=error
         )
 
+
+class Divider(ABC):
+    def __call__(self, data: any) -> None:
+        report = self.is_possible_to_divide(data)
+
+        if not report:
+            if report.error:
+                raise report.error
+
+            raise UnableToDivideError(
+                report.message if report.message else f"Can't divide {data}"
+            )
+
+        return self._divide(data)
+
+    def is_possible_to_divide(self, data: any) -> Report:
+        return Report(True)
+
+    @abstractmethod
+    def _divide(self, data: any) -> None:
+        pass
