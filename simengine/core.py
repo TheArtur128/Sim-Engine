@@ -4,7 +4,7 @@ from enum import Enum, auto
 
 from interfaces import IUpdatable, IAvatar, IInteractive
 from errors.core_errors import *
-from physics import Vector
+from geometry import Vector
 
 
 class ProcessState(Enum):

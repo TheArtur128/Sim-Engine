@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import NamedTuple, Callable, Iterable
 
-from physics import Vector
+from geometry import Vector
 from errors.render_errors import UnsupportedResourceError
 
 
