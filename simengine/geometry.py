@@ -142,7 +142,7 @@ class Line:
         self.__first_point = first_point
         self.__second_point = second_point
 
-        self._update_all_available_points()
+        self._update_points()
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__} between {self.first_point} and {self.second_point}"
@@ -153,8 +153,8 @@ class Line:
 
     @first_point.setter
     def first_point(self, new_point: Vector) -> None:
-        self._update_all_available_points()
         self.__first_point = new_point
+        self._update_points()
 
     @property
     def second_point(self) -> Vector:
@@ -162,8 +162,8 @@ class Line:
 
     @second_point.setter
     def second_point(self, new_point: Vector) -> None:
-        self._update_all_available_points()
         self.__second_point = new_point
+        self._update_points()
 
     @property
     def all_available_points(self) -> tuple[Vector, ]:
@@ -188,12 +188,12 @@ class Line:
     def is_point_inside(self, point: Vector) -> bool:
         return point.get_rounded_by(self._rounder) in self.__all_available_points
 
+    def _update_points(self) -> None:
         self.__first_point, self.__second_point = map(
             lambda vector: vector.get_rounded_by(self._rounder),
             (self.__first_point, self.__second_point)
         )
 
-    def _update_all_available_points(self) -> None:
         self.__all_available_points = self._vector_divider(
             VirtualVector(self.first_point, self.second_point)
         )
