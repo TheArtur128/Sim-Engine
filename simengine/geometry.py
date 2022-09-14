@@ -57,9 +57,9 @@ class Vector:
             for coordinate_index, coordinate in enumerate(self.coordinates)
         ))
 
-    def get_rounded_with_comma_shift(self, comma_shift: int) -> 'Vector':
+    def get_rounded_by(self, rounder: NumberRounder) -> 'Vector':
         return self.__class__(tuple(
-            round_number_with_comma_shift(coordinate, comma_shift)
+            rounder(coordinate)
             for coordinate in self.coordinates
         ))
 
@@ -73,10 +73,12 @@ class VirtualVector:
     def value(self) -> Vector:
         return self.end_point - self.start_point
 
-    def get_rounded_with_comma_shift(self, comma_shift: int) -> None:
+    def get_rounded_by(self, rounder: NumberRounder) -> 'VirtualVector':
         return self.__class__(
-            self.start_point.get_rounded_with_comma_shift(comma_shift),
-            self.end_point.get_rounded_with_comma_shift(comma_shift)
+            self.start_point.get_rounded_by(rounder),
+            self.end_point.get_rounded_by(rounder)
+        )
+
         )
 
 

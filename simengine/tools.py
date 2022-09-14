@@ -1,6 +1,7 @@
+from abc import ABC, abstractmethod
 from time import sleep
 from typing import Iterable
-from math import ceil
+from math import floor, copysign
 
 from interfaces import IUpdatable
 
@@ -18,34 +19,67 @@ class LoopUpdater:
                 sleep(self.timeout)
 
 
-def round_number_with_comma_shift(number: int | float, comma_shift: int) -> float:
-    return _move_point_in_number(
-        round(_move_point_in_number(number, comma_shift)),
-        -comma_shift
-    )
+class NumberRounder(ABC):
+    def __call__(self, number: any) -> any:
+        return self._round(number)
+
+    @abstractmethod
+    def _round(self, number: int | float) -> float:
+        pass
 
 
-def round(number: int | float) -> float:
-    number_after_point = int(str(float(number)).split('.')[1][0])
-
-    if number_after_point >= 5:
-        return int(number) + 1
-    else:
-        return int(number)
+class FastNumberRounder(NumberRounder):
+    def _round(self, number: int | float) -> float:
+        return floor(number)
 
 
-def _move_point_in_number(number: int | float, shift: int) -> float: # Will be redone
-    letters_of_number = list(str(float(number)))
-    point_index = letters_of_number.index('.')
-    letters_of_number.pop(point_index)
+class AccurateNumberRounder(NumberRounder):
+    def _round(self, number: int | float) -> float:
+        number_after_point = int(str(float(number)).split('.')[1][0])
 
-    point_index += shift
+        if number_after_point >= 5:
+            return int(number) + copysign(1, number)
+        else:
+            return int(number)
 
-    if point_index > len(letters_of_number):
-        point_index = len(letters_of_number)
-    elif point_index < 0:
-        point_index = 0
 
-    letters_of_number.insert(point_index, '.')
+class ProxyRounder(NumberRounder):
+    def __init__(self, rounder: NumberRounder):
+        self.rounder = rounder
 
-    return float(''.join(letters_of_number))
+    def _round(self, number: int | float) -> float:
+        return self.rounder(number)
+
+
+class ShiftNumberRounder(ProxyRounder):
+    def __init__(self, rounder: NumberRounder, comma_shift: int):
+        super().__init__(rounder)
+        self.comma_shift = comma_shift
+
+    def _round(self, number: int | float) -> float:
+        return self.__move_point_in_number(
+            super()._round(
+                self.__move_point_in_number(number, self.comma_shift)
+            ),
+            -self.comma_shift
+        )
+
+    def __move_point_in_number(self, number: int | float, shift: int) -> float:
+        letters_of_number = list(str(float(number)))
+        point_index = letters_of_number.index('.')
+        letters_of_number.pop(point_index)
+
+        point_index += shift
+
+        if point_index > len(letters_of_number):
+            letters_of_number.extend(
+                ('0' for _ in range(point_index - len(letters_of_number)))
+            )
+        elif point_index < 0:
+            point_index = 0
+
+        letters_of_number.insert(point_index, '.')
+
+        return float(''.join(letters_of_number))
+
+
