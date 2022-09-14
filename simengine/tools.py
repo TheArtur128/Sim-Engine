@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from time import sleep
 from typing import Iterable
 from math import floor, copysign
@@ -82,4 +83,20 @@ class ShiftNumberRounder(ProxyRounder):
 
         return float(''.join(letters_of_number))
 
+
+@dataclass
+class Report:
+    sign: bool
+    message: str | None = None
+    error: Exception | None = None
+
+    def __bool__(self) -> bool:
+        return self.sign
+
+    @classmethod
+    def create_error_report(cls, error: Exception) -> 'Report':
+        return cls(
+            False,
+            error=error
+        )
 
