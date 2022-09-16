@@ -93,10 +93,10 @@ class VectorDivider(Divider):
         ) if data.value.length == 0 else super().is_possible_to_divide(data)
 
     def _divide(self, vector: VirtualVector) -> None:
-        factor = self.rounder(vector.value.length / self.distance_between_points)
+        distance_factor = self.distance_between_points / vector.value.length
 
         vector_to_next_point = Vector(tuple(
-            coordinate / factor for coordinate in vector.value.coordinates
+            coordinate * distance_factor for coordinate in vector.value.coordinates
         ))
 
         number_of_points_to_create = vector.value.length / vector_to_next_point.length + 1
