@@ -11,3 +11,19 @@ class LineError(GeometryError):
 
 class UnableToDivideVectorIntoPointsError(GeometryError, UnableToDivideError):
     pass
+
+
+class FigureError(GeometryError):
+    pass
+
+
+class FigureIsNotCorrect(FigureError):
+    pass
+
+
+class FigureIsNotClosedError(FigureIsNotCorrect):
+    pass
+
+
+class FigureCrossesItselfError(FigureIsNotCorrect):
+    pass

@@ -5,8 +5,23 @@ from typing import Iterable, Callable
 
 from pyoverload import overload
 
-from tools import NumberRounder, ShiftNumberRounder, AccurateNumberRounder, Report, Divider
-from errors.geometry_errors import UnableToDivideVectorIntoPointsError
+from errors.geometry_errors import (
+    UnableToDivideVectorIntoPointsError,
+    FigureIsNotCorrect,
+    FigureIsNotClosedError,
+    FigureCrossesItselfError
+)
+from tools import (
+    NumberRounder,
+    ShiftNumberRounder,
+    AccurateNumberRounder,
+    Report,
+    Divider,
+    StrictToStateMixin,
+    ReportAnalyzer,
+    BadReportHandler,
+    Report
+)
 
 
 @dataclass(frozen=True)
@@ -228,3 +243,68 @@ class Line(Zone):
             VirtualVector(self.first_point, self.second_point)
         )
 
+
+class Figure(Zone, StrictToStateMixin):
+    _line_factory: Callable[[Vector, Vector], Line] = Line
+    _report_analyzer = ReportAnalyzer(
+        (BadReportHandler(FigureIsNotCorrect, "Figure not viable"), )
+    )
+
+    def __init__(self, points: Iterable[Vector, ]):
+        self._update_lines_by(points)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({len(self.summits)} summit{'s' if len(self.summits) > 0 else ''})"
+
+    @property
+    def summits(self) -> tuple[Vector, ]:
+        return self.__summits
+
+    def move_by(self, point_changer: IPointChanger) -> None:
+        self._update_lines_by(
+            tuple(map(point_changer, self.summits))
+        )
+        self._check_errors()
+
+    def is_vector_passes(self, vector: VirtualVector) -> bool:
+        return self._get_number_of_lines_passed_by(vector) % 2 == 0
+
+    def is_vector_entered(self, vector: VirtualVector) -> bool:
+        return self._get_number_of_lines_passed_by(vector) % 2 != 0
+
+    def is_point_inside(self, point: Vector) -> bool:
+        return any(line.is_point_inside(point) for line in self._lines)
+
+    def _get_number_of_lines_passed_by(self, vector: VirtualVector) -> int:
+        return sum(int(line.is_vector_passes(vector)) for line in self._lines)
+
+    def _is_correct(self) -> Report:
+        number_of_measurements = max(
+            map(lambda point: len(point.coordinates), self.summits)
+        )
+
+        if len(self.summits) <= number_of_measurements:
+            return Report.create_error_report(FigureIsNotClosedError(
+                f"{number_of_measurements}D figure must contain more than {number_of_measurements} links for closure"
+            ))
+        elif any(
+            3 < self._get_number_of_lines_passed_by(VirtualVector(line.first_point, line.second_point))
+            for line in self._lines
+        ):
+            return Report.create_error_report(
+                FigureCrossesItselfError("Figure lines intersect")
+            )
+        else:
+            return Report(True)
+
+    def _update_lines_by(self, points: Iterable[Vector, ]) -> tuple[Line, ]:
+        self._lines = tuple(
+            self._line_factory(
+                points[point_index - 1],
+                points[point_index]
+            )
+            for point_index in range(len(points))
+        )
+
+        self.__summits = tuple(line.first_point for line in self._lines)
+        self._check_errors()
