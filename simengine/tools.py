@@ -142,6 +142,17 @@ class ReportAnalyzer:
                 report_handler(report)
 
 
+class StrictToStateMixin(ABC):
+    _report_analyzer: ReportAnalyzer
+
+    @abstractmethod
+    def _is_correct(self) -> Report:
+        pass
+
+    def _check_errors(self) -> None:
+        self._report_analyzer(self._is_correct())
+
+
 class Divider(ABC):
     _report_analyzer = ReportAnalyzer((BadReportHandler(UnableToDivideError), ))
 
