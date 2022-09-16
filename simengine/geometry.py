@@ -81,6 +81,12 @@ class VirtualVector:
         )
 
 
+class IPointChanger(ABC):
+    @abstractmethod
+    def __call__(self, point: Vector) -> Vector:
+        pass
+
+
 class VectorDivider(Divider):
     def __init__(self, distance_between_points: int | float, rounder: NumberRounder):
         self.distance_between_points = distance_between_points
@@ -134,6 +140,10 @@ class Zone(ABC):
         return self.is_vector_passes(vector)
 
     @abstractmethod
+    def move_by(self, point_changer: IPointChanger) -> None:
+        pass
+
+    @abstractmethod
     def is_vector_passes(self, vector: VirtualVector) -> bool:
         pass
 
@@ -184,6 +194,13 @@ class Line(Zone):
     @property
     def all_available_points(self) -> tuple[Vector, ]:
         return self.__all_available_points
+
+    def move_by(self, point_changer: IPointChanger) -> None:
+        self.__first_point, self.__second_point = map(
+            point_changer, (self.first_point, self.second_point)
+        )
+
+        self._update_points()
 
     def is_vector_passes(self, vector: VirtualVector) -> bool:
         rounded_vector = vector.get_rounded_by(self._rounder)
