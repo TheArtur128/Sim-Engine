@@ -138,6 +138,10 @@ class Zone(ABC):
         pass
 
     @abstractmethod
+    def is_vector_entered(self, vector: VirtualVector) -> bool:
+        pass
+
+    @abstractmethod
     def is_point_inside(self, point: Vector) -> bool:
         pass
 
@@ -187,6 +191,11 @@ class Line(Zone):
         return any(
             self.is_point_inside(point)
             for point in self._vector_divider(rounded_vector)
+        )
+
+    def is_vector_entered(self, vector: VirtualVector) -> bool:
+        return self.is_point_inside(
+            vector.get_rounded_by(self._rounder).end_point
         )
 
     def is_point_inside(self, point: Vector) -> bool:
