@@ -92,7 +92,7 @@ class VectorDivider(Divider):
             )
         ) if data.value.length == 0 else super().is_possible_to_divide(data)
 
-    def _divide(self, vector: VirtualVector) -> None:
+    def _divide(self, vector: VirtualVector) -> frozenset[Vector, ]:
         distance_factor = self.distance_between_points / vector.value.length
 
         vector_to_next_point = Vector(tuple(
@@ -110,7 +110,7 @@ class VectorDivider(Divider):
         start_point: Vector,
         number_of_points_to_create: int,
         vector_to_next_point: Vector
-    ) -> tuple[Vector, ]:
+    ) -> frozenset[Vector, ]:
         created_points = [start_point]
 
         for created_point_index in range(1, int(number_of_points_to_create) + 1):
@@ -118,8 +118,8 @@ class VectorDivider(Divider):
                 created_points[created_point_index - 1] + vector_to_next_point
             )
 
-        return tuple(
-            map(lambda point: point.get_rounded_by(self.rounder), created_points)
+        return frozenset(
+            point.get_rounded_by(self.rounder) for point in created_points
         )
 
 
