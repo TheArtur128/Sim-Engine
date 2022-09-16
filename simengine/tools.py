@@ -102,18 +102,51 @@ class Report:
         )
 
 
+class ReportHandler(ABC):
+    @abstractmethod
+    def __call__(self, report: Report) -> None:
+        pass
+
+    def is_supported_report(self, report: Report) -> bool:
+        return True
+
+
+class BadReportHandler(ReportHandler):
+    def __init__(
+        self,
+        default_error_type: type,
+        default_error_message: str = ''
+    ):
+        self.default_error_type = default_error_type
+        self.default_error_message = default_error_message
+
+    def __call__(self, report: Report) -> None:
+        if report.error:
+            raise report.error
+
+        raise self.default_error_type(
+            report.message if report.message else self.default_error_message
+        )
+
+    def is_supported_report(self, report: Report) -> bool:
+        return not report.sign
+
+
+class ReportAnalyzer:
+    def __init__(self, report_handlers: Iterable[ReportHandler, ]):
+        self.report_handlers = frozenset(report_handlers)
+
+    def __call__(self, report: Report) -> None:
+        for report_handler in self.report_handlers:
+            if report_handler.is_supported_report(report):
+                report_handler(report)
+
+
 class Divider(ABC):
+    _report_analyzer = ReportAnalyzer((BadReportHandler(UnableToDivideError), ))
+
     def __call__(self, data: any) -> None:
-        report = self.is_possible_to_divide(data)
-
-        if not report:
-            if report.error:
-                raise report.error
-
-            raise UnableToDivideError(
-                report.message if report.message else f"Can't divide {data}"
-            )
-
+        self._report_analyzer(self.is_possible_to_divide(data))
         return self._divide(data)
 
     def is_possible_to_divide(self, data: any) -> Report:
