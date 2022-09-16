@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from math import sqrt
 from typing import Iterable, Callable
@@ -123,7 +124,25 @@ class VectorDivider(Divider):
         )
 
 
-class Line:
+class Zone(ABC):
+    @overload
+    def __contains__(self, point: Vector) -> bool:
+        return self.is_point_inside(point)
+
+    @overload
+    def __contains__(self, vector: VirtualVector) -> bool:
+        return self.is_vector_passes(vector)
+
+    @abstractmethod
+    def is_vector_passes(self, vector: VirtualVector) -> bool:
+        pass
+
+    @abstractmethod
+    def is_point_inside(self, point: Vector) -> bool:
+        pass
+
+
+class Line(Zone):
     _vector_divider_factory: Callable[['Line'], VectorDivider] = (
         lambda _: VectorDivider(0.1, ShiftNumberRounder(AccurateNumberRounder(), 1))
     )
@@ -162,14 +181,6 @@ class Line:
     def all_available_points(self) -> tuple[Vector, ]:
         return self.__all_available_points
 
-    @overload
-    def __contains__(self, point: Vector) -> bool:
-        return self.is_point_inside(point)
-
-    @overload
-    def __contains__(self, vector: VirtualVector) -> bool:
-        return self.is_vector_passes(vector)
-
     def is_vector_passes(self, vector: VirtualVector) -> bool:
         rounded_vector = vector.get_rounded_by(self._rounder)
 
@@ -190,3 +201,4 @@ class Line:
         self.__all_available_points = self._vector_divider(
             VirtualVector(self.first_point, self.second_point)
         )
+
