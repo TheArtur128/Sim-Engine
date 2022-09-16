@@ -1,6 +1,6 @@
 from dataclasses import dataclass
+from math import sqrt
 from typing import Iterable, Callable
-from math import sqrt, modf
 
 from pyoverload import overload
 
@@ -101,15 +101,6 @@ class VectorDivider(Divider):
 
         number_of_points_to_create = vector.value.length / vector_to_next_point.length + 1
 
-        if number_of_points_to_create <= 0 or modf(number_of_points_to_create)[0]:
-            raise UnableToDivideVectorIntoPointsError(
-                "Can't divide vector {vector} into {point_number} points by segment {segment}".format(
-                    vector=vector,
-                    point_number=number_of_points_to_create,
-                    segment=vector_to_next_point
-                )
-            )
-
         return self.__create_points(vector.start_point, number_of_points_to_create, vector_to_next_point)
 
     def __create_points(
@@ -132,7 +123,7 @@ class VectorDivider(Divider):
 
 class Line:
     _vector_divider_factory: Callable[['Line'], VectorDivider] = (
-        lambda _: VectorDivider(1, ShiftNumberRounder(AccurateNumberRounder(), 2))
+        lambda _: VectorDivider(0.1, ShiftNumberRounder(AccurateNumberRounder(), 1))
     )
 
     def __init__(self, first_point: Vector, second_point: Vector):
