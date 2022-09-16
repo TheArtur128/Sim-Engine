@@ -99,9 +99,11 @@ class VectorDivider(Divider):
             coordinate * distance_factor for coordinate in vector.value.coordinates
         ))
 
-        number_of_points_to_create = vector.value.length / vector_to_next_point.length + 1
-
-        return self.__create_points(vector.start_point, number_of_points_to_create, vector_to_next_point)
+        return self.__create_points(
+            vector.start_point,
+            vector.value.length / vector_to_next_point.length,
+            vector_to_next_point
+        )
 
     def __create_points(
         self,
@@ -111,7 +113,7 @@ class VectorDivider(Divider):
     ) -> tuple[Vector, ]:
         created_points = [start_point]
 
-        for created_point_index in range(1, int(number_of_points_to_create)):
+        for created_point_index in range(1, int(number_of_points_to_create) + 1):
             created_points.append(
                 created_points[created_point_index - 1] + vector_to_next_point
             )
