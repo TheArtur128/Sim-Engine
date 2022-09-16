@@ -88,7 +88,7 @@ class VectorDivider(Divider):
     def is_possible_to_divide(self, data: Vector) -> Report:
         return Report.create_error_report(
             UnableToDivideVectorIntoPointsError(
-                f"Can't divide vector {vector} into points with length 0"
+                f"Can't divide vector {data} into points with length 0"
             )
         ) if data.value.length == 0 else super().is_possible_to_divide(data)
 
