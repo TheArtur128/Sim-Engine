@@ -143,6 +143,14 @@ class IPointChanger(ABC):
         pass
 
 
+class DynamicTransporter(IPointChanger):
+    def __init__(self, shift: Vector):
+        self.shift = shift
+
+    def __call__(self, point: Vector) -> Vector:
+        return point + self.shift
+
+
 class VectorDivider(Divider, StylizedMixin):
     _repr_fields = (Field('distance_between_points'), )
 
