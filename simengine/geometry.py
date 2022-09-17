@@ -145,7 +145,7 @@ class VectorDivider(Divider):
         )
 
 
-class Zone(ABC):
+class Figure(ABC):
     @overload
     def __contains__(self, point: Vector) -> bool:
         return self.is_point_inside(point)
@@ -171,7 +171,7 @@ class Zone(ABC):
         pass
 
 
-class Line(Zone):
+class Line(Figure):
     _vector_divider_factory: Callable[['Line'], VectorDivider] = (
         lambda _: VectorDivider(0.1, ShiftNumberRounder(AccurateNumberRounder(), 1))
     )
@@ -244,10 +244,10 @@ class Line(Zone):
         )
 
 
-class Figure(Zone, StrictToStateMixin):
+class Polygon(Figure, StrictToStateMixin):
     _line_factory: Callable[[Vector, Vector], Line] = Line
     _report_analyzer = ReportAnalyzer(
-        (BadReportHandler(FigureIsNotCorrect, "Figure not viable"), )
+        (BadReportHandler(FigureIsNotCorrect, "Polygon not viable"), )
     )
 
     def __init__(self, points: Iterable[Vector, ]):
@@ -292,7 +292,7 @@ class Figure(Zone, StrictToStateMixin):
             for line in self._lines
         ):
             return Report.create_error_report(
-                FigureCrossesItselfError("Figure lines intersect")
+                FigureCrossesItselfError("Polygon lines intersect")
             )
         else:
             return Report(True)
