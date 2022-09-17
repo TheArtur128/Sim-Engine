@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from time import sleep
 from typing import Iterable
 from math import floor, copysign
+from enum import IntEnum
 
 from interfaces import IUpdatable
 from errors.tool_error import UnableToDivideError
@@ -166,3 +167,18 @@ class Divider(ABC):
     @abstractmethod
     def _divide(self, data: any) -> None:
         pass
+
+
+class ComparisonResult(IntEnum):
+    less = -1
+    equals = 0
+    more = 1
+
+
+def compare(main: any, relatival: any) -> ComparisonResult:
+    if main > relatival:
+        return ComparisonResult.more
+    elif main < relatival:
+        return ComparisonResult.less
+    else:
+        return ComparisonResult.equals
