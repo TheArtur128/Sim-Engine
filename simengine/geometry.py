@@ -315,8 +315,18 @@ class Line(Figure, StylizedMixin):
 
         self._update_points()
 
+    def is_vector_passes(self, vector: VirtualVector) -> bool:
+        return super().is_vector_passes(vector) if (
+            vector.start_point in self.__proposed_location_area or
+            vector.end_point in self.__proposed_location_area or
+            vector.end_point - vector.value*0.5 in self.__proposed_location_area
+        ) else False
+
     def is_point_inside(self, point: Vector) -> bool:
-        return point.get_rounded_by(self._rounder) in self.__all_available_points
+        return (
+            point.get_rounded_by(self._rounder) in self.__all_available_points
+            if not point in self.__proposed_location_area else True
+        )
 
     def _update_points(self) -> None:
         self.__first_point, self.__second_point = map(
@@ -327,6 +337,7 @@ class Line(Figure, StylizedMixin):
         self.__all_available_points = self._vector_divider(
             VirtualVector(self.first_point, self.second_point)
         )
+        self.__proposed_location_area = Rectangle(self.first_point, self.second_point)
 
 
 class Polygon(Figure, StrictToStateMixin, StylizedMixin):
