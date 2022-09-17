@@ -232,6 +232,40 @@ class Figure(ABC):
         pass
 
 
+class CompositeFigure(Figure, StylizedMixin):
+    _repr_fields = (
+        Field(
+            'main_figures',
+            value_getter=parse_length,
+            formatter=TemplateFormatter("{value} main figures")
+        ),
+        Field(
+            'subtraction_figures',
+            value_getter=parse_length,
+            formatter=TemplateFormatter("{value} subtraction figures")
+        )
+    )
+
+    def __init__(
+        self,
+        main_figures: Iterable[Figure, ],
+        subtraction_figures: Iterable[Figure, ] = tuple()
+    ):
+        self.main_figures = set(main_figures)
+        self.subtraction_figures = set(subtraction_figures)
+
+    def move_by(self, point_changer: IPointChanger) -> None:
+        for figure in (*self.main_figures, *self.subtraction_figures):
+            figure.move_by(point_changer)
+
+    def is_point_inside(self, point: Vector) -> bool:
+        return (
+            any(figure.is_point_inside(point) for figure in self.main_figures)
+            if all(not figure.is_point_inside(point) for figure in self.subtraction_figures)
+            else False
+        )
+
+
 class Line(Figure, StylizedMixin):
     _repr_fields = (
         Field(
