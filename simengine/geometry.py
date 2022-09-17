@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from math import sqrt
 from typing import Iterable, Callable
 
+from beautiful_repr import StylizedMixin, Field, TemplateFormatter, parse_length
 from pyoverload import overload
 
 from errors.geometry_errors import (
@@ -23,9 +24,12 @@ from tools import (
 )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, repr=False)
 class Vector:
     coordinates: tuple[float | int] = tuple()
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({str(tuple(self.coordinates))[1:-1]})"
 
     @property
     def length(self) -> float:
@@ -79,10 +83,13 @@ class Vector:
         ))
 
 
-@dataclass
+@dataclass(repr=False)
 class VirtualVector:
     start_point: Vector
     end_point: Vector
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(from {self.start_point} to {self.end_point})"
 
     @property
     def value(self) -> Vector:
@@ -101,7 +108,9 @@ class IPointChanger(ABC):
         pass
 
 
-class VectorDivider(Divider):
+class VectorDivider(Divider, StylizedMixin):
+    _repr_fields = (Field('distance_between_points'), )
+
     def __init__(self, distance_between_points: int | float, rounder: NumberRounder):
         self.distance_between_points = distance_between_points
         self.rounder = rounder
@@ -180,7 +189,13 @@ class Figure(ABC):
         pass
 
 
-class Line(Figure):
+class Line(Figure, StylizedMixin):
+    _repr_fields = (
+        Field(
+            value_getter=lambda line, _: (line.first_point, line.second_point),
+            formatter=lambda values, _: f"between {values[0]} and {values[1]}"
+        ),
+    )
 
     def __init__(self, first_point: Vector, second_point: Vector):
         super().__init__()
@@ -191,9 +206,6 @@ class Line(Figure):
         self.__second_point = second_point
 
         self._update_points()
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__} between {self.first_point} and {self.second_point}"
 
     @property
     def first_point(self) -> Vector:
@@ -238,7 +250,14 @@ class Line(Figure):
         )
 
 
-class Polygon(Figure, StrictToStateMixin):
+class Polygon(Figure, StrictToStateMixin, StylizedMixin):
+    _repr_fields = (
+        Field(
+            'summits',
+            value_getter=parse_length,
+            formatter=TemplateFormatter("{value} summits")
+        ),
+    )
     _line_factory: Callable[[Vector, Vector], Line] = Line
     _report_analyzer = ReportAnalyzer(
         (BadReportHandler(FigureIsNotCorrect, "Polygon not viable"), )
