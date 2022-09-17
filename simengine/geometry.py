@@ -47,7 +47,25 @@ class Vector:
         )
 
     def __sub__(self, other: 'Vector') -> 'Vector':
-        return self + other.get_reflected_by_coordinates()
+        return self + (-other)
+    def __mul__(self, number: int | float) -> 'Vector':
+        return self.__class__(
+            tuple(number * coordinate for coordinate in self.coordinates)
+        )
+
+    def __rmul__(self, number: int | float) -> 'Vector':
+        return self * number
+
+    def __truediv__(self, number: int | float) -> 'Vector':
+        return self*(1 / number)
+
+    def __floordiv__(self, number: int | float) -> 'Vector':
+        return self.__class__(
+            tuple(int(coordinate) for coordinate in (self / number).coordinates)
+        )
+
+    def __neg__(self) -> 'Vector':
+        return self.get_reflected_by_coordinates()
 
     def __len__(self) -> int:
         return len(self.coordinates)
