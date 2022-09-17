@@ -24,16 +24,27 @@ from tools import (
 )
 
 
-@dataclass(frozen=True, repr=False)
 class Vector:
-    coordinates: tuple[float | int] = tuple()
+    def __init__(self, coordinates: tuple[float | int]):
+        self.__coordinates = tuple(coordinates)
+        self.__length = sqrt(sum(coordinate**2 for coordinate in self.coordinates))
+
+    @property
+    def coordinates(self) -> tuple[int | float, ]:
+        return self.__coordinates
+
+    @property
+    def length(self) -> float:
+        return self.__length
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({str(tuple(self.coordinates))[1:-1]})"
 
-    @property
-    def length(self) -> float:
-        return sqrt(sum(coordinate**2 for coordinate in self.coordinates))
+    def __hash__(self) -> int:
+        return hash(self.coordinates)
+
+    def __eq__(self, other: 'Vector') -> 'Vector':
+        return self.coordinates == other.coordinates
 
     def __add__(self, other: 'Vector') -> 'Vector':
         maximum_number_of_measurements = max((len(self.coordinates), len(other.coordinates)))
@@ -48,6 +59,7 @@ class Vector:
 
     def __sub__(self, other: 'Vector') -> 'Vector':
         return self + (-other)
+
     def __mul__(self, number: int | float) -> 'Vector':
         return self.__class__(
             tuple(number * coordinate for coordinate in self.coordinates)
