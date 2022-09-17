@@ -383,3 +383,17 @@ class Polygon(Figure, StrictToStateMixin, StylizedMixin):
         self.__summits = tuple(line.first_point for line in self._lines)
         self._check_errors()
 
+
+class Circle(Figure, StylizedMixin):
+    _repr_fields = (Field('radius'), Field('center_point'))
+
+    def __init__(self, center_point: Vector, radius: int | float):
+        self.center_point = center_point
+        self.radius = radius
+
+    def move_by(self, point_changer: IPointChanger) -> None:
+        self.center_point = point_changer(self.center_point)
+
+    def is_point_inside(self, point: Vector) -> bool:
+        return (self.center_point - point).length <= self.radius
+
