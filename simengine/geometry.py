@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from math import sqrt
+from functools import lru_cache
 from typing import Iterable, Callable
 
 from beautiful_repr import StylizedMixin, Field, TemplateFormatter, parse_length
@@ -46,6 +47,7 @@ class Vector:
     def __eq__(self, other: 'Vector') -> 'Vector':
         return self.coordinates == other.coordinates
 
+    @lru_cache(maxsize=8192)
     def __add__(self, other: 'Vector') -> 'Vector':
         maximum_number_of_measurements = max((len(self.coordinates), len(other.coordinates)))
 
@@ -60,6 +62,7 @@ class Vector:
     def __sub__(self, other: 'Vector') -> 'Vector':
         return self + (-other)
 
+    @lru_cache(maxsize=4096)
     def __mul__(self, number: int | float) -> 'Vector':
         return self.__class__(
             tuple(number * coordinate for coordinate in self.coordinates)
@@ -82,6 +85,7 @@ class Vector:
     def __len__(self) -> int:
         return len(self.coordinates)
 
+    @lru_cache(maxsize=1024)
     def get_normalized_to_measurements(
         self,
         number_of_measurements: int,
@@ -94,6 +98,7 @@ class Vector:
             else self.coordinates[:number_of_measurements if number_of_measurements >= 0 else 0]
         )
 
+    @lru_cache(maxsize=128)
     def get_reflected_by_coordinates(
         self,
         coordinate_indexes: Iterable[int, ] | None = None
