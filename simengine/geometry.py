@@ -9,7 +9,6 @@ from errors.geometry_errors import (
     UnableToDivideVectorIntoPointsError,
     FigureIsNotCorrect,
     FigureIsNotClosedError,
-    FigureCrossesItselfError
 )
 from tools import (
     NumberRounder,
@@ -146,6 +145,13 @@ class VectorDivider(Divider):
 
 
 class Figure(ABC):
+    _vector_divider_factory: Callable[['Line'], VectorDivider] = (
+        lambda _: VectorDivider(0.1, ShiftNumberRounder(AccurateNumberRounder(), 1))
+    )
+
+    def __init__(self):
+        self._vector_divider = self._vector_divider_factory()
+
     @overload
     def __contains__(self, point: Vector) -> bool:
         return self.is_point_inside(point)
@@ -158,13 +164,16 @@ class Figure(ABC):
     def move_by(self, point_changer: IPointChanger) -> None:
         pass
 
-    @abstractmethod
     def is_vector_passes(self, vector: VirtualVector) -> bool:
-        pass
+        return any(
+            self.is_point_inside(point)
+            for point in self._vector_divider(rounded_vector)
+        )
 
-    @abstractmethod
     def is_vector_entered(self, vector: VirtualVector) -> bool:
-        pass
+        return self.is_point_inside(
+            vector.end_point
+        )
 
     @abstractmethod
     def is_point_inside(self, point: Vector) -> bool:
@@ -172,12 +181,10 @@ class Figure(ABC):
 
 
 class Line(Figure):
-    _vector_divider_factory: Callable[['Line'], VectorDivider] = (
-        lambda _: VectorDivider(0.1, ShiftNumberRounder(AccurateNumberRounder(), 1))
-    )
 
     def __init__(self, first_point: Vector, second_point: Vector):
-        self._vector_divider = self._vector_divider_factory()
+        super().__init__()
+
         self._rounder = self._vector_divider.rounder
 
         self.__first_point = first_point
@@ -217,19 +224,6 @@ class Line(Figure):
 
         self._update_points()
 
-    def is_vector_passes(self, vector: VirtualVector) -> bool:
-        rounded_vector = vector.get_rounded_by(self._rounder)
-
-        return any(
-            self.is_point_inside(point)
-            for point in self._vector_divider(rounded_vector)
-        )
-
-    def is_vector_entered(self, vector: VirtualVector) -> bool:
-        return self.is_point_inside(
-            vector.get_rounded_by(self._rounder).end_point
-        )
-
     def is_point_inside(self, point: Vector) -> bool:
         return point.get_rounded_by(self._rounder) in self.__all_available_points
 
@@ -266,17 +260,8 @@ class Polygon(Figure, StrictToStateMixin):
         )
         self._check_errors()
 
-    def is_vector_passes(self, vector: VirtualVector) -> bool:
-        return self._get_number_of_lines_passed_by(vector) % 2 == 0
-
-    def is_vector_entered(self, vector: VirtualVector) -> bool:
-        return self._get_number_of_lines_passed_by(vector) % 2 != 0
-
     def is_point_inside(self, point: Vector) -> bool:
         return any(line.is_point_inside(point) for line in self._lines)
-
-    def _get_number_of_lines_passed_by(self, vector: VirtualVector) -> int:
-        return sum(int(line.is_vector_passes(vector)) for line in self._lines)
 
     def _is_correct(self) -> Report:
         number_of_measurements = max(
@@ -287,13 +272,6 @@ class Polygon(Figure, StrictToStateMixin):
             return Report.create_error_report(FigureIsNotClosedError(
                 f"{number_of_measurements}D figure must contain more than {number_of_measurements} links for closure"
             ))
-        elif any(
-            3 < self._get_number_of_lines_passed_by(VirtualVector(line.first_point, line.second_point))
-            for line in self._lines
-        ):
-            return Report.create_error_report(
-                FigureCrossesItselfError("Polygon lines intersect")
-            )
         else:
             return Report(True)
 
@@ -308,3 +286,4 @@ class Polygon(Figure, StrictToStateMixin):
 
         self.__summits = tuple(line.first_point for line in self._lines)
         self._check_errors()
+

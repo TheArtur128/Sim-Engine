@@ -23,7 +23,3 @@ class FigureIsNotCorrect(FigureError):
 
 class FigureIsNotClosedError(FigureIsNotCorrect):
     pass
-
-
-class FigureCrossesItselfError(FigureIsNotCorrect):
-    pass
