@@ -171,11 +171,11 @@ class InteractiveUnit(ABC):
 class MixinDiscrete(ABC):
     @property
     @abstractmethod
-    def parts(self) -> frozenset:
+    def parts(self) -> frozenset[IUpdatable, ]:
         pass
 
     @property
-    def deep_parts(self) -> frozenset:
+    def deep_parts(self) -> frozenset[IUpdatable, ]:
         found_parts = set()
 
         for part in self.parts:
@@ -321,23 +321,23 @@ class World(IUpdatable, MixinDiscrete, ABC):
             self.add_inhabitant(inhabitant)
 
     @property
-    def parts(self) -> frozenset:
+    def parts(self) -> frozenset[IUpdatable, ]:
         return frozenset(self.__inhabitant)
 
     @property
     def unit_handlers(self) -> tuple[UnitHandler]:
         return self._unit_handlers
 
-    def is_inhabited_for(self, inhabitant: object) -> bool:
+    def is_inhabited_for(self, inhabitant: IUpdatable) -> bool:
         return isinstance(inhabitant, IUpdatable)
 
-    def add_inhabitant(self, inhabitant: object) -> None:
+    def add_inhabitant(self, inhabitant: IUpdatable) -> None:
         if not self.is_inhabited_for(inhabitant):
             raise NotSupportPartError(f"World {self} does not support {inhabitant}")
 
         self.__inhabitant.add(inhabitant)
 
-    def remove_inhabitant(self, inhabitant: object) -> None:
+    def remove_inhabitant(self, inhabitant: IUpdatable) -> None:
         self.__inhabitant.remove(inhabitant)
 
     def update(self) -> None:
