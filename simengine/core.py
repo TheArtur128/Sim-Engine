@@ -113,6 +113,14 @@ class Process(IUpdatable, ABC):
             self.state = next_state
 
 
+class DelayedProcess(Process, ABC):
+    _ticks_of_inactivity: int
+
+    def activate_delay(self) -> None:
+        self.state = SleepProcessState(self, self._ticks_of_inactivity)
+
+    def _start(self) -> None:
+        self.activate_delay()
 
 
 class DependentUnit(IUpdatable, ABC):
