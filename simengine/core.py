@@ -1,55 +1,118 @@
 from abc import ABC, abstractmethod
-from typing import Iterable, Callable
-from enum import Enum, auto
+from typing import Iterable, Callable, Optional
 
 from interfaces import IUpdatable, IAvatar, IInteractive
 from errors.core_errors import *
 from geometry import Vector
+from tools import ReportAnalyzer, BadReportHandler, Report
 
 
-class ProcessState(Enum):
-    active = auto()
-    sleep = auto()
-    completed = auto()
+class ProcessState(IUpdatable, ABC):
+    _report_analyzer = ReportAnalyzer((BadReportHandler(
+        ProcessStateIsNotValidError,
+        "Process state is not valid to update"
+    ), ))
+
+    def __init__(self, process: 'Process'):
+        self.__process = process
+
+    @property
+    def process(self) -> 'Process':
+        return self.__process
+
+    @abstractmethod
+    def get_next_state(self) -> Optional['ProcessState']:
+        pass
+
+    @abstractmethod
+    def is_valid(self) -> Report:
+        pass
+
+    def update(self) -> None:
+        self._report_analyzer(self.is_valid())
+        self._handle()
+
+    @abstractmethod
+    def _handle(self) -> None:
+        pass
+
+
+class CompletedProcessState(ProcessState):
+    def get_next_state(self) -> None:
+        return None
+
+    def is_valid(self) -> Report:
+        return Report(True)
+
+    def _handle(self) -> None:
+        raise ProcessAlreadyCompletedError(
+            f"Process {self.process} has completed its life cycle"
+        )
+
+
+class ActiveProcessState(ProcessState):
+    def get_next_state(self) -> None:
+        return None
+
+    def is_valid(self) -> Report:
+        return Report(True)
+
+    def _handle(self) -> None:
+        self.process._handle()
+
+
+class SleepProcessState(ProcessState):
+    def __init__(
+        self,
+        process: 'Process',
+        ticks_to_activate: int | float,
+        tick_factor: int | float = 1
+    ):
+        super().__init__(process)
+        self.ticks_to_activate = ticks_to_activate
+        self.tick = 1 * tick_factor
+
+    def get_next_state(self) -> ProcessState:
+        return ActiveProcessState(self.process)
+
+    def is_valid(self) -> Report:
+        return Report.create_error_report(
+            ProcessIsNoLongerSleepingError(f"Process {self.process} no longer sleeps")
+        ) if self.ticks_to_activate <= 0 else Report(True)
+
+    def _handle(self) -> None:
+        self.ticks_to_activate -= self.tick
 
 
 class Process(IUpdatable, ABC):
-    __ticks_to_activate = 0
-
-    def __new__(cls, *args, **kwargs):
-        instance = super().__new__(cls)
-        instance._start()
-
-        return instance
-
-    @property
-    def state(self) -> ProcessState:
-        return self._state
-
-    @property
-    def ticks_to_activate(self) -> int:
-        return self.__ticks_to_activate
-
-    def sleep(self, ticks: int) -> None:
-        self._state = ProcessState.sleep
-        self.__ticks_to_activate += ticks
+    state = None
 
     def update(self) -> None:
-        if self._state is ProcessState.sleep:
-            self.__ticks_to_activate -= 1
+        if not self.state:
+            self._start()
 
-        if self.__ticks_to_activate <= 0:
-            self._state = ProcessState.active
+        while True:
+            old_state = self.state
+            self.__reset_state()
 
-        if self._state is ProcessState.active:
-            self._handle()
+            if old_state is self.state:
+                self.state.update()
+                break
 
     @abstractmethod
     def _handle(self) -> None:
         pass
 
     def _start(self) -> None:
-        self._state = ProcessState.active
+        self.state = ActiveProcessState(self)
+
+    def __reset_state(self) -> None:
+        next_state = self.state.get_next_state()
+
+        if not self.state.is_valid() and next_state:
+            self.state = next_state
+
+
 
 
 class DependentUnit(IUpdatable, ABC):
