@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import NamedTuple, Callable, Iterable
 
 from geometry import Vector
+from interfaces import IUpdatable
 from errors.render_errors import UnsupportedResourceError
 
 
@@ -69,12 +70,12 @@ class Render(ABC):
         return decorator
 
 
-class RenderDelegator(ABC):
+class RenderActivator(IUpdatable):
     def __init__(self, render_resource_keeper: IRenderRersourceKeeper, renders: Iterable[Render, ]):
         self.render_resource_keeper = render_resource_keeper
         self.renders = tuple(renders)
 
-    def __call__(self) -> None:
+    def update(self) -> None:
         for render in self.renders:
             self.__apply_render(render)
 
