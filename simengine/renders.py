@@ -40,6 +40,13 @@ class Render(ABC):
     def __call__(self, positional_resource: PositionalRenderResource) -> None:
         self.draw_resource(positional_resource)
 
+    def draw_scene(self, positional_resources: Iterable[PositionalRenderResource, ]) -> None:
+        for surface in self.surfaces:
+            self._prepare_surface(surface)
+
+        for positional_resource in positional_resources:
+            self.draw_resource(positional_resource)
+
     def draw_resource(self, positional_resource: PositionalRenderResource) -> None:
         if not self.is_supported_resource(positional_resource.resource):
             raise UnsupportedResourceError(
@@ -60,6 +67,10 @@ class Render(ABC):
 
     def _get_resource_handler_by(self, positional_resource: PositionalRenderResource) -> IResourceHandler:
         return self._resource_handler_by_resource_type[type(positional_resource.resource)]
+
+    @abstractmethod
+    def _prepare_surface(self, surface: any) -> None:
+        pass
 
     @classmethod
     def resource_handler_for(cls, resource_type: type) -> Callable[[IResourceHandler], IResourceHandler]:
