@@ -188,13 +188,16 @@ class MixinDiscrete(ABC):
 
 
 class DiscreteUnit(MixinDiscrete, ABC):
-    def __init__(self, *args_for_part_init, **kwargs_for_part_init):
-        super().__init__()
-        self.__init_parts__(*args_for_part_init, **kwargs_for_part_init)
+    @property
+    def parts(self) -> frozenset[IUpdatable, ]:
+        return frozenset(self._parts)
 
     @abstractmethod
-    def __init_parts__(self) -> None:
+    def __create_parts__(self) -> Iterable[IUpdatable, ]:
         pass
+
+    def init_parts(self, *args, **kwargs) -> None:
+        self._parts = set(self.__create_parts__(*args, **kwargs))
 
 
 class PositionalUnit(ABC):
