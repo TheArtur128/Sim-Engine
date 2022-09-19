@@ -6,7 +6,7 @@ from math import floor, copysign
 from enum import IntEnum
 
 from interfaces import IUpdatable
-from errors.tool_error import UnableToDivideError
+from errors.tool_error import UnableToDivideError, ColorCoordinateError, AlphaChannelError
 
 
 class LoopUpdater:
@@ -182,3 +182,25 @@ def compare(main: any, relatival: any) -> ComparisonResult:
         return ComparisonResult.less
     else:
         return ComparisonResult.equals
+
+
+@dataclass(frozen=True)
+class RGBAColor:
+    red: int = 0
+    green: int = 0
+    blue: int = 0
+    alpha_channel: float = 1.
+
+    def __post_init__(self) -> None:
+        if not all(
+            0 <= color_coordinate <= 255
+            for color_coordinate in (self.red, self.green, self.blue)
+        ):
+            raise ColorCoordinateError(
+                f"Color coordinate must be between 0 and 255 {self}"
+            )
+        elif not 0 <= self.alpha_channel <= 1:
+            raise AlphaChannelError("Alpha channel must be between 0 and 1")
+
+    def __iter__(self) -> iter:
+        return iter((self.red, self.green, self.blue, self.alpha_channel))

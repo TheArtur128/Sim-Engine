@@ -8,3 +8,15 @@ class DividerError(ToolError):
 
 class UnableToDivideError(DividerError):
     pass
+
+
+class RGBAColorError(ToolError):
+    pass
+
+
+class ColorCoordinateError(RGBAColorError):
+    pass
+
+
+class AlphaChannelError(RGBAColorError):
+    pass
