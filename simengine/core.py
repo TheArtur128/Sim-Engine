@@ -140,11 +140,10 @@ class DependentUnit(IUpdatable, ABC):
         self._processes.add(process)
 
     def activate_processes(self) -> None:
-        processes_to_update = self._processes
-        self._processes = set()
+        processes_to_update, self._processes = self._processes, set()
 
         for process in processes_to_update:
-            if process.state is ProcessState.completed:
+            if type(process.state) is CompletedProcessState:
                 self.__completed_processes.append(process)
             else:
                 self._processes.add(process)
@@ -346,8 +345,8 @@ class World(IUpdatable, MixinDiscrete, ABC):
 
     def __use_unit_handler(self, handler: UnitHandler) -> None:
         unit_handler(
-            filter(
-                lambda unit: unit_handler.is_unit_suitable(unit),
-                self.deep_parts
+            tuple(
+                unit for unit in self.deep_parts
+                if unit_handler.is_unit_suitable(unit)
             )
         )
