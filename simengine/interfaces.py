@@ -7,9 +7,7 @@ class IUpdatable(ABC):
         pass
 
 
-class IInteractive(ABC):
     @abstractmethod
-    def react_to(self, object_: object) -> None:
         pass
 
 

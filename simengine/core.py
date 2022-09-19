@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Iterable, Callable, Optional
 
-from interfaces import IUpdatable, IAvatar, IInteractive
+from interfaces import IUpdatable, IAvatar
 from errors.core_errors import *
 from geometry import Vector
 from tools import ReportAnalyzer, BadReportHandler, Report
@@ -154,6 +154,20 @@ class DependentUnit(IUpdatable, ABC):
         self.__completed_processes = list()
 
 
+class InteractiveUnit(ABC):
+    def interact_with(self, unit: IUpdatable) -> None:
+        if self.is_support_interaction_with(unit):
+            self._handle_interaction_with(unit)
+
+    @abstractmethod
+    def is_support_interaction_with(self, unit: IUpdatable) -> bool:
+        pass
+
+    @abstractmethod
+    def _handle_interaction_with(self, unit: IUpdatable) -> None:
+        pass
+
+
 class MixinDiscrete(ABC):
     @property
     @abstractmethod
@@ -280,14 +294,14 @@ class RenderResourceParser(FocusedUnitHandler):
 class UnitRelationsActivator(UnitHandler):
     def _handle_units(self, units: Iterable[IUpdatable, ]) -> None:
         for active_unit in units:
-            if not isinstance(active_unit, IInteractive):
+            if not isinstance(active_unit, InteractiveUnit):
                 continue
 
             passive_units = set(units)
             passive_units.remove(active_unit)
 
             for passive_unit in passive_units:
-                active_unit.react_to(passive_unit)
+                active_unit.interact_with(passive_unit)
 
 
 class World(IUpdatable, MixinDiscrete, ABC):
