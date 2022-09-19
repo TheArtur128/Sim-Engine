@@ -290,7 +290,7 @@ class RenderResourceParser(FocusedUnitHandler):
 
     def _handle_unit(self, unit: IUpdatable) -> None:
         unit.avatar.update()
-        self._parsed_render_resources.append(unit.avatar.render_resource)
+        self._parsed_render_resources.extend(unit.avatar.render_resources)
 
 
 class UnitRelationsActivator(UnitHandler):
