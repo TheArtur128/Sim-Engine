@@ -9,17 +9,16 @@ from interfaces import IUpdatable, ILoop
 from errors.tool_error import UnableToDivideError, ColorCoordinateError, AlphaChannelError
 
 
-    def __init__(self, updated_object: IUpdatable, timeout: int = 0):
-        self.updated_object = updated_object
-        self.timeout = timeout
 class LoopUpdater(ILoop):
+    def __init__(self, unit: IUpdatable):
+        self.unit = unit
 
     def run(self) -> None:
         while True:
-            self.updated_object.update()
+            self._handle()
 
-            if self.timeout > 0:
-                sleep(self.timeout)
+    def _handle(self) -> None:
+        self.unit.update()
 
 
 class NumberRounder(ABC):
