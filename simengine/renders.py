@@ -38,6 +38,9 @@ class Render(ABC):
         pass
 
     def __call__(self, positional_resource: PositionalRenderResource) -> None:
+        self.draw_resource(positional_resource)
+
+    def draw_resource(self, positional_resource: PositionalRenderResource) -> None:
         if not self.is_supported_resource(positional_resource.resource):
             raise UnsupportedResourceError(
                 f"Render {self} cannot display resource {positional_resource.resource} at {positional_resource.point}"
