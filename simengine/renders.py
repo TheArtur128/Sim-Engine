@@ -23,8 +23,8 @@ class IResourceHandler(ABC):
     def __call__(
         self,
         resource: any,
-        point: tuple[int | float, ],
-        surface: object
+        point: Vector,
+        surface: any
     ) -> None:
         pass
 
@@ -48,7 +48,7 @@ class Render(ABC):
         for surface in self.surfaces:
             resource_handler(
                 positional_resource.resource,
-                positional_resource.point.coordinates,
+                positional_resource.point,
                 surface
             )
 
