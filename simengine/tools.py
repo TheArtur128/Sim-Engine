@@ -5,14 +5,14 @@ from typing import Iterable
 from math import floor, copysign
 from enum import IntEnum
 
-from interfaces import IUpdatable
+from interfaces import IUpdatable, ILoop
 from errors.tool_error import UnableToDivideError, ColorCoordinateError, AlphaChannelError
 
 
-class LoopUpdater:
     def __init__(self, updated_object: IUpdatable, timeout: int = 0):
         self.updated_object = updated_object
         self.timeout = timeout
+class LoopUpdater(ILoop):
 
     def run(self) -> None:
         while True:
