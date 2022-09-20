@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Iterable, Callable, Optional
 
-from interfaces import IUpdatable, IAvatar
+from interfaces import IUpdatable
+from renders import IAvatar
 from errors.core_errors import *
 from geometry import Vector
 from tools import ReportAnalyzer, BadReportHandler, Report

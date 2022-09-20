@@ -7,13 +7,6 @@ class IUpdatable(ABC):
         pass
 
 
-class IAvatar(IUpdatable, ABC):
-    @property
-    @abstractmethod
-    def render_resources(self) -> tuple:
-        pass
-
-
 class ILoop(ABC):
     @abstractmethod
     def run(self) -> None:
