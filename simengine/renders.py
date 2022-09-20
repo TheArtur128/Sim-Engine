@@ -29,12 +29,8 @@ class IRenderRersourceKeeper(ABC):
 
 class IResourceHandler(ABC):
     @abstractmethod
-    def __call__(
-        self,
-        resource: any,
-        point: Vector,
-        surface: any
-    ) -> None:
+    def __call__(self, resource: any, point: any, surface: any) -> None:
+        pass
         pass
 
 
