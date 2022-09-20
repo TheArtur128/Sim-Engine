@@ -2,9 +2,12 @@ from abc import ABC, abstractmethod
 from typing import NamedTuple, Callable, Iterable
 from dataclasses import dataclass
 
+from beautiful_repr import StylizedMixin, Field
+
 from geometry import Vector
 from interfaces import IUpdatable
 from errors.render_errors import UnsupportedResourceError
+from tools import ReportAnalyzer, BadReportHandler, Report
 
 
 @dataclass
@@ -30,6 +33,23 @@ class IRenderRersourceKeeper(ABC):
 class IResourceHandler(ABC):
     @abstractmethod
     def __call__(self, resource: any, point: any, surface: any) -> None:
+        pass
+
+
+class ResourceHandler(IResourceHandler, ABC):
+    _report_analyzer = ReportAnalyzer(
+        (BadReportHandler(UnsupportedResourceError, "Resource Handler can't handle resource"), )
+    )
+
+    def __call__(self, resource: any, point: any, surface: any) -> None:
+        self._report_analyzer(self.is_support_to_handle(resource, point, surface))
+        self._handle(resource, point, surface)
+
+    def is_support_to_handle(self, resource: any, point: any, surface: any) -> Report:
+        return Report(True)
+
+    @abstractmethod
+    def _handle(self, resource: any, point: any, surface: any) -> None:
         pass
         pass
 
