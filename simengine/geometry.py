@@ -28,6 +28,8 @@ from tools import (
 
 
 class Vector:
+    __slots__ = ('__coordinates', '__length')
+
     def __init__(self, coordinates: tuple[float | int]):
         self.__coordinates = tuple(coordinates)
         self.__length = sqrt(sum(coordinate**2 for coordinate in self.coordinates))
