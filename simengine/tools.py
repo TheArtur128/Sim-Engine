@@ -203,3 +203,13 @@ class RGBAColor:
 
     def __iter__(self) -> iter:
         return iter((self.red, self.green, self.blue, self.alpha_channel))
+
+
+@dataclass(frozen=True)
+class Arguments:
+    args: tuple
+    kwargs: dict
+
+    @classmethod
+    def create_via_call(cls, *args, **kwargs) -> 'Arguments':
+        return cls(args, kwargs)
