@@ -1,13 +1,13 @@
-from abc import ABC, abstractmethod
-from typing import NamedTuple, Callable, Iterable
+from abc import ABC, abstractmethod, ABCMeta
 from dataclasses import dataclass
+from typing import Callable, Iterable, Optional, Generator
 
 from beautiful_repr import StylizedMixin, Field
 
 from geometry import Vector
 from interfaces import IUpdatable
 from errors.render_errors import UnsupportedResourceError
-from tools import ReportAnalyzer, BadReportHandler, Report
+from tools import ReportAnalyzer, BadReportHandler, Report, Arguments
 
 
 @dataclass
@@ -137,9 +137,53 @@ class BaseRender(IRender, ABC):
         pass
 
 
+class ResourceHandlingChainMeta(ABCMeta):
+    def __new__(cls, class_name: str, super_classes: tuple, attributes: dict):
+        render_type = super().__new__(cls, class_name, super_classes, attributes)
+
+        render_type._resource_handlers = (
+            tuple(render_type.__get_resource_handlers_from(attributes)) +
+            render_type._get_resource_handlers_of_parents()
+        )
+
+        return render_type
+
+    @staticmethod
+    def resource_handler(
+        wrapper_factory: Optional[ResourceHandlerWrapper] = None,
+        *args_for_factory,
+        **kwargs_for_factory,
+    ) -> Callable[[IResourceHandler], ResourceHandlerWrapper]:
+        def decorator(resource_handler: IResourceHandler) -> ResourceHandlerWrapper | Arguments:
+            # Arguments here to initialize handler by metaclass
+            return (wrapper_factory if wrapper_factory else Arguments.create_via_call)(
+                resource_handler,
+                *args_for_factory,
+                **kwargs_for_factory
+            )
 
         return decorator
 
+    def _get_resource_handlers_of_parents(cls) -> tuple[IResourceHandler, ]:
+        return sum(
+            tuple(
+                parent_type._resource_handlers for parent_type in cls.__bases__
+                if hasattr(parent_type, '_resource_handlers')
+            ),
+            tuple()
+        )
+
+    def __get_resource_handlers_from(cls, attributes: dict) -> Generator[IResourceHandler, any, None]:
+        for attribute_name, attribute_value in attributes.items():
+            if isinstance(attribute_value, ResourceHandler):
+                yield attribute_value
+            elif isinstance(attribute_value, Arguments):
+                resource_handler = cls._resource_handler_wrapper_factory(
+                    *attribute_value.args,
+                    **attribute_value.kwargs
+                )
+                setattr(cls, attribute_name, resource_handler)
+                yield resource_handler
 
 class RenderActivator(IUpdatable):
     def __init__(self, render_resource_keeper: IRenderRersourceKeeper, renders: Iterable[Render, ]):
