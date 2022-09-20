@@ -201,6 +201,17 @@ class Render(BaseRender, ABC, metaclass=ResourceHandlingChainMeta):
                 resource_handler(*args_to_handler)
 
 
+class SurfaceKeeper:
+    """Stub class for classes inheriting from Render."""
+
+    def __init__(self, surfaces: Iterable):
+        self._surfaces = tuple(surfaces)
+
+    @property
+    def surfaces(self) -> tuple:
+        return self._surfaces
+
+
 class RenderActivator(IUpdatable):
     def __init__(self, render_resource_keeper: IRenderRersourceKeeper, renders: Iterable[Render, ]):
         self.render_resource_keeper = render_resource_keeper
