@@ -26,7 +26,7 @@ class IAvatar(IUpdatable, ABC):
 class IRenderRersourceKeeper(ABC):
     @property
     @abstractmethod
-    def render_resources(self) -> tuple[PositionalRenderResource, ]:
+    def render_resources(self) -> tuple[RenderResourcePack, ]:
         pass
 
 
