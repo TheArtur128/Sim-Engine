@@ -1,14 +1,16 @@
 from abc import ABC, abstractmethod
 from typing import NamedTuple, Callable, Iterable
+from dataclasses import dataclass
 
 from geometry import Vector
 from interfaces import IUpdatable
 from errors.render_errors import UnsupportedResourceError
 
 
-class PositionalRenderResource(NamedTuple):
+@dataclass
+class RenderResourcePack:
     resource: any
-    point: Vector
+    point: any
 
 
 class IRenderRersourceKeeper(ABC):
