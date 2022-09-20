@@ -67,6 +67,23 @@ class ResourceHandlerWrapper(ResourceHandler, StylizedMixin):
 
     def _handle(self, resource: any, point: any, surface: any) -> None:
         self.resource_handler(resource, point, surface)
+
+
+class TypedResourceHandler(ResourceHandlerWrapper):
+    _repr_fields = (Field(
+        'supported_resource_type',
+        value_getter=lambda handler, _: handler.supported_resource_type.__name__
+    ), )
+
+    def __init__(self, resource_handler: IResourceHandler, supported_resource_type: type):
+        super().__init__(resource_handler)
+        self.supported_resource_type = supported_resource_type
+
+    def is_support_to_handle(self, resource: any, point: any, surface: any) -> Report:
+        return (
+            Report(isinstance(resource, self.supported_resource_type)) and
+            super().is_support_to_handle(resource, point, surface)
+        )
         pass
 
 
