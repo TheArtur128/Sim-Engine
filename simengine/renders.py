@@ -51,6 +51,22 @@ class ResourceHandler(IResourceHandler, ABC):
     @abstractmethod
     def _handle(self, resource: any, point: any, surface: any) -> None:
         pass
+
+
+class ResourceHandlerWrapper(ResourceHandler, StylizedMixin):
+    _repr_fields = (Field('resource_handler'), )
+
+    def __init__(self, resource_handler: IResourceHandler):
+        self.resource_handler = resource_handler
+
+    def is_support_to_handle(self, resource: any, point: any, surface: any) -> Report:
+        return (
+            self.resource_handler.is_support_to_handle(resource, point, surface)
+            if hasattr(self.resource_handler, 'is_support_to_handle') else Report(True)
+        )
+
+    def _handle(self, resource: any, point: any, surface: any) -> None:
+        self.resource_handler(resource, point, surface)
         pass
 
 
