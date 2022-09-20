@@ -84,60 +84,59 @@ class TypedResourceHandler(ResourceHandlerWrapper):
             Report(isinstance(resource, self.supported_resource_type)) and
             super().is_support_to_handle(resource, point, surface)
         )
+
+
+class IRender(ABC):
+    @abstractmethod
+    def __call__(self, resource_pack: RenderResourcePack) -> None:
+        pass
+
+    @abstractmethod
+    def draw_resource_pack(self, resource_pack: RenderResourcePack) -> None:
+        pass
+
+    @abstractmethod
+    def draw_scene(self, resource_packs: Iterable[RenderResourcePack, ]) -> None:
+        pass
+
+    @abstractmethod
+    def clear_surfaces(self) -> None:
         pass
 
 
-class Render(ABC):
-    _resource_handler_by_resource_type: dict[type, IResourceHandler] | None = None
-
+class BaseRender(IRender, ABC):
     @property
     @abstractmethod
     def surfaces(self) -> tuple:
         pass
 
-    def __call__(self, positional_resource: PositionalRenderResource) -> None:
-        self.draw_resource(positional_resource)
+    def __call__(self, resource_pack: RenderResourcePack) -> None:
+        self.draw_resource_pack(resource_pack)
 
-    def draw_scene(self, positional_resources: Iterable[PositionalRenderResource, ]) -> None:
+    def draw_scene(self, resource_packs: Iterable[RenderResourcePack, ]) -> None:
         for surface in self.surfaces:
-            self._prepare_surface(surface)
+            self._clear_surface(surface)
 
-        for positional_resource in positional_resources:
-            self.draw_resource(positional_resource)
+            for resource_pack in resource_packs:
+                self._draw_resource_pack_on(surface, resource_pack)
 
-    def draw_resource(self, positional_resource: PositionalRenderResource) -> None:
-        if not self.is_supported_resource(positional_resource.resource):
-            raise UnsupportedResourceError(
-                f"Render {self} cannot display resource {positional_resource.resource} at {positional_resource.point}"
-            )
-
-        resource_handler = self._get_resource_handler_by(positional_resource)
-
+    def draw_resource_pack(self, resource_pack: RenderResourcePack) -> None:
         for surface in self.surfaces:
-            resource_handler(
-                positional_resource.resource,
-                positional_resource.point,
-                surface
-            )
+            self._draw_resource_pack_on(surface, resource_pack)
 
-    def is_supported_resource(self, resource: any) -> bool:
-        return type(resource) in self._resource_handler_by_resource_type.keys()
-
-    def _get_resource_handler_by(self, positional_resource: PositionalRenderResource) -> IResourceHandler:
-        return self._resource_handler_by_resource_type[type(positional_resource.resource)]
+    def clear_surfaces(self) -> None:
+        for surface in self.surfaces:
+            self._clear_surface(surface)
 
     @abstractmethod
-    def _prepare_surface(self, surface: any) -> None:
+    def _draw_resource_pack_on(self, surface: any, resource_pack: RenderResourcePack) -> None:
         pass
 
-    @classmethod
-    def resource_handler_for(cls, resource_type: type) -> Callable[[IResourceHandler], IResourceHandler]:
-        def decorator(handler: IResourceHandler):
-            if cls._resource_handler_by_resource_type is None:
-                cls._resource_handler_by_resource_type = dict()
+    @abstractmethod
+    def _clear_surface(self, surface: any) -> None:
+        pass
 
-            cls._resource_handler_by_resource_type[resource_type] = handler
-            return handler
+
 
         return decorator
 
