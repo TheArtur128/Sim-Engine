@@ -185,6 +185,22 @@ class ResourceHandlingChainMeta(ABCMeta):
                 setattr(cls, attribute_name, resource_handler)
                 yield resource_handler
 
+
+class Render(BaseRender, ABC, metaclass=ResourceHandlingChainMeta):
+    _resource_handler_wrapper_factory = ResourceHandlerWrapper
+
+    def _draw_resource_pack_on(self, surface: any, resource_pack: RenderResourcePack) -> None:
+        for resource_handler in self._resource_handlers:
+            args_to_handler = (
+                resource_pack.resource,
+                resource_pack.point,
+                surface
+            )
+
+            if resource_handler.is_support_to_handle(*args_to_handler):
+                resource_handler(*args_to_handler)
+
+
 class RenderActivator(IUpdatable):
     def __init__(self, render_resource_keeper: IRenderRersourceKeeper, renders: Iterable[Render, ]):
         self.render_resource_keeper = render_resource_keeper
