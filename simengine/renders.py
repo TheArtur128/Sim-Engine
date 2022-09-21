@@ -11,16 +11,15 @@ from tools import ReportAnalyzer, BadReportHandler, Report, Arguments
 
 
 @dataclass
-class RenderResourcePack:
+class ResourcePack:
     resource: any
     point: any
-
 
 
 class IRenderRersourceKeeper(ABC):
     @property
     @abstractmethod
-    def render_resources(self) -> tuple[RenderResourcePack, ]:
+    def render_resources(self) -> tuple[ResourcePack, ]:
         pass
 
 
@@ -86,15 +85,15 @@ class TypedResourceHandler(ResourceHandlerWrapper):
 
 class IRender(ABC):
     @abstractmethod
-    def __call__(self, resource_pack: RenderResourcePack) -> None:
+    def __call__(self, resource_pack: ResourcePack) -> None:
         pass
 
     @abstractmethod
-    def draw_resource_pack(self, resource_pack: RenderResourcePack) -> None:
+    def draw_resource_pack(self, resource_pack: ResourcePack) -> None:
         pass
 
     @abstractmethod
-    def draw_scene(self, resource_packs: Iterable[RenderResourcePack, ]) -> None:
+    def draw_scene(self, resource_packs: Iterable[ResourcePack, ]) -> None:
         pass
 
     @abstractmethod
@@ -108,17 +107,17 @@ class BaseRender(IRender, ABC):
     def surfaces(self) -> tuple:
         pass
 
-    def __call__(self, resource_pack: RenderResourcePack) -> None:
+    def __call__(self, resource_pack: ResourcePack) -> None:
         self.draw_resource_pack(resource_pack)
 
-    def draw_scene(self, resource_packs: Iterable[RenderResourcePack, ]) -> None:
+    def draw_scene(self, resource_packs: Iterable[ResourcePack, ]) -> None:
         for surface in self.surfaces:
             self._clear_surface(surface)
 
             for resource_pack in resource_packs:
                 self._draw_resource_pack_on(surface, resource_pack)
 
-    def draw_resource_pack(self, resource_pack: RenderResourcePack) -> None:
+    def draw_resource_pack(self, resource_pack: ResourcePack) -> None:
         for surface in self.surfaces:
             self._draw_resource_pack_on(surface, resource_pack)
 
@@ -127,7 +126,7 @@ class BaseRender(IRender, ABC):
             self._clear_surface(surface)
 
     @abstractmethod
-    def _draw_resource_pack_on(self, surface: any, resource_pack: RenderResourcePack) -> None:
+    def _draw_resource_pack_on(self, surface: any, resource_pack: ResourcePack) -> None:
         pass
 
     @abstractmethod
@@ -162,7 +161,7 @@ class ResourceHandlingChainMeta(ABCMeta):
 
         return decorator
 
-    def _get_resource_handlers_of_parents(cls) -> tuple[IResourceHandler, ]:
+    def _get_resource_handlers_of_parents(cls) -> tuple[IRenderResourceHandler, ]:
         return sum(
             tuple(
                 parent_type._resource_handlers for parent_type in cls.__bases__
@@ -187,7 +186,7 @@ class ResourceHandlingChainMeta(ABCMeta):
 class Render(BaseRender, ABC, metaclass=ResourceHandlingChainMeta):
     _resource_handler_wrapper_factory = ResourceHandlerWrapper
 
-    def _draw_resource_pack_on(self, surface: any, resource_pack: RenderResourcePack) -> None:
+    def _draw_resource_pack_on(self, surface: any, resource_pack: ResourcePack) -> None:
         for resource_handler in self._resource_handlers:
             args_to_handler = (
                 resource_pack.resource,
