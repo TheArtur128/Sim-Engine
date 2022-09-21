@@ -16,18 +16,16 @@ class RenderResourcePack:
     point: any
 
 
-class IAvatar(IUpdatable, ABC):
-    @property
-    @abstractmethod
-    def render_resources(self) -> tuple[RenderResourcePack, ]:
-        pass
-
 
 class IRenderRersourceKeeper(ABC):
     @property
     @abstractmethod
     def render_resources(self) -> tuple[RenderResourcePack, ]:
         pass
+
+
+class IAvatar(IUpdatable, IRenderRersourceKeeper, ABC):
+    pass
 
 
 class IResourceHandler(ABC):
