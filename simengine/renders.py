@@ -65,6 +65,12 @@ class ResourceHandlerWrapper(RenderResourceHandler, StylizedMixin):
     def _handle(self, resource: any, point: any, surface: any) -> None:
         self.resource_handler(resource, point, surface)
 
+    @classmethod
+    def create_decorator_by(cls, *args, **kwargs) -> Callable[[], 'ResourceHandlerWrapper']:
+        def decorator(resource_handler: IRenderResourceHandler):
+            return cls(resource_handler, *args, **kwargs)
+
+        return decorator
 
 class TypedResourceHandler(ResourceHandlerWrapper):
     _repr_fields = (Field(
