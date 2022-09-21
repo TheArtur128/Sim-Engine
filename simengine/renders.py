@@ -27,13 +27,13 @@ class IAvatar(IUpdatable, IRenderRersourceKeeper, ABC):
     pass
 
 
-class IResourceHandler(ABC):
+class IRenderResourceHandler(ABC):
     @abstractmethod
     def __call__(self, resource: any, point: any, surface: any) -> None:
         pass
 
 
-class ResourceHandler(IResourceHandler, ABC):
+class RenderResourceHandler(IRenderResourceHandler, ABC):
     _report_analyzer = ReportAnalyzer(
         (BadReportHandler(UnsupportedResourceError, "Resource Handler can't handle resource"), )
     )
@@ -50,10 +50,10 @@ class ResourceHandler(IResourceHandler, ABC):
         pass
 
 
-class ResourceHandlerWrapper(ResourceHandler, StylizedMixin):
+class ResourceHandlerWrapper(RenderResourceHandler, StylizedMixin):
     _repr_fields = (Field('resource_handler'), )
 
-    def __init__(self, resource_handler: IResourceHandler):
+    def __init__(self, resource_handler: IRenderResourceHandler):
         self.resource_handler = resource_handler
 
     def is_support_to_handle(self, resource: any, point: any, surface: any) -> Report:
@@ -72,7 +72,7 @@ class TypedResourceHandler(ResourceHandlerWrapper):
         value_getter=lambda handler, _: handler.supported_resource_type.__name__
     ), )
 
-    def __init__(self, resource_handler: IResourceHandler, supported_resource_type: type):
+    def __init__(self, resource_handler: IRenderResourceHandler, supported_resource_type: type):
         super().__init__(resource_handler)
         self.supported_resource_type = supported_resource_type
 
@@ -150,8 +150,8 @@ class ResourceHandlingChainMeta(ABCMeta):
         wrapper_factory: Optional[ResourceHandlerWrapper] = None,
         *args_for_factory,
         **kwargs_for_factory,
-    ) -> Callable[[IResourceHandler], ResourceHandlerWrapper]:
-        def decorator(resource_handler: IResourceHandler) -> ResourceHandlerWrapper | Arguments:
+    ) -> Callable[[IRenderResourceHandler], ResourceHandlerWrapper]:
+        def decorator(resource_handler: IRenderResourceHandler) -> ResourceHandlerWrapper | Arguments:
             # Arguments here to initialize handler by metaclass
             return (wrapper_factory if wrapper_factory else Arguments.create_via_call)(
                 resource_handler,
@@ -170,9 +170,9 @@ class ResourceHandlingChainMeta(ABCMeta):
             tuple()
         )
 
-    def __get_resource_handlers_from(cls, attributes: dict) -> Generator[IResourceHandler, any, None]:
+    def __get_resource_handlers_from(cls, attributes: dict) -> Generator[IRenderResourceHandler, any, None]:
         for attribute_name, attribute_value in attributes.items():
-            if isinstance(attribute_value, ResourceHandler):
+            if isinstance(attribute_value, RenderResourceHandler):
                 yield attribute_value
             elif isinstance(attribute_value, Arguments):
                 resource_handler = cls._resource_handler_wrapper_factory(
