@@ -217,8 +217,4 @@ class RenderActivator(IUpdatable):
 
     def update(self) -> None:
         for render in self.renders:
-            self.__apply_render(render)
-
-    def __apply_render(self, render: Render) -> None:
-        for positional_render_resource in self.render_resource_keeper.render_resources:
-            render(positional_render_resource)
+            render.draw_scene(self.render_resource_keeper.render_resources)
