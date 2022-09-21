@@ -29,7 +29,7 @@ class IAvatar(IUpdatable, IRenderRersourceKeeper, ABC):
 
 class IRenderResourceHandler(ABC):
     @abstractmethod
-    def __call__(self, resource: any, point: any, surface: any) -> None:
+    def __call__(self, resource_pack: ResourcePack, surface: any, render: 'BaseRender') -> None:
         pass
 
 
@@ -38,15 +38,15 @@ class RenderResourceHandler(IRenderResourceHandler, ABC):
         (BadReportHandler(UnsupportedResourceError, "Resource Handler can't handle resource"), )
     )
 
-    def __call__(self, resource: any, point: any, surface: any) -> None:
-        self._report_analyzer(self.is_support_to_handle(resource, point, surface))
-        self._handle(resource, point, surface)
+    def __call__(self, resource_pack: ResourcePack, surface: any, render: 'BaseRender') -> None:
+        self._report_analyzer(self.is_support_to_handle(resource_pack, surface, render))
+        self._handle(resource_pack, surface, render)
 
-    def is_support_to_handle(self, resource: any, point: any, surface: any) -> Report:
+    def is_support_to_handle(self, resource_pack: ResourcePack, surface: any, render: 'BaseRender') -> Report:
         return Report(True)
 
     @abstractmethod
-    def _handle(self, resource: any, point: any, surface: any) -> None:
+    def _handle(self, resource_pack: ResourcePack, surface: any, render: 'BaseRender') -> None:
         pass
 
 
@@ -56,14 +56,14 @@ class ResourceHandlerWrapper(RenderResourceHandler, StylizedMixin):
     def __init__(self, resource_handler: IRenderResourceHandler):
         self.resource_handler = resource_handler
 
-    def is_support_to_handle(self, resource: any, point: any, surface: any) -> Report:
+    def is_support_to_handle(self, resource_pack: ResourcePack, surface: any, render: 'BaseRender') -> Report:
         return (
-            self.resource_handler.is_support_to_handle(resource, point, surface)
+            self.resource_handler.is_support_to_handle(resource_pack, surface, render)
             if hasattr(self.resource_handler, 'is_support_to_handle') else Report(True)
         )
 
-    def _handle(self, resource: any, point: any, surface: any) -> None:
-        self.resource_handler(resource, point, surface)
+    def _handle(self, resource_pack: ResourcePack, surface: any, render: 'BaseRender') -> None:
+        self.resource_handler(resource_pack, surface, render)
 
     @classmethod
     def create_decorator_by(cls, *args, **kwargs) -> Callable[[], 'ResourceHandlerWrapper']:
@@ -71,6 +71,7 @@ class ResourceHandlerWrapper(RenderResourceHandler, StylizedMixin):
             return cls(resource_handler, *args, **kwargs)
 
         return decorator
+
 
 class TypedResourceHandler(ResourceHandlerWrapper):
     _repr_fields = (Field(
@@ -82,10 +83,10 @@ class TypedResourceHandler(ResourceHandlerWrapper):
         super().__init__(resource_handler)
         self.supported_resource_type = supported_resource_type
 
-    def is_support_to_handle(self, resource: any, point: any, surface: any) -> Report:
+    def is_support_to_handle(self, resource_pack: ResourcePack, surface: any, render: 'BaseRender') -> Report:
         return (
-            Report(isinstance(resource, self.supported_resource_type)) and
-            super().is_support_to_handle(resource, point, surface)
+            Report(isinstance(resource_pack.resource, self.supported_resource_type)) and
+            super().is_support_to_handle(resource_pack, surface, render)
         )
 
 
@@ -194,14 +195,8 @@ class Render(BaseRender, ABC, metaclass=ResourceHandlingChainMeta):
 
     def _draw_resource_pack_on(self, surface: any, resource_pack: ResourcePack) -> None:
         for resource_handler in self._resource_handlers:
-            args_to_handler = (
-                resource_pack.resource,
-                resource_pack.point,
-                surface
-            )
-
-            if resource_handler.is_support_to_handle(*args_to_handler):
-                resource_handler(*args_to_handler)
+            if resource_handler.is_support_to_handle(resource_pack, surface, self):
+                resource_handler(resource_pack, surface, self)
 
 
 class SurfaceKeeper:
