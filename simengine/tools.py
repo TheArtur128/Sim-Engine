@@ -1,9 +1,10 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from time import sleep
-from typing import Iterable
+from typing import Iterable, Callable
 from math import floor, copysign
 from enum import IntEnum
+from functools import wraps
 
 from interfaces import IUpdatable, ILoop
 from errors.tool_error import UnableToDivideError, ColorCoordinateError, AlphaChannelError
@@ -213,3 +214,11 @@ class Arguments:
     @classmethod
     def create_via_call(cls, *args, **kwargs) -> 'Arguments':
         return cls(args, kwargs)
+
+
+def like_object(func: Callable) -> Callable:
+    @wraps(func)
+    def wrapper(*args, **kwargs) -> any:
+        return func(func, *args, **kwargs)
+
+    return wrapper
