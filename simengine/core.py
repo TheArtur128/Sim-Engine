@@ -270,12 +270,12 @@ class DiscreteUnit(MixinDiscrete, ABC):
 
 
 class PositionalUnit(ABC):
-    avatar_factory: Callable[['PositionalUnit'], IAvatar] = lambda unit: None
+    _avatar_factory: Callable[['PositionalUnit'], IAvatar] = lambda unit: None
 
     def __init__(self, position: Vector):
         super().__init__()
         self.__position = self.__previous_position = position
-        self._avatar = self.avatar_factory()
+        self._avatar = self._avatar_factory()
 
     @property
     def avatar(self) -> IAvatar:
