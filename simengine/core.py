@@ -411,7 +411,7 @@ class UnitRelationsActivator(UnitHandler):
 class World(IUpdatable, MixinDiscrete, ABC):
     _unit_handler_factories: Iterable[Callable[['World'], UnitHandler], ]
 
-    def __init__(self, inhabitants: Iterable):
+    def __init__(self, inhabitants: Iterable = tuple()):
         self.__inhabitant = set()
         self._unit_handlers = tuple(
             unit_handler_factory(self)
@@ -430,7 +430,7 @@ class World(IUpdatable, MixinDiscrete, ABC):
         return self._unit_handlers
 
     def is_inhabited_for(self, inhabitant: IUpdatable) -> bool:
-        return isinstance(inhabitant, IUpdatable)
+        return isinstance(inhabitant, IUpdatable) and not isinstance(inhabitant, World)
 
     def add_inhabitant(self, inhabitant: IUpdatable) -> None:
         if not self.is_inhabited_for(inhabitant):
