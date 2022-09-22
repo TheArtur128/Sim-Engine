@@ -6,7 +6,11 @@ class UnitError(SimulationError):
     pass
 
 
-class NotSupportPartError(UnitError):
+class DiscreteUnitError(UnitError):
+    pass
+
+
+class NotSupportPartError(DiscreteUnitError):
     pass
 
 
