@@ -5,7 +5,7 @@ from interfaces import IUpdatable
 from renders import IAvatar
 from errors.core_errors import *
 from geometry import Vector
-from tools import ReportAnalyzer, BadReportHandler, Report
+from tools import ReportAnalyzer, BadReportHandler, Report, StrictToStateMixin
 
 
 class ProcessState(IUpdatable, ABC):
@@ -85,8 +85,16 @@ class SleepProcessState(ProcessState):
         self.ticks_to_activate -= self.tick
 
 
-class Process(IUpdatable, ABC):
+class Process(StrictToStateMixin, IUpdatable, ABC):
+    _report_analyzer = ReportAnalyzer((BadReportHandler(
+        ProcessError,
+        "Process is not valid"
+    ), ))
+
     state = None
+
+    def __init__(self):
+        self._check_state_errors()
 
     @property
     @abstractmethod
@@ -105,13 +113,20 @@ class Process(IUpdatable, ABC):
             self.__reset_state()
 
             if old_state is self.state:
+                self._check_state_errors()
                 self.state.update()
                 break
+
+    @classmethod
+    def is_support_participants(cls, participants: Iterable) -> Report:
+        return Report(True)
 
     @abstractmethod
     def _handle(self) -> None:
         pass
 
+    def _is_correct(self) -> Report:
+        return self.is_support_participants(self.participants)
 
     def __reset_state(self) -> None:
         next_state = self.state.get_next_state()
