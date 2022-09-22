@@ -2,6 +2,7 @@ from typing import Iterable
 
 from pygame import Surface, draw, display, event, QUIT, time
 
+from core import *
 from interfaces import IUpdatable, ILoopFactory
 from renders import Render, SurfaceKeeper, TypedResourceHandler, ResourcePack
 from geometry import Vector
@@ -152,3 +153,27 @@ class PygameLoopFactory(ILoopFactory):
     def __call__(self, units: Iterable[IUpdatable, ]) -> LoopUpdater:
         return self._loop_factory(units, self.keyboard_controller, self.fps)
 
+
+if __name__ == '__main__':
+    class TestUnit(PositionalUnit):
+        _avatar_factory = lambda unit: PrimitiveAvatar(unit, None)
+
+        def update(self) -> None:
+            pass
+
+
+    unit = TestUnit(Vector((320, 240)))
+    unit.avatar.render_resource = Circle(RGBAColor(), 20)
+
+    CustomAppFactory(PygameLoopFactory(PygameKeyboardController(), 30))(
+        CustomWorld(
+            [unit],
+            [UnitUpdater, RenderResourceParser]
+        ),
+        (
+            PygameSurfaceRender(
+                (display.set_mode((640, 480)), ),
+                RGBAColor(232, 232, 232)
+            ),
+        )
+    ).run()
