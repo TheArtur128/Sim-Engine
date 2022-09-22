@@ -350,18 +350,22 @@ class PrimitiveAvatar(StylizedMixin, IAvatar, ABC):
 
 
 class UnitHandler(ABC):
+    _report_analyzer = ReportAnalyzer((BadReportHandler(
+        UnsupportedUnitForHandlerError,
+        "Unit handler can't handle unit"
+    ), ))
+
     def __init__(self, world: 'World'):
         self.world = world
 
     def __call__(self, units: Iterable[IUpdatable, ]) -> None:
         for unit in units:
-            if self.is_unit_suitable(unit):
-                raise UnsupportedUnitForHandlerError(f"Unit handler {self} unsupported unit {unit}")
+            self._report_analyzer(self.is_unit_suitable(unit))
 
         self._handle_units(units)
 
-    def is_unit_suitable(self, unit: IUpdatable) -> bool:
-        return isinstance(unit, IUpdatable)
+    def is_unit_suitable(self, unit: IUpdatable) -> Report:
+        return Report(isinstance(unit, IUpdatable))
 
     @abstractmethod
     def _handle_units(self, units: Iterable[IUpdatable, ]) -> None:
@@ -384,8 +388,8 @@ class UnitUpdater(FocusedUnitHandler):
 
 
 class UnitProcessesActivator(FocusedUnitHandler):
-    def is_unit_suitable(self, unit: IUpdatable) -> bool:
-        return super().is_unit_suitable(unit) and isinstance(unit, DependentUnit)
+    def is_unit_suitable(self, unit: IUpdatable) -> Report:
+        return super().is_unit_suitable(unit) and Report(isinstance(unit, DependentUnit))
 
     def _handle_unit(self, unit: IUpdatable) -> None:
         unit.clear_completed_processes()
@@ -407,8 +411,10 @@ class RenderResourceParser(UnitHandler, IRenderRersourceKeeper):
     def is_unit_suitable(self, unit: IUpdatable) -> bool:
         return (
             super().is_unit_suitable(unit) and
-            isinstance(unit, PositionalUnit) and
-            unit.avatar is not None
+            Report(
+                isinstance(unit, PositionalUnit) and
+                unit.avatar is not None
+            )
         )
 
     def _handle_units(self, units: Iterable[IUpdatable, ]) -> None:
