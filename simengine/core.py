@@ -329,6 +329,9 @@ class PrimitiveAvatar(StylizedMixin, IAvatar, ABC):
 
 
 class UnitHandler(ABC):
+    def __init__(self, world: 'World'):
+        self.world = world
+
     def __call__(self, units: Iterable[IUpdatable, ]) -> None:
         for unit in units:
             if self.is_unit_suitable(unit):
@@ -369,8 +372,8 @@ class UnitProcessesActivator(FocusedUnitHandler):
 
 
 class RenderResourceParser(FocusedUnitHandler):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, world: 'World'):
+        super().__init__(world)
         self._parsed_resource_packs = list()
 
     @property
@@ -406,12 +409,12 @@ class UnitRelationsActivator(UnitHandler):
 
 
 class World(IUpdatable, MixinDiscrete, ABC):
-    _unit_handler_factories: Iterable[Callable[[], UnitHandler], ]
+    _unit_handler_factories: Iterable[Callable[['World'], UnitHandler], ]
 
     def __init__(self, inhabitants: Iterable):
         self.__inhabitant = set()
         self._unit_handlers = tuple(
-            unit_handler_factory()
+            unit_handler_factory(self)
             for unit_handler_factory in self._unit_handler_factories
         )
 
