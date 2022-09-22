@@ -192,12 +192,12 @@ class RGBAColor:
     alpha_channel: float = 1.
 
     def __post_init__(self) -> None:
-        if not all(
-            0 <= color_coordinate <= 255
+        if any(
+            not (0 <= color_coordinate <= 255)
             for color_coordinate in (self.red, self.green, self.blue)
         ):
             raise ColorCoordinateError(
-                f"Color coordinate must be between 0 and 255 {self}"
+                f"Color coordinate must be between 0 and 255"
             )
         elif not 0 <= self.alpha_channel <= 1:
             raise AlphaChannelError("Alpha channel must be between 0 and 1")
