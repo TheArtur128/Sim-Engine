@@ -342,12 +342,9 @@ class World(IUpdatable, MixinDiscrete, ABC):
 
     def update(self) -> None:
         for unit_handler in self._unit_handlers:
-            self.__use_unit_handler(unit_handler)
-
-    def __use_unit_handler(self, handler: UnitHandler) -> None:
-        unit_handler(
-            tuple(
-                unit for unit in self.deep_parts
-                if unit_handler.is_unit_suitable(unit)
+            unit_handler(
+                tuple(
+                    unit for unit in self.deep_parts
+                    if unit_handler.is_unit_suitable(unit)
+                )
             )
-        )
