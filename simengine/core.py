@@ -479,3 +479,14 @@ class World(IUpdatable, MixinDiscrete, ABC):
                     if unit_handler.is_unit_suitable(unit)
                 )
             )
+
+
+class CustomWorld(World):
+    def __init__(
+        self,
+        inhabitants: Iterable = tuple(),
+        unit_handler_factories: Iterable[Callable[[World], UnitHandler], ] = tuple()
+    ):
+        self._unit_handler_factories = tuple(unit_handler_factories)
+        super().__init__(inhabitants)
+
