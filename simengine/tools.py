@@ -28,7 +28,6 @@ class StoppingLoopUpdater(LoopUpdater, ABC):
         super()._handle()
         self._handle_stop()
 
-    @abstractmethod
     def _handle_stop(self) -> None:
         self._stop()
 

@@ -258,7 +258,7 @@ class MixinDiscrete(ABC):
         return found_parts
 
 
-class DiscreteUnit(MixinDiscrete, ABC):
+class DiscreteUnit(MixinDiscrete, IUpdatable, ABC):
     @property
     def parts(self) -> frozenset[IUpdatable, ]:
         return frozenset(self._parts)
@@ -271,7 +271,7 @@ class DiscreteUnit(MixinDiscrete, ABC):
         self._parts = set(self.__create_parts__(*args, **kwargs))
 
 
-class PositionalUnit(ABC):
+class PositionalUnit(IUpdatable, ABC):
     _avatar_factory: Callable[['PositionalUnit'], IAvatar] = lambda unit: None
 
     def __init__(self, position: Vector):
