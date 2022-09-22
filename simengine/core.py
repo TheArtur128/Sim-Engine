@@ -205,6 +205,38 @@ class InteractiveUnit(ABC):
         pass
 
 
+class ProcessInteractiveUnit(InteractiveUnit, DependentUnit):
+    _bilateral_process_factory: Iterable[IBilateralProcessFactory, ]
+    __cash_factories_for_object: tuple[object, tuple[IBilateralProcessFactory, ]] = (object(), tuple())
+
+    def is_support_interaction_with(self, unit: IUpdatable) -> Report:
+        return (
+            Report(True) if self.__get_cachedly_suported_process_factories_for(unit)
+            else Report.create_error_report(
+                IncorrectUnitInteractionError("No possible processes to occur")
+            )
+        )
+
+    def _handle_interaction_with(self, unit: IUpdatable) -> None:
+        for factory in self.__get_cachedly_suported_process_factories_for(unit):
+            process = factory(self, unit)
+            process.start()
+
+            self.add_process(process)
+
+    def __get_cachedly_suported_process_factories_for(self, unit: IUpdatable) -> tuple[IBilateralProcessFactory, ]:
+        if unit is self.__cash_factories_for_object[0]:
+            return self.__cash_factories_for_object[1]
+
+        factories = tuple(
+            factory.process_type.is_support_participants((self, unit))
+            for factory in self._bilateral_process_factory
+        )
+        self.__cash_factories_for_object = (unit, factories)
+
+        return factories
+
+
 class MixinDiscrete(ABC):
     @property
     @abstractmethod
