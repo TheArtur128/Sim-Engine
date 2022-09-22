@@ -308,6 +308,20 @@ class MovableUnit(PositionalUnit, IMovable, ABC):
         self._position = self.next_position
 
 
+class ImpulseUnit(MovableUnit):
+    def __init__(self, position: Vector):
+        super().__init__(position)
+        self.impulse = Vector()
+
+    @property
+    def next_position(self) -> Vector:
+        return self.position + self.impulse
+
+    def move(self) -> None:
+        super().move()
+        self.impulse = Vector()
+
+
 class PrimitiveAvatar(StylizedMixin, IAvatar, ABC):
     _repr_fields = (Field('resource'), )
     _resource_pack_factory: Callable[[any, Vector], ResourcePack] = ResourcePack
