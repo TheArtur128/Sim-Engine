@@ -525,3 +525,5 @@ class CustomAppFactory(AppFactory):
         self._loop_factory = loop_factory
         self._render_activator_factory = render_activator_factory
 
+
+default_app_factory = AppFactory()
