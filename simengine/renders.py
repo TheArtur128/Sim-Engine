@@ -5,7 +5,7 @@ from typing import Callable, Iterable, Optional, Generator
 from beautiful_repr import StylizedMixin, Field
 
 from geometry import Vector
-from interfaces import IUpdatable
+from interfaces import IUpdatable, IRenderRersourceKeeper, IAvatar
 from errors.render_errors import UnsupportedResourceError
 from tools import ReportAnalyzer, BadReportHandler, Report, Arguments
 
@@ -14,17 +14,6 @@ from tools import ReportAnalyzer, BadReportHandler, Report, Arguments
 class ResourcePack:
     resource: any
     point: any
-
-
-class IRenderRersourceKeeper(ABC):
-    @property
-    @abstractmethod
-    def render_resource_packs(self) -> tuple[ResourcePack, ]:
-        pass
-
-
-class IAvatar(IUpdatable, IRenderRersourceKeeper, ABC):
-    pass
 
 
 class IRenderResourceHandler(ABC):

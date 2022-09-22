@@ -7,6 +7,17 @@ class IUpdatable(ABC):
         pass
 
 
+class IRenderRersourceKeeper(ABC):
+    @property
+    @abstractmethod
+    def render_resource_packs(self) -> tuple['ResourcePack', ]:
+        pass
+
+
+class IAvatar(IUpdatable, IRenderRersourceKeeper, ABC):
+    pass
+
+
 class ILoop(ABC):
     @abstractmethod
     def run(self) -> None:

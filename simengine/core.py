@@ -3,8 +3,8 @@ from typing import Iterable, Callable, Optional
 
 from beautiful_repr import StylizedMixin, Field
 
-from interfaces import IUpdatable
-from renders import IAvatar, ResourcePack
+from interfaces import IUpdatable, IAvatar
+from renders import ResourcePack
 from errors.core_errors import *
 from geometry import Vector
 from tools import ReportAnalyzer, BadReportHandler, Report, StrictToStateMixin
