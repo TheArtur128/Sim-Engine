@@ -37,7 +37,7 @@ class StoppingLoopUpdater(LoopUpdater, ABC):
         pass
 
 
-class TickerLoopUpdater(StoppingLoopUpdater):
+class TickerLoopUpdater(StoppingLoopUpdater, ABC):
     _tick_factor: int | float = 1
 
     def __init__(self, units: Iterable[IUpdatable, ], ticks_to_timeout: int):
