@@ -369,7 +369,7 @@ class Polygon(Figure, StrictToStateMixin, StylizedMixin):
         self._update_lines_by(
             tuple(map(point_changer, self.summits))
         )
-        self._check_errors()
+        self._check_state_errors()
 
     def is_point_inside(self, point: Vector) -> bool:
         return any(line.is_point_inside(point) for line in self._lines)
@@ -396,7 +396,7 @@ class Polygon(Figure, StrictToStateMixin, StylizedMixin):
         )
 
         self.__summits = tuple(line.first_point for line in self._lines)
-        self._check_errors()
+        self._check_state_errors()
 
 
 class Circle(Figure, StylizedMixin):

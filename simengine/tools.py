@@ -166,7 +166,7 @@ class StrictToStateMixin(ABC):
     def _is_correct(self) -> Report:
         pass
 
-    def _check_errors(self) -> None:
+    def _check_state_errors(self) -> None:
         self._report_analyzer(self._is_correct())
 
 
