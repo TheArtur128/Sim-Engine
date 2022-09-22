@@ -371,7 +371,7 @@ class UnitProcessesActivator(FocusedUnitHandler):
         unit.activate_processes()
 
 
-class RenderResourceParser(FocusedUnitHandler):
+class RenderResourceParser(UnitHandler):
     def __init__(self, world: 'World'):
         super().__init__(world)
         self._parsed_resource_packs = list()
@@ -390,9 +390,12 @@ class RenderResourceParser(FocusedUnitHandler):
             unit.avatar is not None
         )
 
-    def _handle_unit(self, unit: IUpdatable) -> None:
-        unit.avatar.update()
-        self._parsed_resource_packs.extend(unit.avatar.render_resource_packs)
+    def _handle_units(self, units: Iterable[IUpdatable, ]) -> None:
+        self.clear_parsed_resource_packs()
+
+        for unit in units:
+            unit.avatar.update()
+            self._parsed_resource_packs.extend(unit.avatar.render_resource_packs)
 
 
 class UnitRelationsActivator(UnitHandler):
