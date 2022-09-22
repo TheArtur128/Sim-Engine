@@ -108,3 +108,12 @@ class PygameSurfaceRender(SurfaceKeeper, Render):
             resource_pack.resource.border_width
         )
 
+
+class PygameKeyboardController:
+    # Will be redone
+
+    def __call__(self, loop: 'PygameLoopUpdater'):
+        for event_ in event.get():
+            if event_.type == QUIT:
+                exit()
+
