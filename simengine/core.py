@@ -188,8 +188,8 @@ class DependentUnit(IUpdatable, ABC):
 
 class InteractiveUnit(ABC):
     _report_analyzer = ReportAnalyzer((BadReportHandler(
-        IncorrectUnitStateError,
-        "Interactive unit state is incorrect"
+        UnitError,
+        "Unit state is incorrect"
     ), ))
 
     def interact_with(self, unit: IUpdatable) -> None:

@@ -6,6 +6,10 @@ class UnitError(SimulationError):
     pass
 
 
+class UnitRelationError(UnitError):
+    pass
+
+
 class DiscreteUnitError(UnitError):
     pass
 
