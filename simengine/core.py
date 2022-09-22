@@ -3,7 +3,7 @@ from typing import Iterable, Callable, Optional
 
 from beautiful_repr import StylizedMixin, Field
 
-from interfaces import IUpdatable, IAvatar
+from interfaces import IUpdatable, IAvatar, IRenderRersourceKeeper
 from renders import ResourcePack
 from errors.core_errors import *
 from geometry import Vector
@@ -371,13 +371,13 @@ class UnitProcessesActivator(FocusedUnitHandler):
         unit.activate_processes()
 
 
-class RenderResourceParser(UnitHandler):
+class RenderResourceParser(UnitHandler, IRenderRersourceKeeper):
     def __init__(self, world: 'World'):
         super().__init__(world)
         self._parsed_resource_packs = list()
 
     @property
-    def parsed_resource_packs(self) -> tuple:
+    def render_resource_packs(self) -> tuple[ResourcePack, ]:
         return tuple(self._parsed_resource_packs)
 
     def clear_parsed_resource_packs(self) -> None:
