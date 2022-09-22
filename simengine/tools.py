@@ -22,6 +22,22 @@ class LoopUpdater(ILoop):
         self.unit.update()
 
 
+class StoppingLoopUpdater(LoopUpdater):
+    def _handle(self) -> None:
+        super()._handle()
+
+        if self.is_ready_to_stop():
+            self._stop()
+
+    @abstractmethod
+    def is_ready_to_stop(self) -> bool:
+        pass
+
+    @abstractmethod
+    def _stop(self) -> None:
+        pass
+
+
 class NumberRounder(ABC):
     def __call__(self, number: any) -> any:
         return self._round(number)
