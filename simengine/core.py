@@ -271,7 +271,8 @@ class DiscreteUnit(MixinDiscrete, IUpdatable, ABC):
         self._parts = set(self.__create_parts__(*args, **kwargs))
 
 
-class PositionalUnit(IUpdatable, ABC):
+class PositionalUnit(StylizedMixin, IUpdatable, ABC):
+    _repr_fields = (Field('position'), )
     _avatar_factory: Callable[['PositionalUnit'], IAvatar] = lambda unit: None
 
     def __init__(self, position: Vector):
