@@ -3,11 +3,11 @@ from typing import Iterable, Callable, Optional
 
 from beautiful_repr import StylizedMixin, Field
 
-from renders import ResourcePack
-from interfaces import IUpdatable, IAvatar, IRenderRersourceKeeper, IMovable
+from interfaces import IUpdatable, IAvatar, IRenderRersourceKeeper, IMovable, IAppFactory, ILoopFactory, IRenderActivatorFactory
+from renders import ResourcePack, RenderActivator, IRender
 from errors.core_errors import *
 from geometry import Vector
-from tools import ReportAnalyzer, BadReportHandler, Report, StrictToStateMixin
+from tools import ReportAnalyzer, BadReportHandler, Report, StrictToStateMixin, LoopUpdater
 
 
 class ProcessState(IUpdatable, ABC):
@@ -489,4 +489,29 @@ class CustomWorld(World):
     ):
         self._unit_handler_factories = tuple(unit_handler_factories)
         super().__init__(inhabitants)
+
+
+class AppFactory(IAppFactory):
+    _loop_factory: ILoopFactory = LoopUpdater
+    _render_activator_factory: IRenderActivatorFactory = RenderActivator
+
+    def __call__(
+        self,
+        world: World,
+        renders: Iterable[IRender, ]
+    ) -> LoopUpdater:
+        return self._loop_factory((
+            world,
+            self._render_activator_factory(
+                self._get_resource_parser_from(world),
+                renders
+            )
+        ))
+
+    def _get_resource_parser_from(self, world: World) -> RenderResourceParser:
+        for unit_handler in world.unit_handlers:
+            if isinstance(unit_handler, RenderResourceParser):
+                return unit_handler
+
+        raise InvalidWorldError(f"World {world} does not have resource parsers for render")
 

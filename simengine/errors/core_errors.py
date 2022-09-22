@@ -44,3 +44,11 @@ class ProcessStateIsNotValidError(ProcessStateError):
 
 class ProcessIsNoLongerSleepingError(ProcessStateIsNotValidError):
     pass
+
+
+class AppFactoryError(SimulationError):
+    pass
+
+
+class InvalidWorldError(AppFactoryError):
+    pass
