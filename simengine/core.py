@@ -176,12 +176,17 @@ class DependentUnit(IUpdatable, ABC):
 
 
 class InteractiveUnit(ABC):
+    _report_analyzer = ReportAnalyzer((BadReportHandler(
+        IncorrectUnitStateError,
+        "Interactive unit state is incorrect"
+    ), ))
+
     def interact_with(self, unit: IUpdatable) -> None:
-        if self.is_support_interaction_with(unit):
-            self._handle_interaction_with(unit)
+        self._report_analyzer(self.is_support_interaction_with(unit))
+        self._handle_interaction_with(unit)
 
     @abstractmethod
-    def is_support_interaction_with(self, unit: IUpdatable) -> bool:
+    def is_support_interaction_with(self, unit: IUpdatable) -> Report:
         pass
 
     @abstractmethod
