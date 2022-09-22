@@ -36,6 +36,21 @@ class StoppingLoopUpdater(LoopUpdater, ABC):
         pass
 
 
+class TickerLoopUpdater(StoppingLoopUpdater):
+    _tick_factor: int | float = 1
+
+    def __init__(self, unit: IUpdatable, ticks_to_timeout: int):
+        super().__init__(unit)
+        self._ticks_to_timeout = self._clock = ticks_to_timeout
+
+    def _handle_stop(self) -> None:
+        self._clock -= 1 * self._tick_factor
+
+        if self._clock <= 0:
+            self._clock = self._ticks_to_timeout
+            self._stop()
+
+
 class NumberRounder(ABC):
     def __call__(self, number: any) -> any:
         return self._round(number)
