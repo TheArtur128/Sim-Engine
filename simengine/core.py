@@ -515,3 +515,13 @@ class AppFactory(IAppFactory):
 
         raise InvalidWorldError(f"World {world} does not have resource parsers for render")
 
+
+class CustomAppFactory(AppFactory):
+    def __init__(
+        self,
+        loop_factory: ILoopFactory = LoopUpdater,
+        render_activator_factory: IRenderActivatorFactory = RenderActivator
+    ):
+        self._loop_factory = loop_factory
+        self._render_activator_factory = render_activator_factory
+
