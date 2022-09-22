@@ -7,6 +7,12 @@ class IUpdatable(ABC):
         pass
 
 
+class IMovable(ABC):
+    @abstractmethod
+    def move(self) -> None:
+        pass
+
+
 class IRenderRersourceKeeper(ABC):
     @property
     @abstractmethod

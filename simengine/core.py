@@ -3,8 +3,8 @@ from typing import Iterable, Callable, Optional
 
 from beautiful_repr import StylizedMixin, Field
 
-from interfaces import IUpdatable, IAvatar, IRenderRersourceKeeper
 from renders import ResourcePack
+from interfaces import IUpdatable, IAvatar, IRenderRersourceKeeper, IMovable
 from errors.core_errors import *
 from geometry import Vector
 from tools import ReportAnalyzer, BadReportHandler, Report, StrictToStateMixin
@@ -277,7 +277,7 @@ class PositionalUnit(StylizedMixin, IUpdatable, ABC):
 
     def __init__(self, position: Vector):
         super().__init__()
-        self.__position = self.__previous_position = position
+        self._position = position
         self._avatar = self._avatar_factory()
 
     @property
@@ -286,7 +286,13 @@ class PositionalUnit(StylizedMixin, IUpdatable, ABC):
 
     @property
     def position(self) -> Vector:
-        return self.__position
+        return self._position
+
+
+class MovableUnit(PositionalUnit, IMovable, ABC):
+    def __init__(self, position: Vector):
+        super().__init__(position)
+        self.__previous_position = self.position
 
     @property
     def previous_position(self) -> Vector:
@@ -298,8 +304,8 @@ class PositionalUnit(StylizedMixin, IUpdatable, ABC):
         pass
 
     def move(self) -> None:
-        self.__previous_position = self.__position
-        self.__position = self.next_position
+        self.__previous_position = self._position
+        self._position = self.next_position
 
 
 class PrimitiveAvatar(StylizedMixin, IAvatar, ABC):
