@@ -88,6 +88,9 @@ class SleepProcessState(ProcessState):
 class Process(IUpdatable, ABC):
     state = None
 
+    def start(self) -> None:
+        self.state = ActiveProcessState(self)
+
     def update(self) -> None:
         if not self.state:
             self._start()
@@ -104,8 +107,6 @@ class Process(IUpdatable, ABC):
     def _handle(self) -> None:
         pass
 
-    def _start(self) -> None:
-        self.state = ActiveProcessState(self)
 
     def __reset_state(self) -> None:
         next_state = self.state.get_next_state()
