@@ -1,8 +1,10 @@
 from abc import ABC, abstractmethod
 from typing import Iterable, Callable, Optional
 
+from beautiful_repr import StylizedMixin, Field
+
 from interfaces import IUpdatable
-from renders import IAvatar
+from renders import IAvatar, ResourcePack
 from errors.core_errors import *
 from geometry import Vector
 from tools import ReportAnalyzer, BadReportHandler, Report, StrictToStateMixin
@@ -297,6 +299,33 @@ class PositionalUnit(ABC):
     def move(self) -> None:
         self.__previous_position = self.__position
         self.__position = self.next_position
+
+
+class PrimitiveAvatar(StylizedMixin, IAvatar, ABC):
+    _repr_fields = (Field('resource'), )
+    _resource_pack_factory: Callable[[any, Vector], ResourcePack] = ResourcePack
+
+    def __init__(self, unit: PositionalUnit, resource: any):
+        self.unit = unit
+        self._main_resource_pack = self._resource_pack_factory(
+            resource,
+            self.unit.position
+        )
+
+    @property
+    def render_resource_packs(self) -> tuple[ResourcePack, ]:
+        return (self._main_resource_pack, )
+
+    @property
+    def render_resource(self) -> any:
+        return self._main_resource_pack.resource
+
+    @render_resource.setter
+    def render_resource(self, render_resource: any) -> None:
+        self._main_resource_pack.resource = render_resource
+
+    def update(self) -> None:
+        self._main_resource_pack.point = self.unit.position
 
 
 class UnitHandler(ABC):
