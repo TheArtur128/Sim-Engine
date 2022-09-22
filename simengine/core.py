@@ -273,14 +273,14 @@ class UnitProcessesActivator(FocusedUnitHandler):
 class RenderResourceParser(FocusedUnitHandler):
     def __init__(self):
         super().__init__()
-        self._parsed_render_resources = list()
+        self._parsed_resource_packs = list()
 
     @property
-    def parsed_render_resources(self) -> tuple:
-        return tuple(self._parsed_render_resources)
+    def parsed_resource_packs(self) -> tuple:
+        return tuple(self._parsed_resource_packs)
 
-    def clear_parsed_render_resources(self) -> None:
-        self._parsed_render_resources = list()
+    def clear_parsed_resource_packs(self) -> None:
+        self._parsed_resource_packs = list()
 
     def is_unit_suitable(self, unit: IUpdatable) -> bool:
         return (
@@ -291,7 +291,7 @@ class RenderResourceParser(FocusedUnitHandler):
 
     def _handle_unit(self, unit: IUpdatable) -> None:
         unit.avatar.update()
-        self._parsed_render_resources.extend(unit.avatar.render_resources)
+        self._parsed_resource_packs.extend(unit.avatar.render_resource_packs)
 
 
 class UnitRelationsActivator(UnitHandler):

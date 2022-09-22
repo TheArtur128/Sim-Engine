@@ -19,7 +19,7 @@ class ResourcePack:
 class IRenderRersourceKeeper(ABC):
     @property
     @abstractmethod
-    def render_resources(self) -> tuple[ResourcePack, ]:
+    def render_resource_packs(self) -> tuple[ResourcePack, ]:
         pass
 
 
@@ -217,4 +217,4 @@ class RenderActivator(IUpdatable):
 
     def update(self) -> None:
         for render in self.renders:
-            render.draw_scene(self.render_resource_keeper.render_resources)
+            render.draw_scene(self.render_resource_keeper.render_resource_packs)
