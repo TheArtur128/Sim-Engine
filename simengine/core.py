@@ -88,6 +88,11 @@ class SleepProcessState(ProcessState):
 class Process(IUpdatable, ABC):
     state = None
 
+    @property
+    @abstractmethod
+    def participants(self) -> tuple:
+        pass
+
     def start(self) -> None:
         self.state = ActiveProcessState(self)
 
