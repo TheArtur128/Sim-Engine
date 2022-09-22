@@ -2,6 +2,7 @@ from typing import Iterable
 
 from pygame import Surface, draw, display, event, QUIT, time
 
+from interfaces import IUpdatable, ILoopFactory
 from renders import Render, SurfaceKeeper, TypedResourceHandler, ResourcePack
 from geometry import Vector
 from pygame_resources import *
@@ -116,4 +117,27 @@ class PygameKeyboardController:
         for event_ in event.get():
             if event_.type == QUIT:
                 exit()
+
+
+class PygameLoopUpdater(StoppingLoopUpdater):
+    _clock_factory = lambda: time.Clock()
+
+    def __init__(
+        self,
+        units: Iterable[IUpdatable, ],
+        keyboard_controller: PygameKeyboardController,
+        fps: int | float
+    ):
+        super().__init__(units)
+        self.keyboard_controller = keyboard_controller
+        self.fps = fps
+        self._pygame_clock = time.Clock()
+
+    def _handle(self) -> None:
+        self.keyboard_controller(self)
+        super()._handle()
+        display.flip()
+
+    def _stop(self) -> None:
+        self._pygame_clock.tick(self.fps)
 
