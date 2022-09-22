@@ -22,16 +22,14 @@ class LoopUpdater(ILoop):
         self.unit.update()
 
 
-class StoppingLoopUpdater(LoopUpdater):
+class StoppingLoopUpdater(LoopUpdater, ABC):
     def _handle(self) -> None:
         super()._handle()
-
-        if self.is_ready_to_stop():
-            self._stop()
+        self._handle_stop()
 
     @abstractmethod
-    def is_ready_to_stop(self) -> bool:
-        pass
+    def _handle_stop(self) -> None:
+        self._stop()
 
     @abstractmethod
     def _stop(self) -> None:
