@@ -11,15 +11,16 @@ from errors.tool_error import UnableToDivideError, ColorCoordinateError, AlphaCh
 
 
 class LoopUpdater(ILoop):
-    def __init__(self, unit: IUpdatable):
-        self.unit = unit
+    def __init__(self, units: Iterable[IUpdatable, ]):
+        self.units = tuple(units)
 
     def run(self) -> None:
         while True:
             self._handle()
 
     def _handle(self) -> None:
-        self.unit.update()
+        for unit in self.units:
+            unit.update()
 
 
 class StoppingLoopUpdater(LoopUpdater, ABC):
@@ -39,8 +40,8 @@ class StoppingLoopUpdater(LoopUpdater, ABC):
 class TickerLoopUpdater(StoppingLoopUpdater):
     _tick_factor: int | float = 1
 
-    def __init__(self, unit: IUpdatable, ticks_to_timeout: int):
-        super().__init__(unit)
+    def __init__(self, units: Iterable[IUpdatable, ], ticks_to_timeout: int):
+        super().__init__(units)
         self._ticks_to_timeout = self._clock = ticks_to_timeout
 
     def _handle_stop(self) -> None:
@@ -52,8 +53,8 @@ class TickerLoopUpdater(StoppingLoopUpdater):
 
 
 class SleepLoopUpdater(TickerLoopUpdater):
-    def __init__(self, unit: IUpdatable, ticks_to_timeout: int, sleep_seconds: int | float):
-        super().__init__(unit, ticks_to_timeout)
+    def __init__(self, units: Iterable[IUpdatable, ], ticks_to_timeout: int, sleep_seconds: int | float):
+        super().__init__(units, ticks_to_timeout)
         self.sleep_seconds = sleep_seconds
 
     def _stop(self) -> None:
