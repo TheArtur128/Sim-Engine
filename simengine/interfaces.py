@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Iterable
 
 
 class IUpdatable(ABC):
@@ -27,4 +28,29 @@ class IAvatar(IUpdatable, IRenderRersourceKeeper, ABC):
 class ILoop(ABC):
     @abstractmethod
     def run(self) -> None:
+        pass
+
+
+class ILoopFactory(ABC):
+    @abstractmethod
+    def __call__(self, units: Iterable[IUpdatable, ]) -> 'LoopUpdater':
+        pass
+
+
+class IRenderActivatorFactory(ABC):
+    @abstractmethod
+    def __call__(
+        self,
+        rersource_keeper: 'IRenderRersourceKeeper',
+        redners: Iterable['Render', ]
+    ) -> 'RenderActivator':
+        pass
+
+
+class IAppFactory(ABC):
+    def __call__(
+        self,
+        world: 'World',
+        renders: Iterable['RenderResourceParser', ]
+    ) -> 'LoopUpdater':
         pass
