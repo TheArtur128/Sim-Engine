@@ -141,3 +141,14 @@ class PygameLoopUpdater(StoppingLoopUpdater):
     def _stop(self) -> None:
         self._pygame_clock.tick(self.fps)
 
+
+class PygameLoopFactory(ILoopFactory):
+    _loop_factory: ILoopFactory = PygameLoopUpdater
+
+    def __init__(self, keyboard_controller: PygameKeyboardController, fps: int | float):
+        self.fps = fps
+        self.keyboard_controller = keyboard_controller
+
+    def __call__(self, units: Iterable[IUpdatable, ]) -> LoopUpdater:
+        return self._loop_factory(units, self.keyboard_controller, self.fps)
+
