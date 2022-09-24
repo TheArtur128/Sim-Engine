@@ -6,7 +6,7 @@ from math import floor, copysign
 from enum import IntEnum
 from functools import wraps
 
-from interfaces import IUpdatable, ILoop
+from interfaces import IUpdatable, ILoop, ILoopFactory
 from errors.tool_error import UnableToDivideError, ColorCoordinateError, AlphaChannelError
 
 
@@ -86,6 +86,11 @@ class CustomFactory(CustomArgumentFactory):
     @property
     def factory(self) -> Callable:
         return self._factory
+
+
+class CustomLoopFactory(CustomArgumentFactory, ILoopFactory):
+    def __call__(self, units: Iterable[IUpdatable, ], *args, **kwargs) -> LoopUpdater:
+        return super().__call__(units, *args, **kwargs)
 
 
 class NumberRounder(ABC):
