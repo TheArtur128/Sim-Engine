@@ -311,7 +311,7 @@ class MovableUnit(PositionalUnit, IMovable, ABC):
         self._position = self.next_position
 
 
-class ImpulseUnit(MovableUnit):
+class InfinitelyImpulseUnit(MovableUnit, ABC):
     def __init__(self, position: Vector):
         super().__init__(position)
         self.impulse = Vector()
@@ -325,6 +325,8 @@ class ImpulseUnit(MovableUnit):
     def next_position(self) -> Vector:
         return self.position + self.impulse
 
+
+class ImpulseUnit(InfinitelyImpulseUnit):
     def move(self) -> None:
         super().move()
         self.impulse = Vector()
