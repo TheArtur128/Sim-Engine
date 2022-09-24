@@ -161,6 +161,13 @@ class EventSupportStackHandler(IPygameEventHandler, ABC):
         )) if event.type in self._support_event_types else False
 
 
+class ExitEventHandler(PygameEventHandler, EventSupportStackHandler):
+    _support_event_types = (QUIT, )
+
+    def _handle(self, event: PygameEvent, loop: 'PygameLoopUpdater') -> None:
+        exit()
+
+
 class PygameLoopUpdater(StoppingLoopUpdater):
     _clock_factory = lambda: time.Clock()
 
