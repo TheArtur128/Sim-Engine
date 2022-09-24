@@ -124,6 +124,19 @@ class IPygameEventHandler(ABC):
         pass
 
 
+class PygameEventHandler(IPygameEventHandler, ABC):
+    def __call__(self, event: PygameEvent, loop: 'PygameLoopUpdater') -> None:
+        if not self.is_support_handling_for(event, loop):
+            raise PygameEventHandlerError(
+                f"Event handler {self} doesn't support handling event {event} in loop {loop}"
+            )
+
+        self._handle(event, loop)
+
+    @abstractmethod
+    def _handle(self, event: PygameEvent, loop: 'PygameLoopUpdater') -> None:
+        pass
+
 
 class PygameLoopUpdater(StoppingLoopUpdater):
     _clock_factory = lambda: time.Clock()
