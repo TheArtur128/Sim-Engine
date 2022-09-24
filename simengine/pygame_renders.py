@@ -138,6 +138,16 @@ class PygameEventHandler(IPygameEventHandler, ABC):
         pass
 
 
+class PygameEventHandlerWrapper(PygameEventHandler):
+    def __init__(self, handlers: Iterable[IPygameEventHandler, ]):
+        self.handlers = tuple(handlers)
+
+    def _handle(self, event: PygameEvent, loop: 'PygameLoopUpdater') -> None:
+        for handler in self.handlers:
+            if handler.is_support_handling_for(event, loop):
+                handler(event, loop)
+
+
 class PygameLoopUpdater(StoppingLoopUpdater):
     _clock_factory = lambda: time.Clock()
 
