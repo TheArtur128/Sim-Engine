@@ -147,7 +147,16 @@ class DelayedProcess(Process, ABC):
         self.activate_delay()
 
 
+class CustomBilateralProcessFactory(IBilateralProcessFactory, ABC):
+    def __init__(self, process_type: type):
+        self._process_type = process_type
 
+    @property
+    def process_type(self) -> type:
+        return self._process_type
+
+    def __call__(self, active_unit: IUpdatable, passive_unit: IUpdatable) -> Process:
+        return self.process_type(active_unit, passive_unit)
 
 
 class DependentUnit(IUpdatable, ABC):
