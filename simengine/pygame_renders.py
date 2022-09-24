@@ -249,6 +249,14 @@ if __name__ == '__main__':
 
     unit = TestUnit(Vector((320, 240)))
     unit.avatar.render_resource = Circle(RGBAColor(), 20)
+    class ObserveUnitAvatar(ResourceAvatar):
+        _resource_factory = CustomFactory(lambda _: Circle(RGBAColor(255, 0, 50), 0))
+
+        def update(self) -> None:
+            super().update()
+            vector_to_observed_unit = self.unit.position - self.unit.observed_unit.position
+            self.render_resource.radius = vector_to_observed_unit.length
+
 
     CustomAppFactory(PygameLoopFactory(PygameKeyboardController(), 30))(
         CustomWorld(
