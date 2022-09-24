@@ -114,6 +114,16 @@ class PygameSurfaceRender(SurfaceKeeper, Render):
 PygameEvent: NewType = object
 
 
+class IPygameEventHandler(ABC):
+    @abstractmethod
+    def __call__(self, event: PygameEvent, loop: 'PygameLoopUpdater') -> None:
+        pass
+
+    @abstractmethod
+    def is_support_handling_for(self, event: PygameEvent, loop: 'PygameLoopUpdater') -> bool:
+        pass
+
+
 
 class PygameLoopUpdater(StoppingLoopUpdater):
     _clock_factory = lambda: time.Clock()
