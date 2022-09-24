@@ -7,7 +7,7 @@ from interfaces import IUpdatable, ILoopFactory
 from renders import Render, SurfaceKeeper, TypedResourceHandler, ResourcePack
 from geometry import Vector
 from pygame_resources import *
-from tools import StoppingLoopUpdater, RGBAColor, LoopUpdater
+from tools import StoppingLoopUpdater, RGBAColor, LoopUpdater, CustomLoopFactory
 
 
 class PygameSurfaceRender(SurfaceKeeper, Render):
@@ -169,7 +169,9 @@ class ExitEventHandler(PygameEventHandler, EventSupportStackHandler):
 
 
 class PygameLoopUpdater(StoppingLoopUpdater):
-    _clock_factory = lambda: time.Clock()
+    _clock_factory: Callable[['PygameLoopUpdater'], time.Clock] = CustomFactory(
+        lambda pygame_loop: time.Clock()
+    )
 
     def __init__(
         self,
@@ -180,7 +182,7 @@ class PygameLoopUpdater(StoppingLoopUpdater):
         super().__init__(units)
         self.keyboard_controller = keyboard_controller
         self.fps = fps
-        self._pygame_clock = time.Clock()
+        self._pygame_clock = self._clock_factory(self)
 
     def _handle(self) -> None:
         self.keyboard_controller(self)
