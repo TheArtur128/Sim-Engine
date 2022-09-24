@@ -7,6 +7,7 @@ from typing import Iterable, Callable
 from beautiful_repr import StylizedMixin, Field, TemplateFormatter, parse_length
 from pyoverload import overload
 
+from interfaces import IHitboxFactory, IUpdatable, IZone
 from errors.geometry_errors import (
     UnableToDivideVectorIntoPointsError,
     FigureIsNotCorrect,
@@ -200,7 +201,7 @@ class VectorDivider(Divider, StylizedMixin):
         )
 
 
-class Figure(ABC):
+class Figure(IZone, ABC):
     _vector_divider_factory: Callable[['Line'], VectorDivider] = (
         lambda _: VectorDivider(0.1, ShiftNumberRounder(AccurateNumberRounder(), 1))
     )

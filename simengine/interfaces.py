@@ -31,6 +31,12 @@ class ILoop(ABC):
         pass
 
 
+class IZone(ABC):
+    @abstractmethod
+    def is_point_inside(self, point: 'Vector') -> bool:
+        pass
+
+
 class ILoopFactory(ABC):
     @abstractmethod
     def __call__(self, units: Iterable[IUpdatable, ]) -> 'LoopUpdater':
