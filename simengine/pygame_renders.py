@@ -259,6 +259,24 @@ if __name__ == '__main__':
 
 
     CustomAppFactory(PygameLoopFactory(PygameKeyboardController(), 30))(
+    class ObserveUnit(SpeedKeeperMixin, ImpulseUnit):
+        _avatar_factory = ObserveUnitAvatar
+        _speed = 1
+
+        def __init__(self, position: Vector, observed_unit: PositionalUnit):
+            super().__init__(position)
+            self.observed_unit = observed_unit
+
+        def update(self) -> None:
+            vector_to_observed_unit = Vector(
+                (self.observed_unit.position - self.position).coordinates
+            )
+            self.impulse = vector_to_observed_unit / (
+                (vector_to_observed_unit.length / self.speed)
+                if vector_to_observed_unit.length else 1
+            )
+
+
         CustomWorld(
             [unit],
             [UnitUpdater, RenderResourceParser]
