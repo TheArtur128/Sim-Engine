@@ -3,11 +3,11 @@ from typing import Iterable, Callable, Optional
 
 from beautiful_repr import StylizedMixin, Field
 
-from interfaces import IUpdatable, IAvatar, IRenderRersourceKeeper, IMovable, IAppFactory, ILoopFactory, IRenderActivatorFactory
+from interfaces import *
 from renders import ResourcePack, RenderActivator, IRender
 from errors.core_errors import *
-from geometry import Vector
 from tools import ReportAnalyzer, BadReportHandler, Report, StrictToStateMixin, LoopUpdater
+from geometry import Vector, Figure
 
 
 class ProcessState(IUpdatable, ABC):
@@ -325,6 +325,22 @@ class ImpulseUnit(MovableUnit):
 
 
 class PrimitiveAvatar(StylizedMixin, IAvatar, ABC):
+
+
+class HitboxUnit(IUpdatable, ABC):
+    hitbox_factories: Iterable[IHitboxFactory, ]
+
+    def __init__(self):
+        self._hitboxes = tuple(
+            hitbox_factory(self)
+            for hitbox_factory in self.hitbox_factories
+        )
+
+    @property
+    def hitboxes(self) -> tuple[Figure, ]:
+        return self._hitboxes
+
+
     _repr_fields = (Field('resource'), )
     _resource_pack_factory: Callable[[any, Vector], ResourcePack] = ResourcePack
 
