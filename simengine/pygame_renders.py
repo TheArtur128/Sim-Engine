@@ -1,6 +1,6 @@
-from typing import Iterable
+from typing import Iterable, NewType
 
-from pygame import Surface, draw, display, event, QUIT, time
+from pygame import *
 
 from core import *
 from interfaces import IUpdatable, ILoopFactory
@@ -111,13 +111,8 @@ class PygameSurfaceRender(SurfaceKeeper, Render):
         )
 
 
-class PygameKeyboardController:
-    # Will be redone
+PygameEvent: NewType = object
 
-    def __call__(self, loop: 'PygameLoopUpdater'):
-        for event_ in event.get():
-            if event_.type == QUIT:
-                exit()
 
 
 class PygameLoopUpdater(StoppingLoopUpdater):
