@@ -9,3 +9,6 @@ class PygameRenderResourceError(PygameRenderError):
 class PygameEventError(PygameRenderError):
     pass
 
+
+class PygameEventHandlerError(PygameEventError):
+    pass
