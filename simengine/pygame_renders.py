@@ -148,6 +148,19 @@ class PygameEventHandlerWrapper(PygameEventHandler):
                 handler(event, loop)
 
 
+class EventSupportStackHandler(IPygameEventHandler, ABC):
+    _support_event_types: Iterable
+    _support_keys: Optional[Iterable] = None
+    _support_buttons: Optional[Iterable] = None
+    _is_strict: bool = True
+
+    def is_support_handling_for(self, event: PygameEvent, loop: 'PygameLoopUpdater') -> bool:
+        return (all if self._is_strict else any)((
+            (event.key in self._support_keys) if hasattr(event, 'key') else self._support_keys is None,
+            (event.button in self._support_buttons) if hasattr(event, 'button') else self._support_buttons is None
+        )) if event.type in self._support_event_types else False
+
+
 class PygameLoopUpdater(StoppingLoopUpdater):
     _clock_factory = lambda: time.Clock()
 
