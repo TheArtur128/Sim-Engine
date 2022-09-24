@@ -77,3 +77,9 @@ class IBilateralProcessFactory(ABC):
     @abstractmethod
     def __call__(self, active_unit: IUpdatable, passive_unit: IUpdatable) -> 'Process':
         pass
+
+
+class IAvatarFactory(ABC):
+    @abstractmethod
+    def __call__(self, unit: 'PositionalUnit') -> IAvatar:
+        pass
