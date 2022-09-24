@@ -239,8 +239,9 @@ if __name__ == '__main__':
             self.main_hero.impulse = impulse
 
 
-    class TestUnit(PositionalUnit):
-        _avatar_factory = lambda unit: PrimitiveAvatar(unit, None)
+    class TestUnit(SpeedKeeperMixin, InfinitelyImpulseUnit):
+        _avatar_factory = CustomFactory(lambda unit: PrimitiveAvatar(unit, None))
+        _speed = 2
 
         def update(self) -> None:
             pass
