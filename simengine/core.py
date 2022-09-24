@@ -438,6 +438,14 @@ class UnitRelationsActivator(UnitHandler):
                 active_unit.interact_with(passive_unit)
 
 
+class UnitMover(FocusedUnitHandler):
+    def is_unit_suitable(self, unit: IMovable) -> Report:
+        return super().is_unit_suitable(unit) and Report(isinstance(unit, IMovable))
+
+    def _handle_unit(self, unit: IMovable) -> None:
+        unit.move()
+
+
 class World(IUpdatable, MixinDiscrete, ABC):
     _unit_handler_factories: Iterable[Callable[['World'], UnitHandler], ]
 
