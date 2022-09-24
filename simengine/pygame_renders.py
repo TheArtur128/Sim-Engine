@@ -205,9 +205,40 @@ class PygameLoopFactory(CustomLoopFactory):
     factory = PygameLoopUpdater
 
 
-
-
 if __name__ == '__main__':
+    class MainHeroManagement(PygameEventHandler, EventSupportStackHandler):
+        _right_movement_keys = (K_RIGHT, K_d)
+        _left_movement_keys = (K_LEFT, K_a)
+        _up_movement_keys = (K_UP, K_w)
+        _down_movement_keys = (K_DOWN, K_s)
+
+        _support_keys = (
+            *_right_movement_keys,
+            *_left_movement_keys,
+            *_up_movement_keys,
+            *_down_movement_keys
+        )
+        _support_event_types = (KEYDOWN, )
+
+        def __init__(self, main_hero: InfinitelyImpulseUnit):
+            self.main_hero = main_hero
+
+        def _handle(self, event: PygameEvent, loop: PygameLoopUpdater) -> None:
+            impulse = Vector((0, 0))
+
+            if event.key in self._right_movement_keys:
+                impulse += Vector((self.main_hero.speed, 0))
+            if event.key in self._left_movement_keys:
+                impulse -= Vector((self.main_hero.speed, 0))
+
+            if event.key in self._up_movement_keys:
+                impulse -= Vector((0, self.main_hero.speed))
+            if event.key in self._down_movement_keys:
+                impulse += Vector((0, self.main_hero.speed))
+
+            self.main_hero.impulse = impulse
+
+
     class TestUnit(PositionalUnit):
         _avatar_factory = lambda unit: PrimitiveAvatar(unit, None)
 
