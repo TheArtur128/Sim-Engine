@@ -468,3 +468,13 @@ class Rectangle(Figure, StylizedMixin):
             center_point,
             (side_length * 2, ) * number_of_measurements
         )
+
+
+class FigureFactory(IHitboxFactory):
+    def __init__(self, figure_type: type, *args_to_type, **kwargs_to_type):
+        self.figure_type = figure_type
+        self.args_to_type = args_to_type
+        self.kwargs_to_type = kwargs_to_type
+
+    def __call__(self, unit: IUpdatable) -> 'Figure':
+        return self.figure_type(*self.args_to_type, **self.kwargs_to_type)
