@@ -332,6 +332,12 @@ class ImpulseUnit(InfinitelyImpulseUnit):
         self.impulse = Vector()
 
 
+class SpeedKeeperMixin(ABC):
+    _speed: int | float
+
+    @property
+    def speed(self) -> int | float:
+        return self._speed
 
 
 class HitboxUnit(IUpdatable, ABC):
