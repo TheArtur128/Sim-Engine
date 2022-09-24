@@ -188,7 +188,7 @@ class DependentUnit(IUpdatable, ABC):
         self.__completed_processes = list()
 
 
-class InteractiveUnit(ABC):
+class InteractiveUnit(IUpdatable, ABC):
     _report_analyzer = ReportAnalyzer((BadReportHandler(
         UnitError,
         "Unit state is incorrect"
@@ -408,7 +408,7 @@ class RenderResourceParser(UnitHandler, IRenderRersourceKeeper):
     def clear_parsed_resource_packs(self) -> None:
         self._parsed_resource_packs = list()
 
-    def is_unit_suitable(self, unit: IUpdatable) -> bool:
+    def is_unit_suitable(self, unit: IUpdatable) -> Report:
         return (
             super().is_unit_suitable(unit) and
             Report(
