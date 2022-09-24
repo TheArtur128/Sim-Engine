@@ -60,3 +60,9 @@ class IAppFactory(ABC):
         renders: Iterable['RenderResourceParser', ]
     ) -> 'LoopUpdater':
         pass
+
+
+class IHitboxFactory(ABC):
+    @abstractmethod
+    def __call__(self, unit: IUpdatable) -> 'Figure':
+        pass
