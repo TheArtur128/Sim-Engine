@@ -317,6 +317,11 @@ class ImpulseUnit(MovableUnit):
         self.impulse = Vector()
 
     @property
+    @abstractmethod
+    def speed(self) -> int | float:
+        pass
+
+    @property
     def next_position(self) -> Vector:
         return self.position + self.impulse
 
