@@ -325,7 +325,6 @@ class ImpulseUnit(MovableUnit):
         self.impulse = Vector()
 
 
-class PrimitiveAvatar(StylizedMixin, IAvatar, ABC):
 
 
 class HitboxUnit(IUpdatable, ABC):
@@ -351,13 +350,15 @@ class Avatar(IAvatar, ABC):
         return self._unit
 
 
+class ResourceAvatar(Avatar, StylizedMixin, ABC):
     _repr_fields = (Field('resource'), )
+    _resource_factory: Callable[['ResourceAvatar'], any]
     _resource_pack_factory: Callable[[any, Vector], ResourcePack] = ResourcePack
 
-    def __init__(self, unit: PositionalUnit, resource: any):
-        self.unit = unit
+    def __init__(self, unit: PositionalUnit):
+        super().__init__(unit)
         self._main_resource_pack = self._resource_pack_factory(
-            resource,
+            self._resource_factory(self),
             self.unit.position
         )
 
@@ -369,12 +370,22 @@ class Avatar(IAvatar, ABC):
     def render_resource(self) -> any:
         return self._main_resource_pack.resource
 
+    def update(self) -> None:
+        self._main_resource_pack.point = self.unit.position
+
+
+class PrimitiveAvatar(ResourceAvatar, ABC):
+    def __init__(self, unit: PositionalUnit, resource: any):
+        self._resource_factory = lambda _: resource
+        super().__init__(unit)
+
+    @property
+    def render_resource(self) -> any:
+         return ResourceAvatar.render_resource.fget(self)
+
     @render_resource.setter
     def render_resource(self, render_resource: any) -> None:
         self._main_resource_pack.resource = render_resource
-
-    def update(self) -> None:
-        self._main_resource_pack.point = self.unit.position
 
 
 class UnitHandler(ABC):
