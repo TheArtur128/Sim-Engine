@@ -342,6 +342,15 @@ class HitboxUnit(IUpdatable, ABC):
         return self._hitboxes
 
 
+class Avatar(IAvatar, ABC):
+    def __init__(self, unit: PositionalUnit):
+        self._unit = unit
+
+    @property
+    def unit(self) -> PositionalUnit:
+        return self._unit
+
+
     _repr_fields = (Field('resource'), )
     _resource_pack_factory: Callable[[any, Vector], ResourcePack] = ResourcePack
 
