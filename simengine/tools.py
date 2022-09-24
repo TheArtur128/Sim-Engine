@@ -60,6 +60,24 @@ class SleepLoopUpdater(TickerLoopUpdater):
         sleep(self.sleep_seconds)
 
 
+class CustomArgumentFactory(ABC):
+    factory: Callable
+
+    def __init__(self, *args_for_factory, **kwargs_for_factory):
+        self.arguments_for_factory = Arguments.create_via_call(
+            *args_for_factory,
+            **kwargs_for_factory
+        )
+
+    def __call__(self, *args, **kwargs) -> any:
+        return self.factory(
+            *args,
+            *self.arguments_for_factory.args,
+            **kwargs,
+            **self.arguments_for_factory.kwargs
+        )
+
+
 class NumberRounder(ABC):
     def __call__(self, number: any) -> any:
         return self._round(number)
