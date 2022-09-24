@@ -207,8 +207,8 @@ class InteractiveUnit(IUpdatable, ABC):
         pass
 
 
-class ProcessInteractiveUnit(InteractiveUnit, DependentUnit):
-    _bilateral_process_factory: Iterable[IBilateralProcessFactory, ]
+class ProcessInteractiveUnit(InteractiveUnit, DependentUnit, ABC):
+    _bilateral_process_factories: Iterable[IBilateralProcessFactory | type, ]
     __cash_factories_for_object: tuple[object, tuple[IBilateralProcessFactory, ]] = (object(), tuple())
 
     def is_support_interaction_with(self, unit: IUpdatable) -> Report:
@@ -231,8 +231,10 @@ class ProcessInteractiveUnit(InteractiveUnit, DependentUnit):
             return self.__cash_factories_for_object[1]
 
         factories = tuple(
-            factory.process_type.is_support_participants((self, unit))
-            for factory in self._bilateral_process_factory
+            (
+                factory.process_type if hasattr(factory, 'process_type') else factory
+            ).is_support_participants((self, unit))
+            for factory in self._bilateral_process_factories
         )
         self.__cash_factories_for_object = (unit, factories)
 
