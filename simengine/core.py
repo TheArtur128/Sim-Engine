@@ -6,8 +6,8 @@ from beautiful_repr import StylizedMixin, Field
 from interfaces import *
 from renders import ResourcePack, RenderActivator, IRender
 from errors.core_errors import *
-from tools import ReportAnalyzer, BadReportHandler, Report, StrictToStateMixin, LoopUpdater
 from geometry import Vector, Figure
+from tools import ReportAnalyzer, BadReportHandler, Report, StrictToStateMixin, LoopUpdater, CustomFactory
 
 
 class ProcessState(IUpdatable, ABC):
@@ -276,15 +276,15 @@ class DiscreteUnit(MixinDiscrete, IUpdatable, ABC):
 
 class PositionalUnit(StylizedMixin, IUpdatable, ABC):
     _repr_fields = (Field('position'), )
-    _avatar_factory: Callable[['PositionalUnit'], IAvatar] = lambda unit: None
+    _avatar_factory: IAvatarFactory = CustomFactory(lambda unit: None)
 
     def __init__(self, position: Vector):
         super().__init__()
         self._position = position
-        self._avatar = self._avatar_factory()
+        self._avatar = self._avatar_factory(self)
 
     @property
-    def avatar(self) -> IAvatar:
+    def avatar(self) -> IAvatar | None:
         return self._avatar
 
     @property
