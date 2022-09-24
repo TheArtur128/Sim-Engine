@@ -247,8 +247,6 @@ if __name__ == '__main__':
             pass
 
 
-    unit = TestUnit(Vector((320, 240)))
-    unit.avatar.render_resource = Circle(RGBAColor(), 20)
     class ObserveUnitAvatar(ResourceAvatar):
         _resource_factory = CustomFactory(lambda _: Circle(RGBAColor(255, 0, 50), 0))
 
@@ -258,7 +256,6 @@ if __name__ == '__main__':
             self.render_resource.radius = vector_to_observed_unit.length
 
 
-    CustomAppFactory(PygameLoopFactory(PygameKeyboardController(), 30))(
     class ObserveUnit(SpeedKeeperMixin, ImpulseUnit):
         _avatar_factory = ObserveUnitAvatar
         _speed = 1
@@ -277,9 +274,15 @@ if __name__ == '__main__':
             )
 
 
+    black_unit = TestUnit(Vector((200, 240)))
+    black_unit.avatar.render_resource = Circle(RGBAColor(), 20)
+
+    red_unit = ObserveUnit(Vector((100, 240)), black_unit)
+
+    CustomAppFactory(PygameLoopFactory([ExitEventHandler(), MainHeroManagement(black_unit)], 30))(
         CustomWorld(
-            [unit],
-            [UnitUpdater, RenderResourceParser]
+            [black_unit, red_unit],
+            [UnitUpdater, UnitMover, RenderResourceParser]
         ),
         (
             PygameSurfaceRender(
