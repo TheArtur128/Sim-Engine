@@ -5,9 +5,9 @@ from typing import Callable, Iterable, Optional, Generator
 from beautiful_repr import StylizedMixin, Field
 
 from geometry import Vector
-from interfaces import IUpdatable, IRenderRersourceKeeper, IAvatar
+from interfaces import IUpdatable, IRenderRersourceKeeper, IAvatar, IRenderActivatorFactory
 from errors.render_errors import UnsupportedResourceError
-from tools import ReportAnalyzer, BadReportHandler, Report, Arguments
+from tools import ReportAnalyzer, BadReportHandler, Report, Arguments, CustomArgumentFactory
 
 
 @dataclass
@@ -207,3 +207,14 @@ class RenderActivator(IUpdatable):
     def update(self) -> None:
         for render in self.renders:
             render.draw_scene(self.render_resource_keeper.render_resource_packs)
+
+
+class CustomRenderActivatorFactory(CustomArgumentFactory, IRenderActivatorFactory):
+    def __call__(
+        self,
+        rersource_keeper: IRenderRersourceKeeper,
+        redners: Iterable[Render, ],
+        *args,
+        **kwargs
+    ) -> RenderActivator:
+        return super().__call__(rersource_keeper, redners, *args, **kwargs)
