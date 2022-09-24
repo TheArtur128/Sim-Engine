@@ -7,6 +7,7 @@ from interfaces import IUpdatable, ILoopFactory
 from renders import Render, SurfaceKeeper, TypedResourceHandler, ResourcePack
 from geometry import Vector
 from pygame_resources import *
+from errors.pygame_render_errors import PygameEventHandlerError
 from tools import StoppingLoopUpdater, RGBAColor, LoopUpdater, CustomLoopFactory
 
 
@@ -176,18 +177,25 @@ class PygameLoopUpdater(StoppingLoopUpdater):
     def __init__(
         self,
         units: Iterable[IUpdatable, ],
-        keyboard_controller: PygameKeyboardController,
+        event_handlers: Iterable[PygameEventHandler, ],
         fps: int | float
     ):
         super().__init__(units)
-        self.keyboard_controller = keyboard_controller
         self.fps = fps
+        self.event_handlers = tuple(event_handlers)
         self._pygame_clock = self._clock_factory(self)
 
     def _handle(self) -> None:
-        self.keyboard_controller(self)
+        for event_ in event.get():
+            self._handle_event(event_)
+
         super()._handle()
         display.flip()
+
+    def _handle_event(self, event: PygameEvent) -> None:
+        for event_handler in self.event_handlers:
+            if event_handler.is_support_handling_for(event, self):
+                event_handler(event, self)
 
     def _stop(self) -> None:
         self._pygame_clock.tick(self.fps)
