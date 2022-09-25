@@ -202,6 +202,11 @@ class UnitSpawnProcess(FocusedEvent, WorldProcess, ManyPassProcess):
         self.world.add_inhabitant(participant)
 
 
+class UnitKillProcess(FocusedEvent, WorldProcess, ManyPassProcess):
+    def _handle_participant(self, participant: IUpdatable) -> None:
+        self.world.remove_inhabitant(participant)
+
+
 class DelayedProcess(Process, ABC):
     _ticks_of_inactivity: int
 
