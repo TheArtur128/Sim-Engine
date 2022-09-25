@@ -115,12 +115,13 @@ class Process(StrictToStateMixin, IUpdatable, ABC):
         if not self.state:
             self.start()
 
+        self.state.update()
+
         while True:
             old_state = self.state
             self.__reset_state()
 
             if old_state is self.state:
-                self.state.update()
                 break
 
     @classmethod
