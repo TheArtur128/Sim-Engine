@@ -185,6 +185,16 @@ class Event(Process, ABC):
         return self.__participants
 
 
+class FocusedEvent(Event, ABC):
+    def _handle(self) -> None:
+        for participant in self.participants:
+            self._handle_participant(participant)
+
+    @abstractmethod
+    def _handle_participant(self, participant: IUpdatable) -> None:
+        pass
+
+
 class DelayedProcess(Process, ABC):
     _ticks_of_inactivity: int
 
