@@ -1,4 +1,5 @@
 from pygame import *
+from random import randint, choice
 
 from core import *
 from pygame_renders import *
@@ -38,7 +39,15 @@ class MainHeroManagement(PygameEventHandler, EventSupportStackHandler):
 
 
 class TestUnit(SpeedKeeperMixin, InfinitelyImpulseUnit):
-    _avatar_factory = CustomFactory(lambda unit: PrimitiveAvatar(unit, None))
+    _avatar_factory = CustomFactory(
+        lambda unit: PrimitiveAvatar(
+            unit,
+            Circle(
+                RGBAColor(choice(range(255)), choice(range(255)), choice(range(255))),
+                choice(range(3, 50))
+            )
+        )
+    )
     _speed = 2
 
     def update(self) -> None:
