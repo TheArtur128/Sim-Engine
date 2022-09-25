@@ -175,6 +175,16 @@ class WorldProcess(Process, ABC):
         super().start()
 
 
+class Event(Process, ABC):
+    def __init__(self, participants: Iterable[IUpdatable, ]):
+        self.__participants = tuple(participants)
+        super().__init__()
+
+    @property
+    def participants(self) -> tuple:
+        return self.__participants
+
+
 class DelayedProcess(Process, ABC):
     _ticks_of_inactivity: int
 
