@@ -229,7 +229,31 @@ class CustomBilateralProcessFactory(IBilateralProcessFactory, ABC):
         return self.process_type(active_unit, passive_unit)
 
 
-class DependentUnit(IUpdatable, ABC):
+class IProcessKeeper(ABC):
+    @property
+    @abstractmethod
+    def processes(self) -> frozenset[Process, ]:
+        pass
+
+    @property
+    @abstractmethod
+    def completed_processes(self) -> frozenset[Process, ]:
+        pass
+
+    @abstractmethod
+    def add_process(self, process: Process) -> None:
+        pass
+
+    @abstractmethod
+    def activate_processes(self) -> None:
+        pass
+
+    @abstractmethod
+    def clear_completed_processes(self) -> None:
+        pass
+
+
+class ProcessKeeper(IProcessKeeper, ABC):
     def __init__(self):
         self._processes = set()
         self.__completed_processes = list()
@@ -257,6 +281,10 @@ class DependentUnit(IUpdatable, ABC):
 
     def clear_completed_processes(self) -> None:
         self.__completed_processes = list()
+
+
+class DependentUnit(ProcessKeeper, IUpdatable, ABC):
+    pass
 
 
 class InteractiveUnit(IUpdatable, ABC):
