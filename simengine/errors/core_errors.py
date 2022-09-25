@@ -34,7 +34,7 @@ class ProcessHasNotStartedError(ProcessError):
     pass
 
 
-class ProcessStateError(SimulationError):
+class ProcessStateError(ProcessError):
     pass
 
 
