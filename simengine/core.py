@@ -553,10 +553,12 @@ class UnitUpdater(FocusedUnitHandler):
         unit.update()
 
 
-class UnitProcessesActivator(FocusedUnitHandler):
+class ProcessKeeperHandler(UnitHandler):
     def is_unit_suitable(self, unit: IUpdatable) -> Report:
-        return super().is_unit_suitable(unit) and Report(isinstance(unit, DependentUnit))
+        return super().is_unit_suitable(unit) and Report(isinstance(unit, ProcessKeeper))
 
+
+class UnitProcessesActivator(FocusedUnitHandler, ProcessKeeperHandler):
     def _handle_unit(self, unit: IUpdatable) -> None:
         unit.clear_completed_processes()
         unit.activate_processes()
