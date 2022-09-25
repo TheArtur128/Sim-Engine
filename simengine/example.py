@@ -3,6 +3,7 @@ from random import randint, choice
 
 from core import *
 from pygame_renders import *
+from tools import Timer
 
 
 class MainHeroManagement(PygameEventHandler, EventSupportStackHandler):
@@ -81,15 +82,48 @@ class ObserveUnit(SpeedKeeperMixin, ImpulseUnit):
         )
 
 
+class UnitSpawner(PositionalUnit, DependentUnit):
+    _avatar_factory = CustomFactory(lambda unit: PrimitiveAvatar(unit, None))
+
+    def __init__(
+        self,
+        position: Vector,
+        unit_factory: Callable[[Vector], PositionalUnit],
+        spawn_zone: Iterable[range, ],
+        timer: Timer
+    ):
+        super().__init__(position)
+        super(DependentUnit, self).__init__()
+
+        self.unit_factory = unit_factory
+        self.spawn_zone = tuple(spawn_zone)
+        self.timer = timer
+
+    def update(self) -> None:
+        if self.timer.is_time_over():
+            generate_point = Vector(tuple(
+                randint(coordinate_range.start, coordinate_range.stop)
+                for coordinate_range in self.spawn_zone
+            ))
+
+            self.add_process(
+                UnitSpawnProcess((self.unit_factory(generate_point), ))
+            )
+            self.timer.start()
+
+
 black_unit = TestUnit(Vector((200, 240)))
 black_unit.avatar.render_resource = Circle(RGBAColor(), 20)
 
 red_unit = ObserveUnit(Vector((100, 240)), black_unit)
 
-CustomAppFactory(PygameLoopFactory([ExitEventHandler(), MainHeroManagement(black_unit)], 30))(
+unit_spawner = UnitSpawner(Vector((320, 240)), CustomFactory(TestUnit), (range(640), range(480)), Timer(3))
+unit_spawner.avatar.render_resource = Circle(RGBAColor(red=255, green=243), 30)
+
+CustomAppFactory(PygameLoopFactory([ExitEventHandler(), MainHeroManagement(black_unit)], 60))(
     CustomWorld(
-        [black_unit, red_unit],
-        [UnitUpdater, UnitMover, RenderResourceParser]
+        [black_unit, red_unit, unit_spawner],
+        [UnitUpdater, WorldProcessesActivator, UnitMover, RenderResourceParser]
     ),
     (
         PygameSurfaceRender(
