@@ -304,13 +304,13 @@ class DependentUnit(ProcessKeeper, IUpdatable, ABC):
 
 
 class InteractiveUnit(IUpdatable, ABC):
-    _report_analyzer = ReportAnalyzer((BadReportHandler(
-        UnitError,
-        "Unit state is incorrect"
+    _interaction_report_analyzer = ReportAnalyzer((BadReportHandler(
+        UnitRelationError,
+        "Unit can't interact"
     ), ))
 
     def interact_with(self, unit: IUpdatable) -> None:
-        self._report_analyzer(self.is_support_interaction_with(unit))
+        self._interaction_report_analyzer(self.is_support_interaction_with(unit))
         self._handle_interaction_with(unit)
 
     @abstractmethod
