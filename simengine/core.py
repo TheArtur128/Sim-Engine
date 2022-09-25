@@ -564,6 +564,34 @@ class UnitProcessesActivator(FocusedUnitHandler, ProcessKeeperHandler):
         unit.activate_processes()
 
 
+class WorldProcessesActivator(ProcessKeeper, ProcessKeeperHandler):
+    def __init__(self, world: 'World'):
+        super().__init__()
+        super(ProcessKeeperHandler, self).__init__(world)
+
+    def is_support_process(self, process: Process) -> Report:
+        return Report(isinstance(process, WorldProcess))
+
+    def add_process(self, process: Process) -> None:
+        process.world = self.world
+        super().add_process(process)
+
+    def _handle_units(self, units: Iterable[DependentUnit, ]) -> None:
+        self.clear_completed_processes()
+        self.__parse_world_processes_from(units)
+        self.activate_processes()
+
+    def __parse_world_processes_from(self, units: Iterable[DependentUnit, ]) -> None:
+        for unit in units:
+            self.__handle_unit_processes(unit)
+
+    def __handle_unit_processes(self, unit: DependentUnit) -> None:
+        for process in unit.processes:
+            if isinstance(process, WorldProcess):
+                unit.remove_process(process)
+                self.add_process(process)
+
+
 class RenderResourceParser(UnitHandler, IRenderRersourceKeeper):
     def __init__(self, world: 'World'):
         super().__init__(world)
