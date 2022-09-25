@@ -20,3 +20,7 @@ class ColorCoordinateError(RGBAColorError):
 
 class AlphaChannelError(RGBAColorError):
     pass
+
+
+class TimerError(ToolError):
+    pass

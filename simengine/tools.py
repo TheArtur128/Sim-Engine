@@ -1,13 +1,15 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from time import sleep
+from time import sleep, time, ctime
 from typing import Iterable, Callable
 from math import floor, copysign
 from enum import IntEnum
 from functools import wraps
 
+from beautiful_repr import StylizedMixin, Field, TemplateFormatter
+
 from interfaces import IUpdatable, ILoop, ILoopFactory
-from errors.tool_errors import UnableToDivideError, ColorCoordinateError, AlphaChannelError
+from errors.tool_errors import *
 
 
 class LoopUpdater(ILoop):
@@ -293,3 +295,28 @@ def like_object(func: Callable) -> Callable:
         return func(func, *args, **kwargs)
 
     return wrapper
+
+
+class Timer(StylizedMixin):
+    _repr_fields = (
+        Field('period', value_transformer=lambda value: f"{value} second{'s' if value > 1 else ''}"),
+        Field('end_time', value_transformer=ctime)
+    )
+
+    def __init__(self, seconds_of_period: int):
+        self.period = seconds_of_period
+        self._end_time = 0
+        self.start()
+
+    @property
+    def end_time(self) -> float:
+        return self._end_time
+
+    def is_time_over(self) -> bool:
+        return self._end_time <= time()
+
+    def start(self):
+        if not self.is_time_over():
+            raise TimerError(f"Timer {self} has already started")
+
+        self._end_time = time() + self.period
