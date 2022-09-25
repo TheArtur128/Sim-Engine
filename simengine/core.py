@@ -245,6 +245,10 @@ class IProcessKeeper(ABC):
         pass
 
     @abstractmethod
+    def remove_process(self, process: Process) -> None:
+        pass
+
+    @abstractmethod
     def activate_processes(self) -> None:
         pass
 
@@ -268,6 +272,9 @@ class ProcessKeeper(IProcessKeeper, ABC):
 
     def add_process(self, process: Process) -> None:
         self._processes.add(process)
+
+    def remove_process(self, process: Process) -> None:
+        self._processes.remove(process)
 
     def activate_processes(self) -> None:
         processes_to_update, self._processes = self._processes, set()
