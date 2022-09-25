@@ -113,14 +113,13 @@ class Process(StrictToStateMixin, IUpdatable, ABC):
 
     def update(self) -> None:
         if not self.state:
-            self._start()
+            self.start()
 
         while True:
             old_state = self.state
             self.__reset_state()
 
             if old_state is self.state:
-                self._check_state_errors()
                 self.state.update()
                 break
 
