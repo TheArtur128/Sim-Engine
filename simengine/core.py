@@ -195,6 +195,13 @@ class FocusedEvent(Event, ABC):
         pass
 
 
+class UnitSpawnProcess(FocusedEvent, WorldProcess, ManyPassProcess):
+    _passes = 1
+
+    def _handle_participant(self, participant: IUpdatable) -> None:
+        self.world.add_inhabitant(participant)
+
+
 class DelayedProcess(Process, ABC):
     _ticks_of_inactivity: int
 
