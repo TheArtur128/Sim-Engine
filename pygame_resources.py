@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from typing import Iterable
 
-from geometry import Vector
-from tools import RGBAColor
+from simengine.geometry import Vector
+from simengine.tools import RGBAColor
 
 
 @dataclass

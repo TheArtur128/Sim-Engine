@@ -1,9 +1,9 @@
 from pygame import *
 from random import randint, choice
 
-from core import *
+from simengine.core import *
+from simengine.tools import Timer
 from pygame_renders import *
-from tools import Timer
 
 
 class MainHeroManagement(PygameEventHandler, EventSupportStackHandler):

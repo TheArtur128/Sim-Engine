@@ -3,12 +3,12 @@ from typing import Iterable, NewType, Optional, Callable
 
 from pygame import *
 
-from interfaces import IUpdatable, ILoopFactory
-from renders import Render, SurfaceKeeper, TypedResourceHandler, ResourcePack
-from geometry import Vector
 from pygame_resources import *
-from errors.pygame_render_errors import PygameEventHandlerError
-from tools import StoppingLoopUpdater, RGBAColor, LoopUpdater, CustomLoopFactory, CustomFactory
+from simengine.interfaces import IUpdatable, ILoopFactory
+from simengine.renders import Render, SurfaceKeeper, TypedResourceHandler, ResourcePack
+from simengine.geometry import Vector
+from simengine.errors.pygame_render_errors import PygameEventHandlerError
+from simengine.tools import StoppingLoopUpdater, RGBAColor, LoopUpdater, CustomLoopFactory, CustomFactory
 
 
 class PygameSurfaceRender(SurfaceKeeper, Render):
