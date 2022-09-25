@@ -64,7 +64,14 @@ class ActiveProcessState(ProcessState):
         self.process._handle()
 
 
-class SleepProcessState(ProcessState):
+class NewStateByValidationProcessState(ProcessState, ABC):
+    _new_state_factory: Callable[['Process'], ProcessState] = CustomFactory(ActiveProcessState)
+
+    def get_next_state(self) -> ProcessState | None:
+        return self._new_state_factory(self.process) if self.is_valid() else None
+
+
+class SleepProcessState(NewStateByValidationProcessState):
     def __init__(
         self,
         process: 'Process',
@@ -75,8 +82,6 @@ class SleepProcessState(ProcessState):
         self.ticks_to_activate = ticks_to_activate
         self.tick = 1 * tick_factor
 
-    def get_next_state(self) -> ProcessState:
-        return ActiveProcessState(self.process)
 
     def is_valid(self) -> Report:
         return Report.create_error_report(
