@@ -46,6 +46,10 @@ class ProcessIsNoLongerSleepingError(ProcessStateIsNotValidError):
     pass
 
 
+class WorldProcessError(ProcessError):
+    pass
+
+
 class AppFactoryError(SimulationError):
     pass
 

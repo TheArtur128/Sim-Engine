@@ -165,6 +165,16 @@ class ManyPassProcess(Process, ABC):
         return CompletedProcessState(self) if self._passes <= 0 else None
 
 
+class WorldProcess(Process, ABC):
+    world: Optional['World'] = None
+
+    def start(self) -> None:
+        if not self.world:
+            raise WorldProcessError(f"World process {self} has no world")
+
+        super().start()
+
+
 class DelayedProcess(Process, ABC):
     _ticks_of_inactivity: int
 
