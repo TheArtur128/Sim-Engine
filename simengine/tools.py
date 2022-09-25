@@ -8,8 +8,8 @@ from functools import wraps
 
 from beautiful_repr import StylizedMixin, Field, TemplateFormatter
 
-from interfaces import IUpdatable, ILoop, ILoopFactory
-from errors.tool_errors import *
+from simengine.interfaces import IUpdatable, ILoop, ILoopFactory
+from simengine.errors.tool_errors import *
 
 
 class LoopUpdater(ILoop):

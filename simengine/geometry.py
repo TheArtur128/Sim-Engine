@@ -7,13 +7,13 @@ from typing import Iterable, Callable
 from beautiful_repr import StylizedMixin, Field, TemplateFormatter, parse_length
 from pyoverload import overload
 
-from interfaces import IHitboxFactory, IUpdatable, IZone
-from errors.geometry_errors import (
+from simengine.interfaces import IHitboxFactory, IUpdatable, IZone
+from simengine.errors.geometry_errors import (
     UnableToDivideVectorIntoPointsError,
     FigureIsNotCorrect,
     FigureIsNotClosedError,
 )
-from tools import (
+from simengine.tools import (
     NumberRounder,
     ShiftNumberRounder,
     AccurateNumberRounder,
