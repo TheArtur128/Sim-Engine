@@ -157,11 +157,11 @@ class Process(StrictToStateMixin, IUpdatable, ABC):
 class DelayedProcess(Process, ABC):
     _ticks_of_inactivity: int
 
+    def start(self) -> None:
+        self.activate_delay()
+
     def activate_delay(self) -> None:
         self.state = SleepProcessState(self, self._ticks_of_inactivity)
-
-    def _start(self) -> None:
-        self.activate_delay()
 
 
 class CustomBilateralProcessFactory(IBilateralProcessFactory, ABC):
@@ -533,7 +533,7 @@ class World(IUpdatable, MixinDiscrete, ABC):
         return frozenset(self.__inhabitant)
 
     @property
-    def unit_handlers(self) -> tuple[UnitHandler]:
+    def unit_handlers(self) -> tuple[UnitHandler, ]:
         return self._unit_handlers
 
     def is_inhabited_for(self, inhabitant: IUpdatable) -> bool:
