@@ -132,13 +132,20 @@ class Process(StrictToStateMixin, IUpdatable, ABC):
     def _handle(self) -> None:
         pass
 
+    @abstractmethod
+    def _get_next_state(self) -> ProcessState | None:
+        pass
+
     def _is_correct(self) -> Report:
         return self.is_support_participants(self.participants)
 
     def __reset_state(self) -> None:
         next_state = self.state.get_next_state()
 
-        if not self.state.is_valid() and next_state:
+        if next_state is None:
+            next_state = self._get_next_state()
+
+        if next_state:
             self.state = next_state
 
 
