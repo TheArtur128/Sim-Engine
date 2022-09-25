@@ -2,6 +2,14 @@ class SimulationError(Exception):
     pass
 
 
+class ProcessKeeperError(SimulationError):
+    pass
+
+
+class UnsupportedProcessError(ProcessKeeperError):
+    pass
+
+
 class UnitError(SimulationError):
     pass
 

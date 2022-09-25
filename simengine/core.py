@@ -258,6 +258,11 @@ class IProcessKeeper(ABC):
 
 
 class ProcessKeeper(IProcessKeeper, ABC):
+    _process_adding_report_analyzer = ReportAnalyzer((BadReportHandler(
+        UnsupportedProcessError,
+        "Process keeper unsupported process"
+    ), ))
+
     def __init__(self):
         self._processes = set()
         self.__completed_processes = list()
@@ -270,7 +275,11 @@ class ProcessKeeper(IProcessKeeper, ABC):
     def completed_processes(self) -> frozenset[Process, ]:
         return frozenset(self.__completed_processes)
 
+    def is_support_process(self, process: Process) -> Report:
+        return Report(isinstance(process, Process))
+
     def add_process(self, process: Process) -> None:
+        self._process_adding_report_analyzer(self.is_support_process(process))
         self._processes.add(process)
 
     def remove_process(self, process: Process) -> None:
