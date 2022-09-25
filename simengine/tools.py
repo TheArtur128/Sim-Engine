@@ -7,7 +7,7 @@ from enum import IntEnum
 from functools import wraps
 
 from interfaces import IUpdatable, ILoop, ILoopFactory
-from errors.tool_error import UnableToDivideError, ColorCoordinateError, AlphaChannelError
+from errors.tool_errors import UnableToDivideError, ColorCoordinateError, AlphaChannelError
 
 
 class LoopUpdater(ILoop):

@@ -1,4 +1,4 @@
-from errors.tool_error import UnableToDivideError
+from errors.tool_errors import UnableToDivideError
 
 
 class GeometryError(Exception):
