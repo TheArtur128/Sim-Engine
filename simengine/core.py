@@ -154,6 +154,17 @@ class Process(StrictToStateMixin, IUpdatable, ABC):
             self.state = next_state
 
 
+class ManyPassProcess(Process, ABC):
+    _passes: int
+
+    def update(self) -> None:
+        self._passes -= 1
+        super().update()
+
+    def _get_next_state(self) -> ProcessState | None:
+        return CompletedProcessState(self) if self._passes <= 0 else None
+
+
 class DelayedProcess(Process, ABC):
     _ticks_of_inactivity: int
 
