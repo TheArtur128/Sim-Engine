@@ -19,6 +19,9 @@ class ProcessState(IUpdatable, ABC):
     def __init__(self, process: 'Process'):
         self.__process = process
 
+    def __hash__(self) -> int:
+        return id(self.__class__)
+
     @property
     def process(self) -> 'Process':
         return self.__process
@@ -82,6 +85,8 @@ class SleepProcessState(NewStateByValidationProcessState):
         self.ticks_to_activate = ticks_to_activate
         self.tick = 1 * tick_factor
 
+    def __hash__(self) -> int:
+        return id(self)
 
     def is_valid(self) -> Report:
         return Report.create_error_report(
@@ -121,7 +126,7 @@ class Process(StrictToStateMixin, IUpdatable, ABC):
             old_state = self.state
             self.__reset_state()
 
-            if old_state is self.state:
+            if hash(old_state) == hash(self.state):
                 break
 
     @classmethod
