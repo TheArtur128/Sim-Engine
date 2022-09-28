@@ -7,3 +7,6 @@ Helps to create games without limiting you
 * **Flexibility**. You are not even limited to 2 or 3 dimensions!
 * **High Cohesion**. Don't overthink the whole game
 * **Pygame integration**. Pygame render out of the box
+
+### Installation
+`pip install sim32`
