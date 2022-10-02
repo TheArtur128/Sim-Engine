@@ -203,6 +203,8 @@ class UnitSpawnProcess(FocusedEvent, WorldProcess, ManyPassProcess):
 
 
 class UnitKillProcess(FocusedEvent, WorldProcess, ManyPassProcess):
+    _passes = 1
+
     def _handle_participant(self, participant: IUpdatable) -> None:
         self.world.remove_inhabitant(participant)
 

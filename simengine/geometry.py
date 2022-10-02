@@ -256,6 +256,7 @@ class CompositeFigure(Figure, StylizedMixin):
         main_figures: Iterable[Figure, ],
         subtraction_figures: Iterable[Figure, ] = tuple()
     ):
+        super().__init__()
         self.main_figures = set(main_figures)
         self.subtraction_figures = set(subtraction_figures)
 
@@ -357,6 +358,7 @@ class Polygon(Figure, StrictToStateMixin, StylizedMixin):
     )
 
     def __init__(self, points: Iterable[Vector, ]):
+        super().__init__()
         self._update_lines_by(points)
 
     def __repr__(self) -> str:
@@ -404,6 +406,7 @@ class Circle(Figure, StylizedMixin):
     _repr_fields = (Field('radius'), Field('center_point'))
 
     def __init__(self, center_point: Vector, radius: int | float):
+        super().__init__()
         self.center_point = center_point
         self.radius = radius
 
@@ -418,6 +421,7 @@ class Rectangle(Figure, StylizedMixin):
     _repr_fields = (Field('size'), )
 
     def __init__(self, first_point: Vector, second_point: Vector):
+        super().__init__()
         self.first_point = first_point
         self.second_point = second_point
 
