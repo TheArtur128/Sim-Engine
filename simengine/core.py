@@ -301,7 +301,7 @@ class ProcessKeeper(IProcessKeeper, ABC):
         self.__completed_processes = list()
 
 
-class DependentUnit(ProcessKeeper, IUpdatable, ABC):
+class MultitaskingUnit(ProcessKeeper, IUpdatable, ABC):
     pass
 
 
@@ -324,7 +324,7 @@ class InteractiveUnit(IUpdatable, ABC):
         pass
 
 
-class ProcessInteractiveUnit(InteractiveUnit, DependentUnit, ABC):
+class ProcessInteractiveUnit(InteractiveUnit, MultitaskingUnit, ABC):
     _bilateral_process_factories: Iterable[IBilateralProcessFactory | type, ]
     __cash_factories_for_object: tuple[object, tuple[IBilateralProcessFactory, ]] = (object(), tuple())
 
@@ -573,16 +573,16 @@ class WorldProcessesActivator(ProcessKeeper, ProcessKeeperHandler):
         process.world = self.world
         super().add_process(process)
 
-    def _handle_units(self, units: Iterable[DependentUnit, ]) -> None:
+    def _handle_units(self, units: Iterable[MultitaskingUnit, ]) -> None:
         self.clear_completed_processes()
         self.__parse_world_processes_from(units)
         self.activate_processes()
 
-    def __parse_world_processes_from(self, units: Iterable[DependentUnit, ]) -> None:
+    def __parse_world_processes_from(self, units: Iterable[MultitaskingUnit, ]) -> None:
         for unit in units:
             self.__handle_unit_processes(unit)
 
-    def __handle_unit_processes(self, unit: DependentUnit) -> None:
+    def __handle_unit_processes(self, unit: MultitaskingUnit) -> None:
         for process in unit.processes:
             if isinstance(process, WorldProcess):
                 unit.remove_process(process)
