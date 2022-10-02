@@ -388,6 +388,15 @@ class DiscreteUnit(MixinDiscrete, IUpdatable, ABC):
 
     def init_parts(self, *args, **kwargs) -> None:
         self._parts = set(self.__create_parts__(*args, **kwargs))
+class TactileUnit(IUpdatable, ABC):
+    _zone_factory: IZoneFactory
+
+    def __init__(self):
+        self._zone = self._zone_factory(self)
+
+    @property
+    def zone(self) -> Figure:
+        return self._zone
 
 
 class PositionalUnit(StylizedMixin, IUpdatable, ABC):
@@ -454,20 +463,6 @@ class SpeedKeeperMixin(ABC):
     @property
     def speed(self) -> int | float:
         return self._speed
-
-
-class HitboxUnit(IUpdatable, ABC):
-    hitbox_factories: Iterable[IHitboxFactory, ]
-
-    def __init__(self):
-        self._hitboxes = tuple(
-            hitbox_factory(self)
-            for hitbox_factory in self.hitbox_factories
-        )
-
-    @property
-    def hitboxes(self) -> tuple[Figure, ]:
-        return self._hitboxes
 
 
 class Avatar(IAvatar, ABC):
