@@ -358,6 +358,10 @@ class ProcessInteractiveUnit(InteractiveUnit, MultitaskingUnit, ABC):
         return factories
 
 
+class DependentUnit(ABC):
+    master: IUpdatable | None = None
+
+
 class MixinDiscrete(ABC):
     @property
     @abstractmethod
