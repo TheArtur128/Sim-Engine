@@ -324,6 +324,17 @@ class Figure(IZone, ABC):
         pass
 
 
+class Site(Figure):
+    def __init__(self, point: Vector):
+        self.point = point
+
+    def move_by(self, point_changer: IPointChanger) -> None:
+        self.point = point_changer(self.point)
+
+    def is_point_inside(self, point: Vector) -> bool:
+        return self.point == point
+
+
 class CompositeFigure(Figure, StylizedMixin):
     _repr_fields = (
         Field(
