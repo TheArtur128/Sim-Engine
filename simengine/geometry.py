@@ -28,7 +28,6 @@ from sim32.tools import (
 )
 
 
-    __slots__ = ('__coordinates', '__length')
 def _degree_measure_creation_from_degrees(
     func: Callable[[any, ], int | float]
 ) -> Callable[[any, ], 'DegreeMeasure']:
@@ -111,15 +110,14 @@ class DegreeMeasure:
 class Vector:
     def __init__(self, coordinates: Iterable[float | int] = tuple()):
         self.__coordinates = tuple(coordinates)
-        self.__length = sqrt(sum(coordinate**2 for coordinate in self.coordinates))
 
     @property
     def coordinates(self) -> tuple[int | float, ]:
         return self.__coordinates
 
-    @property
+    @cached_property
     def length(self) -> float:
-        return self.__length
+        return sqrt(sum(coordinate**2 for coordinate in self.coordinates))
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({str(tuple(self.coordinates))[1:-1]})"
