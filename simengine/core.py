@@ -7,7 +7,7 @@ from sim32.interfaces import *
 from sim32.renders import ResourcePack, RenderActivator, IRender
 from sim32.errors.core_errors import *
 from sim32.tools import ReportAnalyzer, BadReportHandler, Report, StrictToStateMixin, LoopUpdater, CustomFactory
-from sim32.geometry import Vector, Figure, Site
+from sim32.geometry import Vector, Figure, Site, DynamicTransporter
 
 
 class ProcessState(IUpdatable, ABC):
@@ -468,6 +468,11 @@ class MovableUnit(PositionalUnit, IMovable, ABC):
     def move(self) -> None:
         self.__previous_position = self._position
         self._position = self.next_position
+
+        self._update_zone_position()
+
+    def _update_zone_position(self) -> None:
+        self._zone.move_by(DynamicTransporter(self.position - self.previous_position))
 
 
 class InfinitelyImpulseUnit(MovableUnit, ABC):
