@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from math import sqrt, fabs
-from functools import lru_cache
-from typing import Iterable, Callable
+from functools import lru_cache, wraps, cached_property
+from typing import Iterable, Callable, Union
 
 from beautiful_repr import StylizedMixin, Field, TemplateFormatter, parse_length
 from pyoverload import overload
@@ -28,9 +28,87 @@ from sim32.tools import (
 )
 
 
-class Vector:
     __slots__ = ('__coordinates', '__length')
+def _degree_measure_creation_from_degrees(
+    func: Callable[[any, ], int | float]
+) -> Callable[[any, ], 'DegreeMeasure']:
+    @wraps(func)
+    def wrapper(*args, **kwargs) -> 'DegreeMeasure':
+        result_degrees = func(*args, **kwargs)
 
+        return DegreeMeasure(result_degrees - (result_degrees // 360)*360)
+
+    return wrapper
+
+
+def _interpret_input_measure_in_degrees(
+    func: Callable[[int | float], any]
+) -> Callable[[Union[int, float, 'DegreeMeasure']], any]:
+    @wraps(func)
+    def wrapper(self, other: Union[int, float, 'DegreeMeasure'], *args, **kwargs) -> any:
+        return func(
+            self,
+            other.degrees if isinstance(other, DegreeMeasure) else other,
+            *args,
+            **kwargs
+        )
+
+    return wrapper
+
+
+class DegreeMeasure:
+    __slots__ = ('__degrees')
+
+    def __init__(self, degrees: int | float):
+        self.__degrees = degrees
+
+    @property
+    def degrees(self) -> int | float:
+        return self.__degrees
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.degrees})"
+
+    def __hash__(self) -> int:
+        return self.degrees
+
+    def __eq__(self, other: int | float) -> bool:
+        return self.degrees == self.__get_degrees_from(other)
+
+    @_degree_measure_creation_from_degrees
+    @_interpret_input_measure_in_degrees
+    def __add__(self, number: int | float) -> int | float:
+        return self.degrees + number
+
+    @_degree_measure_creation_from_degrees
+    @_interpret_input_measure_in_degrees
+    def __sub__(self, number: int | float) -> int | float:
+        return self.degrees - number
+
+    @_degree_measure_creation_from_degrees
+    @_interpret_input_measure_in_degrees
+    def __mul__(self, number: int | float) -> int | float:
+        return self.degrees * number
+
+    def __rmul__(self, number: int | float) -> 'DegreeMeasure':
+        return self * number
+
+    @_degree_measure_creation_from_degrees
+    @_interpret_input_measure_in_degrees
+    def __truediv__(self, number: int | float) -> int | float:
+        return self.degrees / number
+
+    @_degree_measure_creation_from_degrees
+    @_interpret_input_measure_in_degrees
+    def __floordiv__(self, number: int | float) -> int | float:
+        return (self.degrees / number) // 1
+
+    @_degree_measure_creation_from_degrees
+    def __neg__(self) -> 'DegreeMeasure':
+        return self.degrees * -1
+
+
+class Vector:
     def __init__(self, coordinates: Iterable[float | int] = tuple()):
         self.__coordinates = tuple(coordinates)
         self.__length = sqrt(sum(coordinate**2 for coordinate in self.coordinates))
