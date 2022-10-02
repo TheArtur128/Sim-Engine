@@ -388,6 +388,13 @@ class DiscreteUnit(MixinDiscrete, IUpdatable, ABC):
 
     def init_parts(self, *args, **kwargs) -> None:
         self._parts = set(self.__create_parts__(*args, **kwargs))
+
+
+class AnyPartMixin:
+    def __create_parts__(self, *parts) -> Iterable[IUpdatable, ]:
+        return parts
+
+
 class TactileUnit(IUpdatable, ABC):
     _zone_factory: IZoneFactory
 
