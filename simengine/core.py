@@ -362,6 +362,15 @@ class DependentUnit(ABC):
     master: IUpdatable | None = None
 
 
+class PartUnit(DependentUnit, StrictToStateMixin, StylizedMixin, IUpdatable, ABC):
+    _repr_fields = (Field("master"), )
+
+    def _is_correct(self) -> Report:
+        return Report(True) if self.master is not None else Report.create_error_report(
+            UnitPartError(f"Part unit {self} must have a master")
+        )
+
+
 class MixinDiscrete(ABC):
     @property
     @abstractmethod
