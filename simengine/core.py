@@ -383,15 +383,26 @@ class MixinDiscrete(ABC):
 
 class DiscreteUnit(MixinDiscrete, IUpdatable, ABC):
     @property
-    def parts(self) -> frozenset[IUpdatable, ]:
+    def parts(self) -> frozenset[DependentUnit, ]:
         return frozenset(self._parts)
 
     @abstractmethod
-    def __create_parts__(self) -> Iterable[IUpdatable, ]:
+    def __create_parts__(self) -> Iterable[DependentUnit, ]:
         pass
 
     def init_parts(self, *args, **kwargs) -> None:
-        self._parts = set(self.__create_parts__(*args, **kwargs))
+        self._parts = set()
+
+        for part in self.__create_parts__(*args, **kwargs):
+            self._add_part(part)
+
+    def _add_part(self, part: DependentUnit) -> None:
+        part.master = self
+        self._parts.add(part)
+
+    def _remove_part(self, part: DependentUnit) -> None:
+        part.master = None
+        self._parts.remove(part)
 
 
 class AnyPartMixin:
