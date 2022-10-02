@@ -62,7 +62,7 @@ class IAppFactory(ABC):
         pass
 
 
-class IHitboxFactory(ABC):
+class IZoneFactory(ABC):
     @abstractmethod
     def __call__(self, unit: IUpdatable) -> 'Figure':
         pass

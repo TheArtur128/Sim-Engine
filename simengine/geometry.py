@@ -7,8 +7,8 @@ from typing import Iterable, Callable
 from beautiful_repr import StylizedMixin, Field, TemplateFormatter, parse_length
 from pyoverload import overload
 
-from sim32.interfaces import IHitboxFactory, IUpdatable, IZone
 from sim32.errors.geometry_errors import (
+from sim32.interfaces import IUpdatable, IZone, IZoneFactory
     UnableToDivideVectorIntoPointsError,
     FigureIsNotCorrect,
     FigureIsNotClosedError,
@@ -474,7 +474,7 @@ class Rectangle(Figure, StylizedMixin):
         )
 
 
-class FigureFactory(IHitboxFactory):
+class FigureFactory(IZoneFactory):
     def __init__(self, figure_type: type, *args_to_type, **kwargs_to_type):
         self.figure_type = figure_type
         self.args_to_type = args_to_type
