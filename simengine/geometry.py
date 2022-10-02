@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from math import sqrt, fabs
+from math import sqrt, fabs, degrees, acos
 from functools import lru_cache, wraps, cached_property
 from typing import Iterable, Callable, Union
 
@@ -118,6 +118,13 @@ class Vector:
     @cached_property
     def length(self) -> float:
         return sqrt(sum(coordinate**2 for coordinate in self.coordinates))
+
+    @cached_property
+    def degrees(self) -> tuple[DegreeMeasure, ]:
+        return tuple(
+            DegreeMeasure(degrees(acos(coordinate)))
+            for coordinate in self.get_reduced_to_length(1).coordinates
+        )
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({str(tuple(self.coordinates))[1:-1]})"
