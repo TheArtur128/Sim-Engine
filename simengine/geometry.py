@@ -192,6 +192,10 @@ class Vector:
             for coordinate_index, coordinate in enumerate(self.coordinates)
         ))
 
+    @lru_cache(maxsize=128)
+    def get_reduced_to_length(self, length: int | float) -> 'Vector':
+        return (self / self.length) * length
+
     def get_rounded_by(self, rounder: NumberRounder) -> 'Vector':
         return self.__class__(tuple(
             rounder(coordinate)
