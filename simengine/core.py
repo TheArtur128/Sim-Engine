@@ -6,8 +6,8 @@ from beautiful_repr import StylizedMixin, Field
 from sim32.interfaces import *
 from sim32.renders import ResourcePack, RenderActivator, IRender
 from sim32.errors.core_errors import *
-from sim32.geometry import Vector, Figure
 from sim32.tools import ReportAnalyzer, BadReportHandler, Report, StrictToStateMixin, LoopUpdater, CustomFactory
+from sim32.geometry import Vector, Figure, Site
 
 
 class ProcessState(IUpdatable, ABC):
@@ -430,13 +430,16 @@ class TactileUnit(IUpdatable, ABC):
         return self._zone
 
 
-class PositionalUnit(StylizedMixin, IUpdatable, ABC):
+class PositionalUnit(TactileUnit, StylizedMixin, ABC):
     _repr_fields = (Field('position'), )
+    _zone_factory = CustomFactory(lambda unit: Site(unit.position))
+
     _avatar_factory: IAvatarFactory = CustomFactory(lambda unit: None)
 
     def __init__(self, position: Vector):
-        super().__init__()
         self._position = position
+        super().__init__()
+
         self._avatar = self._avatar_factory(self)
 
     @property
