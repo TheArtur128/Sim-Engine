@@ -116,7 +116,7 @@ class DegreeMeasure:
 
     @_degree_measure_creation_from_degrees
     def __neg__(self) -> 'DegreeMeasure':
-        return self.degrees * -1
+        return self.degrees - 180
 
 
 class Vector:
