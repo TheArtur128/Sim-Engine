@@ -12,6 +12,7 @@ from sim32.interfaces import IUpdatable, IZone, IZoneFactory
     UnableToDivideVectorIntoPointsError,
     FigureIsNotCorrect,
     FigureIsNotClosedError,
+    VectorError
 )
 from sim32.tools import (
     NumberRounder,
@@ -213,6 +214,9 @@ class Vector:
 
     @lru_cache(maxsize=128)
     def get_reduced_to_length(self, length: int | float) -> 'Vector':
+        if self.length == 0:
+            raise VectorError("Vector with length == 0 can't be lengthened")
+
         return (self / self.length) * length
 
     def get_rounded_by(self, rounder: NumberRounder) -> 'Vector':
