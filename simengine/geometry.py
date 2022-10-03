@@ -164,9 +164,10 @@ class Vector:
         return self + (-other)
 
     @lru_cache(maxsize=4096)
-    def __mul__(self, number: int | float) -> 'Vector':
-        return self.__class__(
-            tuple(number * coordinate for coordinate in self.coordinates)
+    def __mul__(self, other: Union[int, float, 'Vector']) -> 'Vector':
+        return (
+            self.get_scalar_by(other) if isinstance(other, Vector)
+            else self.get_multiplied_by_number(other)
         )
 
     def __rmul__(self, number: int | float) -> 'Vector':
@@ -224,6 +225,11 @@ class Vector:
             rounder(coordinate)
             for coordinate in self.coordinates
         ))
+
+    def get_multiplied_by_number(self, number: int | float) -> 'Vector':
+        return self.__class__(
+            tuple(other * coordinate for coordinate in self.coordinates)
+        )
 
     def get_scalar_by(self, vector: 'Vector') -> int | float:
         return sum(tuple(map(
