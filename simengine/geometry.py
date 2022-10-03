@@ -134,9 +134,15 @@ class Vector:
 
     @cached_property
     def degrees(self) -> tuple[DegreeMeasure, ]:
+        perpendicular_vector = Vector((1, ))
+
         return tuple(
-            DegreeMeasure(degrees(acos(coordinate)))
-            for coordinate in self.get_reduced_to_length(1).coordinates
+            self.__class__((
+                self.coordinates[first_axis],
+                self.coordinates[second_axis]
+            )).get_angle_between(perpendicular_vector)
+            for first_axis in range(len(self.coordinates))
+            for second_axis in range(first_axis + 1, len(self.coordinates))
         )
 
     def __repr__(self) -> str:
