@@ -225,6 +225,15 @@ class Vector:
             for coordinate in self.coordinates
         ))
 
+    def get_scalar_by(self, vector: 'Vector') -> int | float:
+        return sum(tuple(map(
+            lambda first, second: first * second,
+            *(
+                normalized_vector.coordinates
+                for normalized_vector in self.get_mutually_normalized(self, vector)
+            )
+        )))
+
     @classmethod
     def get_mutually_normalized(cls, *vectors: tuple['Vector', ]) -> tuple['Vector', ]:
         maximum_number_of_measurements = max((len(vector.coordinates) for vector in vectors))
