@@ -180,7 +180,7 @@ class Vector:
         )
 
     def __neg__(self) -> 'Vector':
-        return self.get_reflected_by_coordinates()
+        return self.get_reflected_by_axes()
 
     def __len__(self) -> int:
         return len(self.coordinates)
@@ -199,15 +199,15 @@ class Vector:
         )
 
     @lru_cache(maxsize=128)
-    def get_reflected_by_coordinates(
+    def get_reflected_by_axes(
         self,
-        coordinate_indexes: Iterable[int, ] | None = None
+        axis_indexes: Iterable[int, ] | None = None
     ) -> 'Vector':
-        if coordinate_indexes is None:
-            coordinate_indexes = range(len(self.coordinates))
+        if axis_indexes is None:
+            axis_indexes = range(len(self.coordinates))
 
         return self.__class__(tuple(
-            coordinate * (-1 if coordinate_index in coordinate_indexes else 1)
+            coordinate * (-1 if coordinate_index in axis_indexes else 1)
             for coordinate_index, coordinate in enumerate(self.coordinates)
         ))
 
