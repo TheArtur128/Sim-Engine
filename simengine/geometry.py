@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from math import sqrt, fabs, degrees, acos
+from math import sqrt, fabs, degrees, acos, cos, asin, sin, radians
 from functools import lru_cache, wraps, cached_property
 from typing import Iterable, Callable, Union
 
@@ -219,6 +219,30 @@ class Vector:
             raise VectorError("Vector with length == 0 can't be lengthened")
 
         return (self / self.length) * length
+
+    def get_rotated_by_axes(
+        self,
+        first_axis_index: int,
+        second_axis_index: int,
+        degree_measure: DegreeMeasure
+    ) -> 'Vector':
+        coordinates = list(self.coordinates)
+        axes_section_vector = self.__class__((
+            self.coordinates[first_axis_index],
+            self.coordinates[second_axis_index]
+        ))
+        reduced_axes_section_vector = axes_section_vector.get_reduced_to_length(1)
+
+        coordinates[first_axis_index] = axes_section_vector.length * cos(radians(
+            degrees(acos(reduced_axes_section_vector.coordinates[0]))
+            + degree_measure
+        ))
+        coordinates[second_axis_index] = axes_section_vector.length * sin(radians(
+            degrees(asin(reduced_axes_section_vector.coordinates[1]))
+            + degree_measure
+        ))
+
+        return self.__class__(coordinates)
 
     def get_rounded_by(self, rounder: NumberRounder) -> 'Vector':
         return self.__class__(tuple(
