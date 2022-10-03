@@ -65,6 +65,12 @@ class DegreeMeasure:
     def degrees(self) -> int | float:
         return self.__degrees
 
+    def __int__(self) -> int:
+        return int(self.degrees)
+
+    def __float__(self) -> float:
+        return float(self.degrees)
+
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.degrees})"
 
