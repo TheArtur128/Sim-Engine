@@ -150,13 +150,13 @@ class Vector:
 
     @lru_cache(maxsize=8192)
     def __add__(self, other: 'Vector') -> 'Vector':
-        maximum_number_of_measurements = max((len(self.coordinates), len(other.coordinates)))
-
         return self.__class__(
             tuple(map(
                 lambda first, second: first + second,
-                self.get_normalized_to_measurements(maximum_number_of_measurements).coordinates,
-                other.get_normalized_to_measurements(maximum_number_of_measurements).coordinates
+                *(
+                    vector.coordinates
+                    for vector in self.get_mutually_normalized(self, other)
+                )
             ))
         )
 
@@ -224,6 +224,15 @@ class Vector:
             rounder(coordinate)
             for coordinate in self.coordinates
         ))
+
+    @classmethod
+    def get_mutually_normalized(cls, *vectors: tuple['Vector', ]) -> tuple['Vector', ]:
+        maximum_number_of_measurements = max((len(vector.coordinates) for vector in vectors))
+
+        return tuple(
+            vector.get_normalized_to_measurements(maximum_number_of_measurements)
+            for vector in vectors
+        )
 
 
 @dataclass(repr=False)
