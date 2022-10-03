@@ -240,6 +240,11 @@ class Vector:
             )
         )))
 
+    def get_angle_between(self, vector: 'Vector') -> DegreeMeasure:
+        return DegreeMeasure(degrees(asin(
+            (self * vector) / (self.length * vector.length)
+        )))
+
     @classmethod
     def get_mutually_normalized(cls, *vectors: tuple['Vector', ]) -> tuple['Vector', ]:
         maximum_number_of_measurements = max((len(vector.coordinates) for vector in vectors))
