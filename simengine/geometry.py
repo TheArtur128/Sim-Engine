@@ -85,10 +85,16 @@ class DegreeMeasure:
     def __add__(self, number: int | float) -> int | float:
         return self.degrees + number
 
+    def __radd__(self, number: int | float) -> 'DegreeMeasure':
+        return self + number
+
     @_degree_measure_creation_from_degrees
     @_interpret_input_measure_in_degrees
     def __sub__(self, number: int | float) -> int | float:
         return self.degrees - number
+
+    def __rsub__(self, number: int | float) -> 'DegreeMeasure':
+        return self - number
 
     @_degree_measure_creation_from_degrees
     @_interpret_input_measure_in_degrees
