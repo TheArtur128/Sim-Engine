@@ -82,7 +82,7 @@ class ObserveUnit(SpeedKeeperMixin, ImpulseUnit):
         )
 
 
-class UnitSpawner(PositionalUnit, DependentUnit):
+class UnitSpawner(PositionalUnit, MultitaskingUnit):
     _avatar_factory = CustomFactory(lambda unit: PrimitiveAvatar(unit, None))
 
     def __init__(
@@ -93,7 +93,7 @@ class UnitSpawner(PositionalUnit, DependentUnit):
         timer: Timer
     ):
         super().__init__(position)
-        super(DependentUnit, self).__init__()
+        super(MultitaskingUnit, self).__init__()
 
         self.unit_factory = unit_factory
         self.spawn_zone = tuple(spawn_zone)

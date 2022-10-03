@@ -26,6 +26,10 @@ class NotSupportPartError(DiscreteUnitError):
     pass
 
 
+class UnitPartError(UnitError):
+    pass
+
+
 class UnsupportedUnitForHandlerError(UnitError):
     pass
 

@@ -5,6 +5,10 @@ class GeometryError(Exception):
     pass
 
 
+class VectorError(GeometryError):
+    pass
+
+
 class LineError(GeometryError):
     pass
 

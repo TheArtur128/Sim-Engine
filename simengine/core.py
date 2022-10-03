@@ -6,8 +6,8 @@ from beautiful_repr import StylizedMixin, Field
 from sim32.interfaces import *
 from sim32.renders import ResourcePack, RenderActivator, IRender
 from sim32.errors.core_errors import *
-from sim32.geometry import Vector, Figure
 from sim32.tools import ReportAnalyzer, BadReportHandler, Report, StrictToStateMixin, LoopUpdater, CustomFactory
+from sim32.geometry import Vector, Figure, Site, DynamicTransporter
 
 
 class ProcessState(IUpdatable, ABC):
@@ -203,6 +203,8 @@ class UnitSpawnProcess(FocusedEvent, WorldProcess, ManyPassProcess):
 
 
 class UnitKillProcess(FocusedEvent, WorldProcess, ManyPassProcess):
+    _passes = 1
+
     def _handle_participant(self, participant: IUpdatable) -> None:
         self.world.remove_inhabitant(participant)
 
@@ -299,7 +301,7 @@ class ProcessKeeper(IProcessKeeper, ABC):
         self.__completed_processes = list()
 
 
-class DependentUnit(ProcessKeeper, IUpdatable, ABC):
+class MultitaskingUnit(ProcessKeeper, IUpdatable, ABC):
     pass
 
 
@@ -322,7 +324,7 @@ class InteractiveUnit(IUpdatable, ABC):
         pass
 
 
-class ProcessInteractiveUnit(InteractiveUnit, DependentUnit, ABC):
+class ProcessInteractiveUnit(InteractiveUnit, MultitaskingUnit, ABC):
     _bilateral_process_factories: Iterable[IBilateralProcessFactory | type, ]
     __cash_factories_for_object: tuple[object, tuple[IBilateralProcessFactory, ]] = (object(), tuple())
 
@@ -356,6 +358,19 @@ class ProcessInteractiveUnit(InteractiveUnit, DependentUnit, ABC):
         return factories
 
 
+class DependentUnit(ABC):
+    master: IUpdatable | None = None
+
+
+class PartUnit(DependentUnit, StrictToStateMixin, StylizedMixin, IUpdatable, ABC):
+    _repr_fields = (Field("master"), )
+
+    def _is_correct(self) -> Report:
+        return Report(True) if self.master is not None else Report.create_error_report(
+            UnitPartError(f"Part unit {self} must have a master")
+        )
+
+
 class MixinDiscrete(ABC):
     @property
     @abstractmethod
@@ -377,24 +392,54 @@ class MixinDiscrete(ABC):
 
 class DiscreteUnit(MixinDiscrete, IUpdatable, ABC):
     @property
-    def parts(self) -> frozenset[IUpdatable, ]:
+    def parts(self) -> frozenset[DependentUnit, ]:
         return frozenset(self._parts)
 
     @abstractmethod
-    def __create_parts__(self) -> Iterable[IUpdatable, ]:
+    def __create_parts__(self) -> Iterable[DependentUnit, ]:
         pass
 
     def init_parts(self, *args, **kwargs) -> None:
-        self._parts = set(self.__create_parts__(*args, **kwargs))
+        self._parts = set()
+
+        for part in self.__create_parts__(*args, **kwargs):
+            self._add_part(part)
+
+    def _add_part(self, part: DependentUnit) -> None:
+        part.master = self
+        self._parts.add(part)
+
+    def _remove_part(self, part: DependentUnit) -> None:
+        part.master = None
+        self._parts.remove(part)
 
 
-class PositionalUnit(StylizedMixin, IUpdatable, ABC):
+class AnyPartMixin:
+    def __create_parts__(self, *parts) -> Iterable[IUpdatable, ]:
+        return parts
+
+
+class TactileUnit(IUpdatable, ABC):
+    _zone_factory: IZoneFactory
+
+    def __init__(self):
+        self._zone = self._zone_factory(self)
+
+    @property
+    def zone(self) -> Figure:
+        return self._zone
+
+
+class PositionalUnit(TactileUnit, StylizedMixin, ABC):
     _repr_fields = (Field('position'), )
+    _zone_factory = CustomFactory(lambda unit: Site(unit.position))
+
     _avatar_factory: IAvatarFactory = CustomFactory(lambda unit: None)
 
     def __init__(self, position: Vector):
-        super().__init__()
         self._position = position
+        super().__init__()
+
         self._avatar = self._avatar_factory(self)
 
     @property
@@ -424,6 +469,11 @@ class MovableUnit(PositionalUnit, IMovable, ABC):
         self.__previous_position = self._position
         self._position = self.next_position
 
+        self._update_zone_position()
+
+    def _update_zone_position(self) -> None:
+        self._zone.move_by(DynamicTransporter(self.position - self.previous_position))
+
 
 class InfinitelyImpulseUnit(MovableUnit, ABC):
     def __init__(self, position: Vector):
@@ -452,20 +502,6 @@ class SpeedKeeperMixin(ABC):
     @property
     def speed(self) -> int | float:
         return self._speed
-
-
-class HitboxUnit(IUpdatable, ABC):
-    hitbox_factories: Iterable[IHitboxFactory, ]
-
-    def __init__(self):
-        self._hitboxes = tuple(
-            hitbox_factory(self)
-            for hitbox_factory in self.hitbox_factories
-        )
-
-    @property
-    def hitboxes(self) -> tuple[Figure, ]:
-        return self._hitboxes
 
 
 class Avatar(IAvatar, ABC):
@@ -576,16 +612,16 @@ class WorldProcessesActivator(ProcessKeeper, ProcessKeeperHandler):
         process.world = self.world
         super().add_process(process)
 
-    def _handle_units(self, units: Iterable[DependentUnit, ]) -> None:
+    def _handle_units(self, units: Iterable[MultitaskingUnit, ]) -> None:
         self.clear_completed_processes()
         self.__parse_world_processes_from(units)
         self.activate_processes()
 
-    def __parse_world_processes_from(self, units: Iterable[DependentUnit, ]) -> None:
+    def __parse_world_processes_from(self, units: Iterable[MultitaskingUnit, ]) -> None:
         for unit in units:
             self.__handle_unit_processes(unit)
 
-    def __handle_unit_processes(self, unit: DependentUnit) -> None:
+    def __handle_unit_processes(self, unit: MultitaskingUnit) -> None:
         for process in unit.processes:
             if isinstance(process, WorldProcess):
                 unit.remove_process(process)
