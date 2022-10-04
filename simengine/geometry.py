@@ -7,14 +7,14 @@ from typing import Iterable, Callable, Union
 from beautiful_repr import StylizedMixin, Field, TemplateFormatter, parse_length
 from pyoverload import overload
 
-from sim32.errors.geometry_errors import (
-from sim32.interfaces import IUpdatable, IZone, IZoneFactory
+from simengine.interfaces import IUpdatable, IZone, IZoneFactory
+from simengine.errors.geometry_errors import (
     UnableToDivideVectorIntoPointsError,
     FigureIsNotCorrect,
     FigureIsNotClosedError,
     VectorError
 )
-from sim32.tools import (
+from simengine.tools import (
     NumberRounder,
     ShiftNumberRounder,
     AccurateNumberRounder,
@@ -258,7 +258,7 @@ class Vector:
 
     def get_multiplied_by_number(self, number: int | float) -> 'Vector':
         return self.__class__(
-            tuple(other * coordinate for coordinate in self.coordinates)
+            tuple(number * coordinate for coordinate in self.coordinates)
         )
 
     def get_scalar_by(self, vector: 'Vector') -> int | float:

@@ -1,4 +1,4 @@
-from sim32.errors.tool_errors import UnableToDivideError
+from simengine.errors.tool_errors import UnableToDivideError
 
 
 class GeometryError(Exception):

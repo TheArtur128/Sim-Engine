@@ -4,10 +4,10 @@ from typing import Callable, Iterable, Optional, Generator
 
 from beautiful_repr import StylizedMixin, Field
 
-from sim32.geometry import Vector
-from sim32.interfaces import IUpdatable, IRenderRersourceKeeper, IAvatar, IRenderActivatorFactory
-from sim32.errors.render_errors import UnsupportedResourceError
-from sim32.tools import ReportAnalyzer, BadReportHandler, Report, Arguments, CustomArgumentFactory
+from simengine.geometry import Vector
+from simengine.interfaces import IUpdatable, IRenderRersourceKeeper, IAvatar, IRenderActivatorFactory
+from simengine.errors.render_errors import UnsupportedResourceError
+from simengine.tools import ReportAnalyzer, BadReportHandler, Report, Arguments, CustomArgumentFactory
 
 
 @dataclass
