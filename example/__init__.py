@@ -2,6 +2,7 @@ from pygame import *
 from random import randint, choice
 
 from pygame_renders import *
+from simengine.avatars import ResourceAvatar, PrimitiveAvatar
 from simengine.core import *
 from simengine.tools import Timer
 
