@@ -128,3 +128,18 @@ class EndlessAnimation(Animation, ABC):
 
 class CustomEndlessAnimation(EndlessAnimation, CustomAnimation):
     pass
+
+
+class AnimationAvatar(Avatar, ABC):
+    _default_animation_factory: Callable[[PositionalUnit], EndlessAnimation]
+
+    def __init__(self, unit: PositionalUnit):
+        super().__init__(unit)
+        self._current_animation = self._default_animation = self._default_animation_factory(unit)
+
+    @property
+    def render_resource_packs(self) -> tuple[ResourcePack, ]:
+        return self._current_animation.render_resource_packs
+
+    def update(self) -> None:
+        self._current_animation.update()
