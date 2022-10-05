@@ -4,7 +4,7 @@ from typing import Callable, Iterable
 
 from beautiful_repr import StylizedMixin, Field
 
-from simengine.core import PositionalUnit
+from simengine.core import PositionalUnit, MultitaskingUnit
 from simengine.geometry import Vector
 from simengine.renders import ResourcePack
 from simengine.interfaces import IAvatar
@@ -177,3 +177,26 @@ class CustomTopicAnimationAvatar(TopicAnimationAvatar):
     ):
         self._animation_factory_by_topic = animation_factory_by_topic
         super().__init__(unit)
+
+
+class ProcessAnimationAvatar(AnimationAvatar):
+    _animation_factory_by_process_type: dict[type, Callable[[MultitaskingUnit], EndlessAnimation]]
+
+    def __init__(self, unit: PositionalUnit):
+        super().__init__(unit)
+
+        self.__units_previous_processes = unit.processes
+        self._animation_by_process_type = {
+            process_type: animation_factory(unit)
+            for process_type, animation_factory in self._animation_factory_by_process_type.items()
+        }
+
+    def update(self) -> None:
+        for process in self.unit.processes - self.__units_previous_processes:
+            if type(process) in self._animation_by_process_type:
+                self._current_animation = self._animation_by_process_type[type(process)]
+                break
+
+        self.__units_previous_processes = self.unit.processes
+
+        super().update()
