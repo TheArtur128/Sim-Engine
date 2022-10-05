@@ -124,3 +124,7 @@ class EndlessAnimation(Animation, ABC):
 
         for sprite in self._sprites:
             sprite.real_stay_ticks = sprite.max_stay_ticks
+
+
+class CustomEndlessAnimation(EndlessAnimation, CustomAnimation):
+    pass
