@@ -167,3 +167,13 @@ class TopicAnimationAvatar(AnimationAvatar, ABC):
 
     def activate_animation_by_topic(self, topic: str) -> None:
         self._current_animation = self._animation_by_topic[topic]
+
+
+class CustomTopicAnimationAvatar(TopicAnimationAvatar):
+    def __init__(
+        self,
+        unit: PositionalUnit,
+        animation_factory_by_topic: dict[str, Callable[[PositionalUnit], EndlessAnimation]]
+    ):
+        self._animation_factory_by_topic = animation_factory_by_topic
+        super().__init__(unit)
