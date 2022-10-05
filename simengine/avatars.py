@@ -1,6 +1,6 @@
 from abc import ABC
-from typing import Callable
 from dataclasses import dataclass
+from typing import Callable, Iterable
 
 from beautiful_repr import StylizedMixin, Field
 
@@ -110,3 +110,9 @@ class Animation(SingleResourcePackAvatar, ABC):
 
     def _handle_finish(self) -> None:
         raise AnimationAlreadyFinishedError(f"Animation {self} already finished")
+
+
+class CustomAnimation(Animation):
+    def __init__(self, unit: PositionalUnit, sprites: Iterable[Sprite]):
+        super().__init__(unit)
+        self._sprites = tuple(sprites)
