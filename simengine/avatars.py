@@ -143,3 +143,27 @@ class AnimationAvatar(Avatar, ABC):
 
     def update(self) -> None:
         self._current_animation.update()
+
+
+class TopicAnimationAvatar(AnimationAvatar, ABC):
+    _animation_factory_by_topic: dict[str, Callable[[PositionalUnit], EndlessAnimation]]
+
+    def __init__(self, unit: PositionalUnit):
+        super().__init__(unit)
+
+        self._animation_by_topic = {
+            topic: animation_factory(unit)
+            for topic, animation_factory in self._animation_factory_by_topic.items()
+        }
+
+    def update(self) -> None:
+        if (
+            self._default_animation is not self._current_animation
+            and self._current_animation.is_finished()
+        ):
+            self._current_animation = self._default_animation
+
+        super().update()
+
+    def activate_animation_by_topic(self, topic: str) -> None:
+        self._current_animation = self._animation_by_topic[topic]
