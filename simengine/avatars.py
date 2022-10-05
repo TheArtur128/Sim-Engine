@@ -116,3 +116,11 @@ class CustomAnimation(Animation):
     def __init__(self, unit: PositionalUnit, sprites: Iterable[Sprite]):
         super().__init__(unit)
         self._sprites = tuple(sprites)
+
+
+class EndlessAnimation(Animation, ABC):
+    def _handle_finish(self) -> None:
+        self._current_sprite_index = 0
+
+        for sprite in self._sprites:
+            sprite.real_stay_ticks = sprite.max_stay_ticks
