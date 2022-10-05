@@ -18,7 +18,18 @@ class Avatar(IAvatar, ABC):
         return self._unit
 
 
-class ResourceAvatar(Avatar, StylizedMixin, ABC):
+class SingleResourcePackAvatar(Avatar, ABC):
+    _main_resource_pack: ResourcePack
+
+    @property
+    def render_resource_packs(self) -> tuple[ResourcePack, ]:
+        return (self._main_resource_pack, )
+
+    def update(self) -> None:
+        self._main_resource_pack.point = self.unit.position
+
+
+class ResourceAvatar(SingleResourcePackAvatar, StylizedMixin, ABC):
     _repr_fields = (Field('resource'), )
     _resource_factory: Callable[['ResourceAvatar'], any]
     _resource_pack_factory: Callable[[any, Vector], ResourcePack] = ResourcePack
@@ -31,15 +42,8 @@ class ResourceAvatar(Avatar, StylizedMixin, ABC):
         )
 
     @property
-    def render_resource_packs(self) -> tuple[ResourcePack, ]:
-        return (self._main_resource_pack, )
-
-    @property
     def render_resource(self) -> any:
         return self._main_resource_pack.resource
-
-    def update(self) -> None:
-        self._main_resource_pack.point = self.unit.position
 
 
 class PrimitiveAvatar(ResourceAvatar, ABC):
