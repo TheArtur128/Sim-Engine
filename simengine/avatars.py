@@ -1,5 +1,6 @@
 from abc import ABC
 from typing import Callable
+from dataclasses import dataclass
 
 from beautiful_repr import StylizedMixin, Field
 
@@ -58,3 +59,12 @@ class PrimitiveAvatar(ResourceAvatar, ABC):
     @render_resource.setter
     def render_resource(self, render_resource: any) -> None:
         self._main_resource_pack.resource = render_resource
+
+
+@dataclass
+class Sprite:
+    resource: any
+    max_stay_ticks: int
+
+    def __post_init__(self):
+        self.real_stay_ticks = self.max_stay_ticks
