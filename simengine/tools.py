@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from time import sleep, time, ctime
+from threading import Thread
 from typing import Iterable, Callable
 from math import floor, copysign
 from enum import IntEnum
@@ -11,6 +12,24 @@ from beautiful_repr import StylizedMixin, Field, TemplateFormatter
 from simengine.interfaces import IUpdatable, ILoop, ILoopFactory
 from simengine.errors.tool_errors import *
 
+
+class SeparateThreadedLoop(ILoop):
+    _thread_factory: Callable[[Callable], Thread] = Thread
+
+    def __init__(self, loop: ILoop):
+        self._loop = loop
+        self._thread = self._thread_factory(target=loop.run)
+
+    @property
+    def thread(self) -> Thread:
+        return self._thread
+
+    def run(self) -> None:
+        self._thread.start()
+
+    def finish(self) -> None:
+        self._loop.finish()
+        self._thread.join()
 
 
 class Loop(ILoop):
