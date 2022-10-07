@@ -16,9 +16,16 @@ class LoopUpdater(ILoop):
     def __init__(self, units: Iterable[IUpdatable, ]):
         self.units = tuple(units)
 
+    _is_working = False
+
     def run(self) -> None:
-        while True:
+        self._is_working = True
+
+        while self._is_working:
             self._handle()
+
+    def finish(self) -> None:
+        self._is_working = False
 
     def _handle(self) -> None:
         for unit in self.units:

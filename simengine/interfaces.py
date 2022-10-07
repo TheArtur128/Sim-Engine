@@ -30,6 +30,10 @@ class ILoop(ABC):
     def run(self) -> None:
         pass
 
+    @abstractmethod
+    def finish(self) -> None:
+        pass
+
 
 class IZone(ABC):
     @abstractmethod
