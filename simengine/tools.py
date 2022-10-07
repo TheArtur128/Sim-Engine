@@ -12,10 +12,8 @@ from simengine.interfaces import IUpdatable, ILoop, ILoopFactory
 from simengine.errors.tool_errors import *
 
 
-class LoopUpdater(ILoop):
-    def __init__(self, units: Iterable[IUpdatable, ]):
-        self.units = tuple(units)
 
+class Loop(ILoop):
     _is_working = False
 
     def run(self) -> None:
@@ -26,6 +24,15 @@ class LoopUpdater(ILoop):
 
     def finish(self) -> None:
         self._is_working = False
+
+    @abstractmethod
+    def _handle(self) -> None:
+        pass
+
+
+class LoopUpdater(Loop):
+    def __init__(self, units: Iterable[IUpdatable, ]):
+        self.units = tuple(units)
 
     def _handle(self) -> None:
         for unit in self.units:
