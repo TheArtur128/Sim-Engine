@@ -108,6 +108,20 @@ class DecoratorFactory(ABC):
         )
 
 
+class CustomDecoratorFactory(DecoratorFactory):
+    def __init__(self, decorator_factory: Callable, nested_factory: Callable):
+        self._decorator_factory = decorator_factory
+        self._nested_factory = nested_factory
+
+    @property
+    def decorator_factory(self) -> Callable[[Callable], any]:
+        return self._decorator_factory
+
+    @property
+    def nested_factory(self) -> Callable:
+        return self._nested_factory
+
+
 class CustomArgumentFactory(ABC):
     factory: Callable
 
