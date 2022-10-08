@@ -120,6 +120,20 @@ class DegreeMeasure:
         return self.degrees - 180
 
 
+@dataclass(repr=False)
+class DegreesOnAxes:
+    first_axis: int
+    second_axis: int
+    degrees: DegreeMeasure
+
+    @property
+    def axes(self) -> tuple[int, int]:
+        return (self.first_axis, self.second_axis)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({str(self.axes)[1:-1]}, degrees={self.degrees.degrees})"
+
+
 class Vector:
     def __init__(self, coordinates: Iterable[float | int] = tuple()):
         self.__coordinates = tuple(coordinates)
