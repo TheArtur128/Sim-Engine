@@ -95,6 +95,19 @@ class SleepLoopUpdater(TickerLoopUpdater):
         sleep(self.sleep_seconds)
 
 
+class DecoratorFactory(ABC):
+    _decorator_factory: Callable[[Callable], any]
+    _nested_factory: Callable
+
+    def __call__(self, *args_for_nested_factory, **kwargs_for_nested_factory) -> any:
+        return self._decorator_factory(
+            self._nested_factory(
+                *args_for_nested_factory,
+                **kwargs_for_nested_factory
+            )
+        )
+
+
 class CustomArgumentFactory(ABC):
     factory: Callable
 
