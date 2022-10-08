@@ -147,14 +147,18 @@ class Vector:
         return sqrt(sum(coordinate**2 for coordinate in self.coordinates))
 
     @cached_property
-    def degrees(self) -> tuple[DegreeMeasure, ]:
+    def degrees(self) -> tuple[DegreesOnAxes, ]:
         perpendicular_vector = Vector((1, ))
 
         return tuple(
-            self.__class__((
-                self.coordinates[first_axis],
-                self.coordinates[second_axis]
-            )).get_angle_between(perpendicular_vector)
+            DegreesOnAxes(
+                first_axis,
+                second_axis,
+                self.__class__((
+                    self.coordinates[first_axis],
+                    self.coordinates[second_axis]
+                )).get_angle_between(perpendicular_vector)
+            )
             for first_axis in range(len(self.coordinates))
             for second_axis in range(first_axis + 1, len(self.coordinates))
         )
