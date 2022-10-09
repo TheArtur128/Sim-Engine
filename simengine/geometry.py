@@ -244,12 +244,7 @@ class Vector:
 
         return (self / self.length) * length
 
-    def get_rotated_by_axes(
-        self,
-        first_axis_index: int,
-        second_axis_index: int,
-        degree_measure: DegreeMeasure
-    ) -> 'Vector':
+    def get_rotated_by(self, axes_degrees: DegreesOnAxes) -> 'Vector':
         number_of_measurements = max(axes_degrees.axes) + 1
         reduced_vector = (
             self.get_normalized_to_measurements(number_of_measurements)
@@ -263,13 +258,13 @@ class Vector:
         ))
         reduced_axes_section_vector = axes_section_vector.get_reduced_to_length(1)
 
-        coordinates[first_axis_index] = axes_section_vector.length * cos(radians(
+        coordinates[axes_degrees.first_axis] = axes_section_vector.length * cos(radians(
             degrees(acos(reduced_axes_section_vector.coordinates[0]))
-            + degree_measure
+            + axes_degrees.degrees
         ))
-        coordinates[second_axis_index] = axes_section_vector.length * sin(radians(
+        coordinates[axes_degrees.second_axis] = axes_section_vector.length * sin(radians(
             degrees(asin(reduced_axes_section_vector.coordinates[1]))
-            + degree_measure
+            + axes_degrees.degrees
         ))
 
         return self.__class__(coordinates)
