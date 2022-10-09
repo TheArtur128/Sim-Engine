@@ -124,6 +124,7 @@ class CustomDecoratorFactory(DecoratorFactory):
 
 class CustomArgumentFactory(ABC):
     factory: Callable
+    is_stored_arguments_first: bool = False
 
     def __init__(self, *args_for_factory, **kwargs_for_factory):
         self.arguments_for_factory = Arguments.create_via_call(
@@ -132,17 +133,29 @@ class CustomArgumentFactory(ABC):
         )
 
     def __call__(self, *args, **kwargs) -> any:
+        argument_groups = [args, self.arguments_for_factory.args]
+
+        if self.is_stored_arguments_first:
+            argument_groups.reverse()
+
         return self.factory(
-            *args,
-            *self.arguments_for_factory.args,
+            *argument_groups[0],
+            *argument_groups[1],
             **kwargs,
             **self.arguments_for_factory.kwargs
         )
 
 
 class CustomFactory(CustomArgumentFactory):
-    def __init__(self, factory: Callable, *args_for_factory, **kwargs_for_factory):
+    def __init__(
+        self,
+        factory: Callable,
+        *args_for_factory,
+        is_stored_arguments_first: bool = False,
+        **kwargs_for_factory
+    ):
         self.factory = factory
+        self.is_stored_arguments_first = is_stored_arguments_first
         super().__init__(*args_for_factory, **kwargs_for_factory)
 
 
