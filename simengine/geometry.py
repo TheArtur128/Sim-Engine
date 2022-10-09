@@ -250,10 +250,16 @@ class Vector:
         second_axis_index: int,
         degree_measure: DegreeMeasure
     ) -> 'Vector':
-        coordinates = list(self.coordinates)
+        number_of_measurements = max(axes_degrees.axes) + 1
+        reduced_vector = (
+            self.get_normalized_to_measurements(number_of_measurements)
+            if len(self.coordinates) < number_of_measurements else self
+        )
+
+        coordinates = list(reduced_vector.coordinates)
         axes_section_vector = self.__class__((
-            self.coordinates[first_axis_index],
-            self.coordinates[second_axis_index]
+            reduced_vector.coordinates[axes_degrees.first_axis],
+            reduced_vector.coordinates[axes_degrees.second_axis]
         ))
         reduced_axes_section_vector = axes_section_vector.get_reduced_to_length(1)
 
