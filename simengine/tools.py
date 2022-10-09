@@ -142,12 +142,8 @@ class CustomArgumentFactory(ABC):
 
 class CustomFactory(CustomArgumentFactory):
     def __init__(self, factory: Callable, *args_for_factory, **kwargs_for_factory):
-        self._factory = factory
+        self.factory = factory
         super().__init__(*args_for_factory, **kwargs_for_factory)
-
-    @property
-    def factory(self) -> Callable:
-        return self._factory
 
 
 class CustomLoopFactory(CustomArgumentFactory, ILoopFactory):
