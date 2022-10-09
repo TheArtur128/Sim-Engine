@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from math import sqrt, fabs, degrees, acos, cos, asin, sin, radians
-from functools import lru_cache, wraps, cached_property
+from functools import lru_cache, wraps, cached_property, reduce
 from typing import Iterable, Callable, Union
 
 from beautiful_repr import StylizedMixin, Field, TemplateFormatter, parse_length
@@ -335,6 +335,30 @@ class DynamicTransporter(IPointChanger):
 
     def __call__(self, point: Vector) -> Vector:
         return point + self.shift
+
+
+class PointRotator(StylizedMixin, IPointChanger):
+    _repr_fields = (
+        Field('center_point', formatter=TemplateFormatter('about {value}')),
+        Field(
+            'axis_degree_measures',
+            formatter=TemplateFormatter('{value}'),
+            value_transformer=lambda value: str(list(value))[1:-1] if len(value) > 0 else value
+        )
+    )
+
+    def __init__(self, axis_degree_measures: Iterable[DegreesOnAxes], center_point: Vector = Vector()):
+        self.axis_degree_measures = tuple(axis_degree_measures)
+        self.center_point = center_point
+
+    def __call__(self, point: Vector) -> Vector:
+        return reduce(
+            lambda result_point, axis_degree_measure: (
+                (result_point - self.center_point).get_rotated_by(axis_degree_measure)
+                + self.center_point
+            ),
+            (point, *self.axis_degree_measures)
+        )
 
 
 class VectorDivider(Divider, StylizedMixin):
