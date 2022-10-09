@@ -289,7 +289,7 @@ class Vector:
         )))
 
     def get_angle_between(self, vector: 'Vector') -> DegreeMeasure:
-        return DegreeMeasure(degrees(asin(
+        return DegreeMeasure(degrees(acos(
             (self * vector) / (self.length * vector.length)
         )))
 
