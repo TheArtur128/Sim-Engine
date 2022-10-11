@@ -33,7 +33,7 @@ class DegreeMeasure:
     __slots__ = ('__degrees')
 
     def __init__(self, degrees: int | float):
-        self.__degrees = degrees
+        self.__degrees = self._bring_number_into_degrees(degrees)
 
     @property
     def degrees(self) -> int | float:
