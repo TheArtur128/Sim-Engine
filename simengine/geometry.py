@@ -58,8 +58,8 @@ class DegreeMeasure:
         method: Callable[['DegreeMeasure', any, ], int | float]
     ) -> Callable[[any, ], 'DegreeMeasure']:
         @wraps(method)
-        def wrapper(instance: 'DegreeMeasure', *args, **kwargs) -> 'DegreeMeasure':
-            return instance._create_from_degrees(method(instance, *args, **kwargs))
+        def wrapper(self: 'DegreeMeasure', *args, **kwargs) -> 'DegreeMeasure':
+            return self._create_from_degrees(method(self, *args, **kwargs))
 
         return wrapper
 
