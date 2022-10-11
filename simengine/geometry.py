@@ -75,7 +75,7 @@ class DegreeMeasure:
         ) -> any:
             return method(
                 self,
-                other.degrees if isinstance(other, DegreeMeasure) else other,
+                self._get_number_from_degrees_or_number(other),
                 *args,
                 **kwargs
             )
@@ -119,6 +119,15 @@ class DegreeMeasure:
     @_degree_measure_creation_from_degrees
     def __neg__(self) -> 'DegreeMeasure':
         return self.degrees - 180
+
+    def _get_number_from_degrees_or_number(
+        cls,
+        number_or_degrees: Union[int, float, 'DegreeMeasure']
+    ) -> 'DegreeMeasure':
+        return (
+            number_or_degrees.degrees if isinstance(number_or_degrees, DegreeMeasure)
+            else number_or_degrees
+        )
 
     @classmethod
     def _create_from_degrees(cls, number):
