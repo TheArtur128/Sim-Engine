@@ -263,6 +263,9 @@ class Vector:
         return (self / self.length) * length
 
     def get_rotated_by(self, axes_degrees: DegreesOnAxes) -> 'Vector':
+        if sum(self.coordinates) == 0:
+            return self
+
         number_of_measurements = max(axes_degrees.axes) + 1
         reduced_vector = (
             self.get_normalized_to_measurements(number_of_measurements)
