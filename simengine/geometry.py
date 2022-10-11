@@ -115,6 +115,10 @@ class DegreeMeasure:
     def __neg__(self) -> 'DegreeMeasure':
         return self.degrees - 180
 
+    @classmethod
+    def _create_from_degrees(cls, number):
+        return cls(cls._bring_number_into_degrees(number))
+
     @staticmethod
     def _bring_number_into_degrees(number: int | float) -> int | float:
         return number - (number // 360)*360
