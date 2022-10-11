@@ -64,11 +64,16 @@ class DegreeMeasure:
         return wrapper
 
     def _interpret_input_measure_in_degrees(
-        func: Callable[[int | float], any]
+        method: Callable[[int | float], any]
     ) -> Callable[[Union[int, float, 'DegreeMeasure']], any]:
-        @wraps(func)
-        def wrapper(self, other: Union[int, float, 'DegreeMeasure'], *args, **kwargs) -> any:
-            return func(
+        @wraps(method)
+        def wrapper(
+            self: 'DegreeMeasure',
+            other: Union[int, float, 'DegreeMeasure'],
+            *args,
+            **kwargs
+        ) -> any:
+            return method(
                 self,
                 other.degrees if isinstance(other, DegreeMeasure) else other,
                 *args,
