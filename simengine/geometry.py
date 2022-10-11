@@ -55,11 +55,11 @@ class DegreeMeasure:
         return self.degrees == self.__get_degrees_from(other)
 
     def _degree_measure_creation_from_degrees(
-        func: Callable[[any, ], int | float]
+        method: Callable[['DegreeMeasure', any, ], int | float]
     ) -> Callable[[any, ], 'DegreeMeasure']:
-        @wraps(func)
-        def wrapper(*args, **kwargs) -> 'DegreeMeasure':
-            return DegreeMeasure(func(*args, **kwargs))
+        @wraps(method)
+        def wrapper(instance: 'DegreeMeasure', *args, **kwargs) -> 'DegreeMeasure':
+            return instance._create_from_degrees(method(instance, *args, **kwargs))
 
         return wrapper
 
