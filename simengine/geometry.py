@@ -29,33 +29,6 @@ from simengine.tools import (
 )
 
 
-def _degree_measure_creation_from_degrees(
-    func: Callable[[any, ], int | float]
-) -> Callable[[any, ], 'DegreeMeasure']:
-    @wraps(func)
-    def wrapper(*args, **kwargs) -> 'DegreeMeasure':
-        result_degrees = func(*args, **kwargs)
-
-        return DegreeMeasure(result_degrees - (result_degrees // 360)*360)
-
-    return wrapper
-
-
-def _interpret_input_measure_in_degrees(
-    func: Callable[[int | float], any]
-) -> Callable[[Union[int, float, 'DegreeMeasure']], any]:
-    @wraps(func)
-    def wrapper(self, other: Union[int, float, 'DegreeMeasure'], *args, **kwargs) -> any:
-        return func(
-            self,
-            other.degrees if isinstance(other, DegreeMeasure) else other,
-            *args,
-            **kwargs
-        )
-
-    return wrapper
-
-
 class DegreeMeasure:
     __slots__ = ('__degrees')
 
@@ -80,6 +53,31 @@ class DegreeMeasure:
 
     def __eq__(self, other: int | float) -> bool:
         return self.degrees == self.__get_degrees_from(other)
+
+    def _degree_measure_creation_from_degrees(
+        func: Callable[[any, ], int | float]
+    ) -> Callable[[any, ], 'DegreeMeasure']:
+        @wraps(func)
+        def wrapper(*args, **kwargs) -> 'DegreeMeasure':
+            result_degrees = func(*args, **kwargs)
+
+            return DegreeMeasure(result_degrees - (result_degrees // 360)*360)
+
+        return wrapper
+
+    def _interpret_input_measure_in_degrees(
+        func: Callable[[int | float], any]
+    ) -> Callable[[Union[int, float, 'DegreeMeasure']], any]:
+        @wraps(func)
+        def wrapper(self, other: Union[int, float, 'DegreeMeasure'], *args, **kwargs) -> any:
+            return func(
+                self,
+                other.degrees if isinstance(other, DegreeMeasure) else other,
+                *args,
+                **kwargs
+            )
+
+        return wrapper
 
     @_degree_measure_creation_from_degrees
     @_interpret_input_measure_in_degrees
