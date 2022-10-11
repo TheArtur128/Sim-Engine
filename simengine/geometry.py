@@ -59,9 +59,7 @@ class DegreeMeasure:
     ) -> Callable[[any, ], 'DegreeMeasure']:
         @wraps(func)
         def wrapper(*args, **kwargs) -> 'DegreeMeasure':
-            result_degrees = func(*args, **kwargs)
-
-            return DegreeMeasure(result_degrees - (result_degrees // 360)*360)
+            return DegreeMeasure(func(*args, **kwargs))
 
         return wrapper
 
@@ -116,6 +114,10 @@ class DegreeMeasure:
     @_degree_measure_creation_from_degrees
     def __neg__(self) -> 'DegreeMeasure':
         return self.degrees - 180
+
+    @staticmethod
+    def _bring_number_into_degrees(number: int | float) -> int | float:
+        return number - (number // 360)*360
 
 
 @dataclass(repr=False)
