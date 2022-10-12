@@ -92,6 +92,23 @@ class AttributesTransmitterMeta(ABCMeta):
         return tuple(attributes.get(attribute_name_to_parse, tuple()))
 
 
+class CreatingAttributesTransmitterMeta(AttributesTransmitterMeta):
+    def _get_collection_by_attribute_name_from(cls, attributes: dict, attribute_name_to_parse: str) -> tuple:
+        collection = super()._get_collection_by_attribute_name_from(
+            attributes,
+            attribute_name_to_parse
+        )
+
+        return tuple(
+            (
+                factory_or_item()
+                if isinstance(collection_or_factory, CustomArgumentFactory)
+                else factory_or_item
+            )
+            for item_or_factory in collection
+        )
+
+
 class SeparateThreadedLoop(ILoop):
     _thread_factory: Callable[[Callable], Thread] = Thread
 
