@@ -13,6 +13,29 @@ from simengine.interfaces import IUpdatable, ILoop, ILoopFactory
 from simengine.errors.tool_errors import *
 
 
+def get_collection_with_reduced_nesting_level_by(
+    nesting_level: int,
+    collection: Iterable
+) -> list:
+    is_reduced = False
+
+    while not is_reduced and nesting_level > 0:
+        new_collection = list()
+        is_reduced = True
+
+        for item in collection:
+            if isinstance(item, Iterable):
+                is_reduced = False
+                new_collection.extend(item)
+            else:
+                new_collection.append(item)
+
+        nesting_level -= 1
+        collection = new_collection
+
+    return collection
+
+
 class SeparateThreadedLoop(ILoop):
     _thread_factory: Callable[[Callable], Thread] = Thread
 
