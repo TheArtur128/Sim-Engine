@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod, ABCMeta
 from dataclasses import dataclass
 from time import sleep, time, ctime
 from threading import Thread
@@ -34,6 +34,62 @@ def get_collection_with_reduced_nesting_level_by(
         collection = new_collection
 
     return collection
+
+
+class AttributesTransmitterMeta(ABCMeta):
+    def __new__(cls, class_name: str, super_classes: tuple, attributes: dict):
+        isinstance_type = super().__new__(cls, class_name, super_classes, attributes)
+
+        for attribute_name_to_parse in isinstance_type._get_attribute_names_to_parse():
+            setattr(
+                isinstance_type,
+                attribute_name_to_parse,
+                isinstance_type._parse_collection_by_attribute_name_from(
+                    attributes,
+                    attribute_name_to_parse
+                )
+            )
+
+        return isinstance_type
+
+    def _get_attribute_names_to_parse(cls) -> tuple[str, ]:
+        if not super in cls._attribute_names_to_parse:
+            return cls._attribute_names_to_parse
+
+        index_of_super = cls._attribute_names_to_parse.index(super)
+        parent_attribute_names = tuple(get_collection_with_reduced_nesting_level_by(
+            1,
+            tuple(
+                parent_type._get_attribute_names_to_parse()
+                for parent_type in cls.__bases__
+                if hasattr(parent_type, '_get_attribute_names_to_parse')
+            )
+        ))
+
+        return (
+            cls._attribute_names_to_parse[:index_of_super]
+            + parent_attribute_names
+            + cls._attribute_names_to_parse[index_of_super + 1:]
+        )
+
+    def _parse_collection_by_attribute_name_from(cls, attributes: dict, attribute_name_to_parse: str) -> tuple:
+        return (
+            tuple(get_collection_with_reduced_nesting_level_by(
+                1,
+                (
+                    getattr(parent_type, attribute_name_to_parse)
+                    for parent_type in cls.__bases__
+                    if hasattr(parent_type, attribute_name_to_parse)
+                )
+            ))
+            + cls._get_collection_by_attribute_name_from(
+                attributes,
+                attribute_name_to_parse
+            )
+        )
+
+    def _get_collection_by_attribute_name_from(cls, attributes: dict, attribute_name_to_parse: str) -> tuple:
+        return tuple(attributes.get(attribute_name_to_parse, tuple()))
 
 
 class SeparateThreadedLoop(ILoop):
