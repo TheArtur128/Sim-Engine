@@ -371,7 +371,7 @@ class PartUnit(DependentUnit, StrictToStateMixin, StylizedMixin, ABC):
         )
 
 
-class MixinDiscrete(ABC):
+class MixinDiscrete(IDiscretable, ABC):
     @property
     @abstractmethod
     def parts(self) -> frozenset[IUpdatable, ]:

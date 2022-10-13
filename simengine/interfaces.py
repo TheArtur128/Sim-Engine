@@ -8,6 +8,17 @@ class IUpdatable(ABC):
         pass
 
 
+class IDiscretable(ABC):
+    @property
+    @abstractmethod
+    def parts(self) -> frozenset[IUpdatable, ]:
+        pass
+
+    @property
+    def deep_parts(self) -> frozenset[IUpdatable, ]:
+        pass
+
+
 class IMovable(ABC):
     @abstractmethod
     def move(self) -> None:
