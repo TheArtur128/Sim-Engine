@@ -358,11 +358,11 @@ class ProcessInteractiveUnit(InteractiveUnit, MultitaskingUnit, ABC):
         return factories
 
 
-class DependentUnit(ABC):
+class DependentUnit(IUpdatable, ABC):
     master: IUpdatable | None = None
 
 
-class PartUnit(DependentUnit, StrictToStateMixin, StylizedMixin, IUpdatable, ABC):
+class PartUnit(DependentUnit, StrictToStateMixin, StylizedMixin, ABC):
     _repr_fields = (Field("master"), )
 
     def _is_correct(self) -> Report:
