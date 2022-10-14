@@ -131,6 +131,8 @@ class BaseRender(IRender, ABC):
 
 
 class ResourceHandlingChainMeta(ABCMeta):
+    _resource_handlers: Optional[tuple]
+    
     def __new__(cls, class_name: str, super_classes: tuple, attributes: dict):
         render_type = super().__new__(cls, class_name, super_classes, attributes)
 
