@@ -42,6 +42,11 @@ class IValueTransformer(ABC):
         pass
 
 
+class ForwardableValueTransformer(IValueTransformer):
+    def __call__(self, attribute_keeper: object, original_value: any) -> any:
+        return original_value
+
+
 class AttributesTransmitterMeta(ABCMeta):
     def __new__(cls, class_name: str, super_classes: tuple, attributes: dict):
         isinstance_type = super().__new__(cls, class_name, super_classes, attributes)
