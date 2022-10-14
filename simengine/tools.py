@@ -36,6 +36,12 @@ def get_collection_with_reduced_nesting_level_by(
     return collection
 
 
+class IValueTransformer(ABC):
+    @abstractmethod
+    def __call__(self, attribute_keeper: object, original_value: any) -> any:
+        pass
+
+
 class AttributesTransmitterMeta(ABCMeta):
     def __new__(cls, class_name: str, super_classes: tuple, attributes: dict):
         isinstance_type = super().__new__(cls, class_name, super_classes, attributes)
