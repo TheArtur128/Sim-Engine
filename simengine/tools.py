@@ -48,10 +48,15 @@ class ForwardableValueTransformer(IValueTransformer):
 
 
 class AttributesTransmitterMeta(ABCMeta):
+    _attribute_names_to_parse: Iterable[str] | dict[str, IValueTransformer | None]
+    _default_value_transformer: IValueTransformer = ForwardableValueTransformer()
+
     def __new__(cls, class_name: str, super_classes: tuple, attributes: dict):
         isinstance_type = super().__new__(cls, class_name, super_classes, attributes)
 
-        for attribute_name_to_parse in isinstance_type._get_attribute_names_to_parse():
+        isinstance_type._update_attribute_names()
+
+        for attribute_name_to_parse in isinstance_type._deeply_get_attribute_names().keys():
             setattr(
                 isinstance_type,
                 attribute_name_to_parse,
@@ -63,25 +68,33 @@ class AttributesTransmitterMeta(ABCMeta):
 
         return isinstance_type
 
-    def _get_attribute_names_to_parse(cls) -> tuple[str, ]:
-        if not super in cls._attribute_names_to_parse:
-            return cls._attribute_names_to_parse
+    def _update_attribute_names(cls) -> None:
+        if not isinstance(cls._attribute_names_to_parse, dict):
+            cls._attribute_names_to_parse = dict.fromkeys(cls._attribute_names_to_parse)
 
-        index_of_super = cls._attribute_names_to_parse.index(super)
-        parent_attribute_names = tuple(get_collection_with_reduced_nesting_level_by(
+        cls._attribute_names_to_parse = dict(
+            item for parent_type in (*cls.__bases__, cls)
+            if hasattr(parent_type, '_attribute_names_to_parse')
+            for item in parent_type._attribute_names_to_parse.items()
+        )
+
+    def _deeply_get_attribute_names(cls) -> dict[str, Callable[[any], any]]:
+        if '_deeply_attribute_names' in cls.__dict__:
+            return cls._deeply_attribute_names
+
+        parent_attribute_names = dict(get_collection_with_reduced_nesting_level_by(
             1,
-            tuple(
-                parent_type._get_attribute_names_to_parse()
+            (
+                parent_type._deeply_get_attribute_names().items()
                 for parent_type in cls.__bases__
-                if hasattr(parent_type, '_get_attribute_names_to_parse')
+                if hasattr(parent_type, '_deeply_get_attribute_names')
             )
         ))
 
-        return (
-            cls._attribute_names_to_parse[:index_of_super]
-            + parent_attribute_names
-            + cls._attribute_names_to_parse[index_of_super + 1:]
-        )
+        result = parent_attribute_names | cls._attribute_names_to_parse
+        cls._deeply_attribute_names = result
+
+        return result
 
     def _parse_collection_by_attribute_name_from(cls, attributes: dict, attribute_name_to_parse: str) -> tuple:
         return (
@@ -94,30 +107,29 @@ class AttributesTransmitterMeta(ABCMeta):
                 )
             ))
             + cls._get_collection_by_attribute_name_from(
-                attributes,
-                attribute_name_to_parse
+                attribute_name_to_parse,
+                is_changing=True
             )
         )
 
-    def _get_collection_by_attribute_name_from(cls, attributes: dict, attribute_name_to_parse: str) -> tuple:
-        return tuple(attributes.get(attribute_name_to_parse, tuple()))
+    def _get_collection_by_attribute_name_from(
+        cls,
+        attribute_name_to_parse: str,
+        is_changing: bool = False
+    ) -> tuple:
+        value_getter = cls._deeply_get_attribute_names()[attribute_name_to_parse]
+
+        return tuple(
+            (value_getter if value_getter is not None else cls._default_value_transformer)(cls, item)
+            for item in cls.__dict__.get(attribute_name_to_parse, tuple())
+        )
 
 
 class CreatingAttributesTransmitterMeta(AttributesTransmitterMeta):
-    def _get_collection_by_attribute_name_from(cls, attributes: dict, attribute_name_to_parse: str) -> tuple:
-        collection = super()._get_collection_by_attribute_name_from(
-            attributes,
-            attribute_name_to_parse
-        )
-
-        return tuple(
-            (
-                factory_or_item()
-                if isinstance(collection_or_factory, CustomArgumentFactory)
-                else factory_or_item
-            )
-            for item_or_factory in collection
-        )
+    _default_value_transformer = lambda attribute_keeper, original_value: (
+        original_value() if isinstance(original_value, CustomArgumentFactory)
+        else original_value
+    )
 
 
 class SeparateThreadedLoop(ILoop):
