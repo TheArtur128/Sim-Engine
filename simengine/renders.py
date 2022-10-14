@@ -145,8 +145,8 @@ class ResourceHandlingChainMeta(ABCMeta):
 
     @staticmethod
     def resource_handler(
-        wrapper_factory: Optional[ResourceHandlerWrapper] = None,
         *args_for_factory,
+        wrapper_factory: Optional[ResourceHandlerWrapper] = None,
         **kwargs_for_factory,
     ) -> Callable[[IRenderResourceHandler], ResourceHandlerWrapper]:
         def decorator(resource_handler: IRenderResourceHandler) -> ResourceHandlerWrapper | Arguments:
