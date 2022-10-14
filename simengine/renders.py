@@ -135,8 +135,8 @@ class ResourceHandlingChainMeta(ABCMeta):
         render_type = super().__new__(cls, class_name, super_classes, attributes)
 
         render_type._resource_handlers = (
-            tuple(render_type.__get_resource_handlers_from(attributes)) +
-            render_type._get_resource_handlers_of_parents()
+            tuple(render_type.__get_resource_handlers_from(attributes))
+            + render_type._get_resource_handlers_of_parents()
         )
 
         return render_type
