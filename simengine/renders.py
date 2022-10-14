@@ -181,6 +181,9 @@ class ResourceHandlingChainMeta(ABCMeta):
                 yield resource_handler
 
 
+resource_handler = ResourceHandlingChainMeta.resource_handler
+
+
 class Render(BaseRender, ABC, metaclass=ResourceHandlingChainMeta):
     _resource_handler_wrapper_factory = ResourceHandlerWrapper
 
