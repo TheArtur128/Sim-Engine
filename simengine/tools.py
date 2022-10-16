@@ -234,6 +234,14 @@ class SleepLoopHandler(LoopHandler, ABC):
         pass
 
 
+class AlwaysReadyForSleepLoopHandler(SleepLoopHandler):
+    def is_ready_to_sleep(self) -> bool:
+        return True
+
+    def _handle_sleep_conditions(self) -> None:
+        pass
+
+
     @abstractmethod
     def _stop(self) -> None:
         pass
