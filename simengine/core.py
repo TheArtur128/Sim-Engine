@@ -684,21 +684,28 @@ class CustomWorld(World):
         super().__init__(inhabitants)
 
 
-class AppFactory(IAppFactory):
-    _loop_factory: ILoopFactory = LoopUpdater
+class AppFactory(IAppFactory, metaclass=AttributesTransmitterMeta):
+    _attribute_names_to_parse = ('_loop_handler_factories', )
+
+    _loop_handler_factories: Iterable[LoopHandler] = tuple()
+    _updater_loop_handler_factory: LoopHandler = UpdaterLoopHandler
+
+    _loop_factory: Callable[[Iterable[UpdaterLoopHandler]], ILoop] = CustomHandlerLoop
     _render_activator_factory: IRenderActivatorFactory = RenderActivator
 
     def __call__(
         self,
         world: World,
         renders: Iterable[IRender, ]
-    ) -> LoopUpdater:
+    ) -> ILoop:
+        render_activator = self._render_activator_factory(
+            self._get_resource_parser_from(world),
+            renders
+        )
+
         return self._loop_factory((
-            world,
-            self._render_activator_factory(
-                self._get_resource_parser_from(world),
-                renders
-            )
+            CustomFactory(self._updater_loop_handler_factory, (world, render_activator)),
+            *self._loop_handler_factories
         ))
 
     def _get_resource_parser_from(self, world: World) -> RenderResourceParser:
@@ -712,11 +719,15 @@ class AppFactory(IAppFactory):
 class CustomAppFactory(AppFactory):
     def __init__(
         self,
-        loop_factory: ILoopFactory = LoopUpdater,
+        loop_handler_factories: Iterable[LoopHandler] = tuple(),
+        loop_factory: Callable[[Iterable[UpdaterLoopHandler]], ILoop] = CustomHandlerLoop,
+        updater_loop_handler_factory: LoopHandler = UpdaterLoopHandler,
         render_activator_factory: IRenderActivatorFactory = RenderActivator
     ):
         self._loop_factory = loop_factory
         self._render_activator_factory = render_activator_factory
+        self._loop_handler_factories = loop_handler_factories
+        self._updater_loop_handler_factory = updater_loop_handler_factory
 
 
 default_app_factory = AppFactory()
