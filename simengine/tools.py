@@ -265,6 +265,15 @@ class TicksSleepLoopHandler(SleepLoopHandler):
         self._sleep_function(self.ticks_to_sleep)
 
 
+class CustomTicksSleepLoopHandler(TicksSleepLoopHandler):
+    def __init__(
+        self,
+        loop: HandlerLoop,
+        ticks_to_sleep: int | float,
+        sleep_function: Callable[[int | float], None]
+    ):
+        self._sleep_function = sleep_function
+        super().__init__(loop, ticks_to_sleep)
 
 
 
