@@ -8,7 +8,7 @@ from pygame_renders.resources import *
 from simengine.interfaces import IUpdatable
 from simengine.renders import Render, SurfaceKeeper, TypedResourceHandler, ResourcePack, resource_handler
 from simengine.geometry import Vector
-from simengine.tools import StoppingLoopUpdater, RGBAColor, LoopUpdater, CustomLoopFactory, CustomFactory
+from simengine.tools import *
 
 
 class PygameSurfaceRender(SurfaceKeeper, Render):
@@ -117,25 +117,25 @@ PygameEvent: NewType = object
 
 class IPygameEventHandler(ABC):
     @abstractmethod
-    def __call__(self, event: PygameEvent, loop: 'PygameLoopUpdater') -> None:
+    def __call__(self, event: PygameEvent, controller: 'PygameEventController') -> None:
         pass
 
     @abstractmethod
-    def is_support_handling_for(self, event: PygameEvent, loop: 'PygameLoopUpdater') -> bool:
+    def is_support_handling_for(self, event: PygameEvent, controller: 'PygameEventController') -> bool:
         pass
 
 
 class PygameEventHandler(IPygameEventHandler, ABC):
-    def __call__(self, event: PygameEvent, loop: 'PygameLoopUpdater') -> None:
-        if not self.is_support_handling_for(event, loop):
+    def __call__(self, event: PygameEvent, controller: 'PygameEventController') -> None:
+        if not self.is_support_handling_for(event, controller):
             raise PygameEventHandlerError(
-                f"Event handler {self} doesn't support handling event {event} in loop {loop}"
+                f"Event handler {self} doesn't support handling event {event} in controller {controller}"
             )
 
-        self._handle(event, loop)
+        self._handle(event, controller)
 
     @abstractmethod
-    def _handle(self, event: PygameEvent, loop: 'PygameLoopUpdater') -> None:
+    def _handle(self, event: PygameEvent, controller: 'PygameEventController') -> None:
         pass
 
 
@@ -143,10 +143,10 @@ class PygameEventHandlerWrapper(PygameEventHandler):
     def __init__(self, handlers: Iterable[IPygameEventHandler, ]):
         self.handlers = tuple(handlers)
 
-    def _handle(self, event: PygameEvent, loop: 'PygameLoopUpdater') -> None:
+    def _handle(self, event: PygameEvent, controller: 'PygameEventController') -> None:
         for handler in self.handlers:
-            if handler.is_support_handling_for(event, loop):
-                handler(event, loop)
+            if handler.is_support_handling_for(event, controller):
+                handler(event, controller)
 
 
 class EventSupportStackHandler(IPygameEventHandler, ABC):
@@ -155,7 +155,7 @@ class EventSupportStackHandler(IPygameEventHandler, ABC):
     _support_buttons: Optional[Iterable] = None
     _is_strict: bool = True
 
-    def is_support_handling_for(self, event: PygameEvent, loop: 'PygameLoopUpdater') -> bool:
+    def is_support_handling_for(self, event: PygameEvent, controller: 'PygameEventController') -> bool:
         return (all if self._is_strict else any)((
             (event.key in self._support_keys) if hasattr(event, 'key') else self._support_keys is None,
             (event.button in self._support_buttons) if hasattr(event, 'button') else self._support_buttons is None
@@ -165,7 +165,7 @@ class EventSupportStackHandler(IPygameEventHandler, ABC):
 class ExitEventHandler(PygameEventHandler, EventSupportStackHandler):
     _support_event_types = (QUIT, )
 
-    def _handle(self, event: PygameEvent, loop: 'PygameLoopUpdater') -> None:
+    def _handle(self, event: PygameEvent, controller: 'PygameEventController') -> None:
         exit()
 
 
@@ -176,36 +176,22 @@ class IPygameEventGetter(ABC):
 
 
 class PygameEventController(LoopHandler):
-    _clock_factory: Callable[['PygameLoopUpdater'], time.Clock] = CustomFactory(
-        lambda pygame_loop: time.Clock()
-    )
+    _event_getter: IPygameEventGetter
 
-    def __init__(
-        self,
-        units: Iterable[IUpdatable, ],
-        event_handlers: Iterable[PygameEventHandler, ],
-        fps: int | float
-    ):
-        super().__init__(units)
-        self.fps = fps
-        self.event_handlers = tuple(event_handlers)
-        self._pygame_clock = self._clock_factory(self)
+    def __init__(self, loop: HandlerLoop, handlers: Iterable[PygameEventHandler]):
+        super().__init__(loop)
+        self.handlers = tuple(handlers)
 
-    def _handle(self) -> None:
-        for event_ in event.get():
+    def update(self) -> None:
+        for event_ in self._event_getter.get():
             self._handle_event(event_)
 
-        super()._handle()
-        display.flip()
-
     def _handle_event(self, event: PygameEvent) -> None:
-        for event_handler in self.event_handlers:
+        for event_handler in self.handlers:
             if event_handler.is_support_handling_for(event, self):
                 event_handler(event, self)
 
-    def _stop(self) -> None:
-        self._pygame_clock.tick(self.fps)
 
 
-class PygameLoopFactory(CustomLoopFactory):
-    factory = PygameLoopUpdater
+    def _sleep_function(self, ticks_to_sleep: int | float) -> None:
+        self._pygame_clock.tick(self.ticks_to_sleep)
