@@ -196,6 +196,11 @@ class SyncPygameEventController(PygameEventController):
     _event_getter = event
 
 
+class PygameDisplayUpdater(LoopHandler):
+    def update(self) -> None:
+        display.flip()
+
+
 
     def _sleep_function(self, ticks_to_sleep: int | float) -> None:
         self._pygame_clock.tick(self.ticks_to_sleep)
