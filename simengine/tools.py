@@ -168,11 +168,38 @@ class Loop(ILoop):
         pass
 
 
-class LoopUpdater(Loop):
-    def __init__(self, units: Iterable[IUpdatable, ]):
-        self.units = tuple(units)
+class HandlerLoop(Loop, ABC):
+    _handlers_factories: Iterable[Callable[['HandlerLoop'], 'LoopHandler']]
+
+    def __init__(self):
+        self.__handlers = tuple(
+            handlers_factory(self)
+            for handlers_factory in self._handlers_factories
+        )
+
+    @property
+    def handlers(self) -> tuple['LoopHandler', ]:
+        return self.__handlers
 
     def _handle(self) -> None:
+        for handler in self.handlers:
+            handler.update()
+
+
+class LoopHandler(IUpdatable, ABC):
+    def __init__(self, loop: HandlerLoop):
+        self._loop = loop
+
+    @property
+    def loop(self) -> HandlerLoop:
+        return self._loop
+
+
+class UpdaterLoopHandler(LoopHandler):
+    def __init__(self, loop: HandlerLoop, units: Iterable[IUpdatable]):
+        self.units = tuple(units)
+
+    def update(self) -> None:
         for unit in self.units:
             unit.update()
 
