@@ -242,8 +242,15 @@ class AlwaysReadyForSleepLoopHandler(SleepLoopHandler):
         pass
 
 
+class RollbackSleepLoopHandler(SleepLoopHandler):
+    def update(self) -> None:
+        super().update()
+
+        if self.is_ready_to_sleep():
+            self._sleep_rollback()
+
     @abstractmethod
-    def _stop(self) -> None:
+    def _sleep_rollback(self) -> None:
         pass
 
 
