@@ -254,19 +254,18 @@ class RollbackSleepLoopHandler(SleepLoopHandler):
         pass
 
 
-class TickerLoopUpdater(StoppingLoopUpdater, ABC):
-    _tick_factor: int | float = 1
+class TicksSleepLoopHandler(SleepLoopHandler):
+    _sleep_function: Callable[[int | float], any]
 
-    def __init__(self, units: Iterable[IUpdatable, ], ticks_to_timeout: int):
-        super().__init__(units)
-        self._ticks_to_timeout = self._clock = ticks_to_timeout
+    def __init__(self, loop: HandlerLoop, ticks_to_sleep: int | float):
+        super().__init__(loop)
+        self.ticks_to_sleep = ticks_to_sleep
 
-    def _handle_stop(self) -> None:
-        self._clock -= 1 * self._tick_factor
+    def _sleep(self) -> None:
+        self._sleep_function(self.ticks_to_sleep)
 
-        if self._clock <= 0:
-            self._clock = self._ticks_to_timeout
-            self._stop()
+
+
 
 
 class SleepLoopUpdater(TickerLoopUpdater):
