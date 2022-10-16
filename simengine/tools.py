@@ -9,7 +9,7 @@ from functools import wraps
 
 from beautiful_repr import StylizedMixin, Field, TemplateFormatter
 
-from simengine.interfaces import IUpdatable, ILoop, ILoopFactory
+from simengine.interfaces import IUpdatable, ILoop
 from simengine.errors.tool_errors import *
 
 
@@ -371,11 +371,6 @@ class CustomFactory(CustomArgumentFactory):
         self.factory = factory
         self.is_stored_arguments_first = is_stored_arguments_first
         super().__init__(*args_for_factory, **kwargs_for_factory)
-
-
-class CustomLoopFactory(CustomArgumentFactory, ILoopFactory):
-    def __call__(self, units: Iterable[IUpdatable, ], *args, **kwargs) -> LoopUpdater:
-        return super().__call__(units, *args, **kwargs)
 
 
 class NumberRounder(ABC):

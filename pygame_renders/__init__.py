@@ -5,8 +5,8 @@ from pygame import *
 
 from pygame_renders.errors import PygameEventHandlerError
 from pygame_renders.resources import *
-from simengine.interfaces import IUpdatable, ILoopFactory
 from simengine.renders import Render, SurfaceKeeper, TypedResourceHandler, ResourcePack
+from simengine.interfaces import IUpdatable
 from simengine.geometry import Vector
 from simengine.tools import StoppingLoopUpdater, RGBAColor, LoopUpdater, CustomLoopFactory, CustomFactory
 

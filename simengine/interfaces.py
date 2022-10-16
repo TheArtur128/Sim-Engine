@@ -52,12 +52,6 @@ class IZone(ABC):
         pass
 
 
-class ILoopFactory(ABC):
-    @abstractmethod
-    def __call__(self, units: Iterable[IUpdatable, ]) -> 'LoopUpdater':
-        pass
-
-
 class IRenderActivatorFactory(ABC):
     @abstractmethod
     def __call__(
