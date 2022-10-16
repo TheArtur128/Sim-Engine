@@ -24,7 +24,7 @@ class MainHeroManagement(PygameEventHandler, EventSupportStackHandler):
     def __init__(self, main_hero: InfinitelyImpulseUnit):
         self.main_hero = main_hero
 
-    def _handle(self, event: PygameEvent, loop: PygameLoopUpdater) -> None:
+    def _handle(self, event: PygameEvent, loop: HandlerLoop) -> None:
         impulse = Vector((0, 0))
 
         if event.key in self._right_movement_keys:
