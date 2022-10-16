@@ -214,13 +214,25 @@ class UpdaterLoopHandler(LoopHandler):
             unit.update()
 
 
-class StoppingLoopUpdater(LoopUpdater, ABC):
-    def _handle(self) -> None:
-        super()._handle()
-        self._handle_stop()
+class SleepLoopHandler(LoopHandler, ABC):
+    def update(self) -> None:
+        self._handle_sleep_conditions()
 
-    def _handle_stop(self) -> None:
-        self._stop()
+        if self.is_ready_to_sleep():
+            self._sleep()
+
+    @abstractmethod
+    def is_ready_to_sleep(self) -> bool:
+        pass
+
+    @abstractmethod
+    def _handle_sleep_conditions(self) -> None:
+        pass
+
+    @abstractmethod
+    def _sleep(self) -> None:
+        pass
+
 
     @abstractmethod
     def _stop(self) -> None:
