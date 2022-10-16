@@ -186,6 +186,10 @@ class HandlerLoop(Loop, ABC):
             handler.update()
 
 
+class StrictHandlerLoop(HandlerLoop, metaclass=AttributesTransmitterMeta):
+    _attribute_names_to_parse = ('_handlers_factories', )
+
+
 class LoopHandler(IUpdatable, ABC):
     def __init__(self, loop: HandlerLoop):
         self._loop = loop
