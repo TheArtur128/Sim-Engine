@@ -276,14 +276,34 @@ class CustomTicksSleepLoopHandler(TicksSleepLoopHandler):
         super().__init__(loop, ticks_to_sleep)
 
 
+class TickerSleepLoopHandler(TicksSleepLoopHandler, RollbackSleepLoopHandler, ABC):
+    _real_ticks_to_sleep: int | float = 0
+    _tick: int | float = 1
 
-class SleepLoopUpdater(TickerLoopUpdater):
-    def __init__(self, units: Iterable[IUpdatable, ], ticks_to_timeout: int, sleep_seconds: int | float):
-        super().__init__(units, ticks_to_timeout)
-        self.sleep_seconds = sleep_seconds
+    @property
+    def real_ticks_to_sleep(self) -> int | float:
+        return self._real_ticks_to_sleep
 
-    def _stop(self) -> None:
-        sleep(self.sleep_seconds)
+    @property
+    def ticks_to_sleep(self) -> int | float:
+        return self.__ticks_to_sleep
+
+    @ticks_to_sleep.setter
+    def ticks_to_sleep(self, ticks_to_sleep: int | float) -> None:
+        if self._real_ticks_to_sleep > ticks_to_sleep:
+            self._real_ticks_to_sleep = ticks_to_sleep
+
+        self.__ticks_to_sleep = ticks_to_sleep
+
+    def is_ready_to_sleep(self) -> bool:
+        return self._real_ticks_to_sleep <= 0
+
+    def _handle_sleep_conditions(self) -> None:
+        self._real_ticks_to_sleep -= self._tick
+
+    def _sleep_rollback(self) -> None:
+        self._real_ticks_to_sleep = self.ticks_to_sleep
+
 
 
 class DecoratorFactory(ABC):
