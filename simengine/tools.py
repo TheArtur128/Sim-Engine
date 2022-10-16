@@ -305,6 +305,9 @@ class TickerSleepLoopHandler(TicksSleepLoopHandler, RollbackSleepLoopHandler, AB
         self._real_ticks_to_sleep = self.ticks_to_sleep
 
 
+class CustomTickerSleepLoopHandler(CustomTicksSleepLoopHandler, TickerSleepLoopHandler):
+    pass
+
 
 class DecoratorFactory(ABC):
     _decorator_factory: Callable[[Callable], any]
