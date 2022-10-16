@@ -201,6 +201,14 @@ class PygameDisplayUpdater(LoopHandler):
         display.flip()
 
 
+class PygameClockSleepLoopHandler(TicksSleepLoopHandler, AlwaysReadyForSleepLoopHandler):
+    _clock_factory: Callable[['PygameClockSleepLoopHandler'], time.Clock] = CustomFactory(
+        lambda pygame_sleep_handler: time.Clock()
+    )
+
+    def __init__(self, loop: HandlerLoop, ticks_to_sleep: int | float):
+        super().__init__(loop, ticks_to_sleep)
+        self._pygame_clock = self._clock_factory(self)
 
     def _sleep_function(self, ticks_to_sleep: int | float) -> None:
         self._pygame_clock.tick(self.ticks_to_sleep)
