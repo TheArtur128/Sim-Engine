@@ -121,7 +121,16 @@ red_unit = ObserveUnit(Vector((100, 240)), black_unit)
 unit_spawner = UnitSpawner(Vector((320, 240)), CustomFactory(TestUnit), (range(640), range(480)), Timer(3))
 unit_spawner.avatar.render_resource = Circle(RGBAColor(red=255, green=243), 30)
 
-CustomAppFactory(PygameLoopFactory([ExitEventHandler(), MainHeroManagement(black_unit)], 60))(
+CustomAppFactory((
+    CustomFactory(
+        SyncPygameEventController, (
+            ExitEventHandler(),
+            MainHeroManagement(black_unit)
+        )
+    ),
+    CustomFactory(PygameDisplayUpdater),
+    CustomFactory(PygameClockSleepLoopHandler, 60)
+))(
     CustomWorld(
         [black_unit, red_unit, unit_spawner],
         [UnitUpdater, WorldProcessesActivator, UnitMover, RenderResourceParser]
