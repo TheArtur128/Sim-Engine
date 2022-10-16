@@ -169,6 +169,12 @@ class ExitEventHandler(PygameEventHandler, EventSupportStackHandler):
         exit()
 
 
+class IPygameEventGetter(ABC):
+    @abstractmethod
+    def get(self) -> Iterable[PygameEvent]:
+        pass
+
+
 class PygameEventController(LoopHandler):
     _clock_factory: Callable[['PygameLoopUpdater'], time.Clock] = CustomFactory(
         lambda pygame_loop: time.Clock()
