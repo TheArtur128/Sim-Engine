@@ -324,6 +324,15 @@ class Vector:
             for vector in vectors
         )
 
+    @classmethod
+    def create_by_degrees(cls, length: int | float, axis_degree_measures: Iterable[DegreesOnAxes]) -> 'Vector':
+        vector = cls((length, ))
+
+        for axis_degree_measure in axis_degree_measures:
+            vector = vector.get_rotated_by(axis_degree_measure)
+
+        return vector
+
 
 @dataclass(repr=False)
 class VirtualVector:
