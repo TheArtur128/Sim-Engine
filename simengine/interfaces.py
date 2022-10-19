@@ -48,6 +48,18 @@ class ILoop(ABC):
 
 class IZone(ABC):
     @abstractmethod
+    def move_by(self, point_changer: 'IPointChanger') -> None:
+        pass
+
+    @abstractmethod
+    def is_vector_passes(self, vector: 'VirtualVector') -> bool:
+        pass
+
+    @abstractmethod
+    def is_vector_entered(self, vector: 'VirtualVector') -> bool:
+        pass
+
+    @abstractmethod
     def is_point_inside(self, point: 'Vector') -> bool:
         pass
 

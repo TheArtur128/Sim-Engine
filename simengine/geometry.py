@@ -452,24 +452,16 @@ class Figure(IZone, ABC):
     def __contains__(self, vector: VirtualVector) -> bool:
         return self.is_vector_passes(vector)
 
-    @abstractmethod
-    def move_by(self, point_changer: IPointChanger) -> None:
-        pass
-
-    def is_vector_passes(self, vector: VirtualVector) -> bool:
+    def is_vector_passes(self, vector: PositionVector) -> bool:
         return any(
             self.is_point_inside(point)
             for point in self._vector_divider(rounded_vector)
         )
 
-    def is_vector_entered(self, vector: VirtualVector) -> bool:
+    def is_vector_entered(self, vector: PositionVector) -> bool:
         return self.is_point_inside(
             vector.end_point
         )
-
-    @abstractmethod
-    def is_point_inside(self, point: Vector) -> bool:
-        pass
 
 
 class Site(Figure):
