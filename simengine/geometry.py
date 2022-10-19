@@ -335,7 +335,7 @@ class Vector:
 
 
 @dataclass(repr=False)
-class VirtualVector:
+class PositionVector:
     start_point: Vector
     end_point: Vector
 
@@ -343,10 +343,10 @@ class VirtualVector:
         return f"{self.__class__.__name__}(from {self.start_point} to {self.end_point})"
 
     @property
-    def value(self) -> Vector:
+    def virtual_vector(self) -> Vector:
         return self.end_point - self.start_point
 
-    def get_rounded_by(self, rounder: NumberRounder) -> 'VirtualVector':
+    def get_rounded_by(self, rounder: NumberRounder) -> 'PositionVector':
         return self.__class__(
             self.start_point.get_rounded_by(rounder),
             self.end_point.get_rounded_by(rounder)
@@ -403,18 +403,18 @@ class VectorDivider(Divider, StylizedMixin):
             UnableToDivideVectorIntoPointsError(
                 f"Can't divide vector {data} into points with length 0"
             )
-        ) if data.value.length == 0 else super().is_possible_to_divide(data)
+        ) if data.virtual_vector.length == 0 else super().is_possible_to_divide(data)
 
-    def _divide(self, vector: VirtualVector) -> frozenset[Vector, ]:
-        distance_factor = self.distance_between_points / vector.value.length
+    def _divide(self, vector: PositionVector) -> frozenset[Vector, ]:
+        distance_factor = self.distance_between_points / vector.virtual_vector.length
 
         vector_to_next_point = Vector(tuple(
-            coordinate * distance_factor for coordinate in vector.value.coordinates
+            coordinate * distance_factor for coordinate in vector.virtual_vector.coordinates
         ))
 
         return self.__create_points(
             vector.start_point,
-            vector.value.length / vector_to_next_point.length,
+            vector.virtual_vector.length / vector_to_next_point.length,
             vector_to_next_point
         )
 
@@ -449,7 +449,7 @@ class Figure(IZone, ABC):
         return self.is_point_inside(point)
 
     @overload
-    def __contains__(self, vector: VirtualVector) -> bool:
+    def __contains__(self, vector: PositionVector) -> bool:
         return self.is_vector_passes(vector)
 
     def is_vector_passes(self, vector: PositionVector) -> bool:
@@ -557,11 +557,11 @@ class Line(Figure, StylizedMixin):
 
         self._update_points()
 
-    def is_vector_passes(self, vector: VirtualVector) -> bool:
+    def is_vector_passes(self, vector: PositionVector) -> bool:
         return super().is_vector_passes(vector) if (
             vector.start_point in self.__proposed_location_area or
             vector.end_point in self.__proposed_location_area or
-            vector.end_point - vector.value*0.5 in self.__proposed_location_area
+            vector.end_point - vector.virtual_vector*0.5 in self.__proposed_location_area
         ) else False
 
     def is_point_inside(self, point: Vector) -> bool:
@@ -577,7 +577,7 @@ class Line(Figure, StylizedMixin):
         )
 
         self.__all_available_points = self._vector_divider(
-            VirtualVector(self.first_point, self.second_point)
+            PositionVector(self.first_point, self.second_point)
         )
         self.__proposed_location_area = Rectangle(self.first_point, self.second_point)
 
