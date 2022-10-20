@@ -262,6 +262,14 @@ class Vector:
 
         return (self / self.length) * length
 
+    def get_rotated_many_times_by(self, axis_degree_measures: Iterable[DegreesOnAxes]) -> 'Vector':
+        result_vector = self
+
+        for axis_degree_measure in axis_degree_measures:
+            result_vector = result_vector.get_rotated_by(axis_degree_measure)
+
+        return result_vector
+
     def get_rotated_by(self, axes_degrees: DegreesOnAxes) -> 'Vector':
         if sum(self.coordinates) == 0:
             return self
