@@ -152,6 +152,11 @@ class DegreesOnAxes:
         return f"{self.__class__.__name__}({str(self.axes)[1:-1]}, degrees={self.degrees.degrees})"
 
 
+@dataclass
+class DegreeArea(DegreesOnAxes):
+    shift_degrees: DegreeMeasure
+
+
 class Vector:
     def __init__(self, coordinates: Iterable[float | int] = tuple()):
         self.__coordinates = tuple(coordinates)
