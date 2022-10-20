@@ -455,7 +455,7 @@ class Figure(IZone, ABC):
     def is_vector_passes(self, vector: PositionVector) -> bool:
         return any(
             self.is_point_inside(point)
-            for point in self._vector_divider(rounded_vector)
+            for point in self._vector_divider(vector)
         )
 
     def is_vector_entered(self, vector: PositionVector) -> bool:
