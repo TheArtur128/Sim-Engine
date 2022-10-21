@@ -598,3 +598,27 @@ class Timer(StylizedMixin):
             raise TimerError(f"Timer {self} has already started")
 
         self._end_time = time() + self.period
+
+
+class Diapason(StylizedMixin):
+    _repr_fields = Field(
+        value_getter=lambda diapason, _: (diapason.start_number, diapason.end_point),
+        formatter=lambda value, _: ' ~ '.join(map(str, value))
+    ),
+
+    def __init__(self, first_number: int | float, second_number: int | float):
+        self.update_by(first_number, second_number)
+
+    def update_by(self, first_number: int | float, second_number: int | float):
+        self._start_number, self._end_number = sorted((first_number, second_number))
+
+    @property
+    def start_number(self) -> int | float:
+        return self._start_number
+
+    @property
+    def end_point(self) -> int | float:
+        return self._end_number
+
+    def __contains__(self, number: int) -> bool:
+        return self._start_number <= number < self._end_number
