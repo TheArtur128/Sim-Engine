@@ -25,7 +25,7 @@ from simengine.tools import (
     BadReportHandler,
     Report,
     compare,
-    ComparisonResult,
+    Diapason
 )
 
 
@@ -155,6 +155,13 @@ class DegreesOnAxes:
 @dataclass
 class DegreeArea(DegreesOnAxes):
     shift_degrees: DegreeMeasure
+
+    @property
+    def diapason(self) -> Diapason:
+        return Diapason(
+            self.shift_degrees.degrees,
+            (self.degrees + self.shift_degrees + 1).degrees
+        )
 
 
 class Vector:
