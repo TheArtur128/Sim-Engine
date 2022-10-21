@@ -484,6 +484,52 @@ class Figure(IZone, ABC):
         )
 
 
+class Angle(Figure, StrictToStateMixin): # In developing
+    _report_analyzer = ReportAnalyzer(
+        (BadReportHandler(FigureIsNotCorrect), )
+    )
+
+    def __init__(self, center_point: PositionVector, degrees: Iterable[DegreeArea]):
+        self._center_point = center_point
+        self._degree_areas = tuple(degrees)
+
+        self._check_state_errors()
+
+    @property
+    def center_point(self) -> Vector:
+        return self._center_point
+
+    @property
+    def degree_areas(self) -> tuple[DegreeArea]:
+        return self._degree_areas
+
+    def get_degree_area_by_axis(self, first_axis: int, second_axis: int) -> DegreeArea:
+        axes = frozenset((first_axis, second_axis))
+
+        for degree_area in self._degree_areas:
+            if frozenset(degree_area.axes) == axes:
+                return degree_area
+
+        return DegreeArea(first_axis, second_axis, 0, 0)
+
+    def move_by(self, point_changer: IPointChanger) -> None: ...
+
+    def is_point_inside(self, point: Vector) -> bool:
+        return all(
+            degree_measure.degrees.degrees in self.get_degree_area_by_axis(
+                degree_measure.first_axis,
+                degree_measure.second_axis
+            ).diapason
+            for degree_measure in (point - self._center_point).degrees
+        ) if point != self._center_point else True
+
+    def _is_correct(self) -> Report:
+        return Report(
+            len(self._degree_areas) != 0,
+            "Angle must have at least one degree area"
+        )
+
+
 class Site(Figure):
     def __init__(self, point: Vector):
         self.point = point
