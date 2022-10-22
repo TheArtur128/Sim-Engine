@@ -527,6 +527,13 @@ class Angle(Figure): # In developing
             for degree_measure in (point - self._center_point).degrees
         ))
 
+    @classmethod
+    def created_by_points(cls, center_point: PositionVector, points: Iterable[Vector]) -> 'Angle':
+        angle = cls(center_point, tuple())
+        angle._update_by_points(points)
+
+        return angle
+
     def _create_ray_vertices_by(self, length: int | float) -> tuple[Vector]:
         return tuple(get_collection_with_reduced_nesting_level_by(
             1,
