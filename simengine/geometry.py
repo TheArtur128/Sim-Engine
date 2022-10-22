@@ -297,7 +297,7 @@ class Vector:
             reduced_vector.coordinates[axes_degrees.second_axis]
         ))
 
-        if sum(axes_section_vector.coordinates) == 0:
+        if all(coordinate == 0 for coordinate in axes_section_vector.coordinates):
             return self
 
         coordinates = list(reduced_vector.coordinates)
