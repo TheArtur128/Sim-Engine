@@ -510,7 +510,13 @@ class Angle(Figure): # In developing
 
         return DegreeArea(first_axis, second_axis, 0, 0)
 
-    def move_by(self, point_changer: IPointChanger) -> None: ...
+    def move_by(self, point_changer: IPointChanger) -> None:
+        created_vertices = self._create_ray_vertices_by(1)
+        self._center_point = point_changer(self._center_point)
+
+        self._update_by_points(tuple(
+            point_changer(vertex) for vertex in created_vertices
+        ))
 
     def is_point_inside(self, point: Vector) -> bool:
         return len(self._degree_areas) > 0 and (point == self._center_point or all(
