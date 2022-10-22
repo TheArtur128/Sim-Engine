@@ -333,7 +333,7 @@ class Vector:
     def get_degrees_between(self, vector: 'Vector', is_external: bool = False) -> DegreeMeasure:
         return DegreeMeasure(degrees(acos(
             (self * vector) / (self.length * vector.length)
-        ))) + (180 if is_external else 0)
+        ))) * (-1 if is_external else 1)
 
     @classmethod
     def get_mutually_normalized(cls, *vectors: tuple['Vector', ]) -> tuple['Vector', ]:
