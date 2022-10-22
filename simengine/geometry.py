@@ -96,7 +96,7 @@ class DegreeMeasure:
         return self.degrees - number
 
     def __rsub__(self, number: int | float) -> 'DegreeMeasure':
-        return self - number
+        return -(self) + number
 
     @_degree_measure_creation_from_degrees
     @_interpret_input_measure_in_degrees
