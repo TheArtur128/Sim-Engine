@@ -547,6 +547,8 @@ class Angle(Figure): # In developing
             )
         ))
 
+    def _update_by_points(self, points: Iterable[Vector]) -> None: ...
+
 
 class Site(Figure):
     def __init__(self, point: Vector):
