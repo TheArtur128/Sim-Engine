@@ -300,6 +300,10 @@ class Vector:
             reduced_vector.coordinates[axes_degrees.first_axis],
             reduced_vector.coordinates[axes_degrees.second_axis]
         ))
+
+        if sum(axes_section_vector.coordinates) == 0:
+            return self
+
         reduced_axes_section_vector = axes_section_vector.get_reduced_to_length(1)
 
         coordinates[axes_degrees.first_axis] = axes_section_vector.length * cos(radians(
