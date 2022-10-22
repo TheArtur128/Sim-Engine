@@ -351,7 +351,11 @@ class Vector:
 
     @classmethod
     def create_by_degrees(cls, length: int | float, axis_degree_measures: Iterable[DegreesOnAxes]) -> 'Vector':
-        return cls((length, )).get_rotated_many_times_by(axis_degree_measures)
+        fill_axis = axis_degree_measures[0].first_axis if len(axis_degree_measures) else 0
+
+        return cls(
+            (0, )*fill_axis + (length, )
+        ).get_rotated_many_times_by(axis_degree_measures)
 
 
 @dataclass(repr=False)
