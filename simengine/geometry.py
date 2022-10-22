@@ -189,7 +189,7 @@ class Vector:
                     self.coordinates[second_axis]
                 )).get_degrees_between(
                     perpendicular_vector,
-                    0 < self.coordinates[second_axis]
+                    0 > self.coordinates[second_axis]
                 )
             )
             for first_axis in range(len(self.coordinates))
