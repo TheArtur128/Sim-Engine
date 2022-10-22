@@ -118,7 +118,7 @@ class DegreeMeasure:
 
     @_degree_measure_creation_from_degrees
     def __neg__(self) -> 'DegreeMeasure':
-        return self.degrees - 180
+        return self.degrees * -1
 
     def _get_number_from_degrees_or_number(
         cls,
