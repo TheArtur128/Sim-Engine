@@ -521,6 +521,32 @@ class Angle(Figure): # In developing
             for degree_measure in (point - self._center_point).degrees
         ))
 
+    def _create_ray_vertices_by(self, length: int | float) -> tuple[Vector]:
+        return tuple(get_collection_with_reduced_nesting_level_by(
+            1,
+            (
+                (
+                    self.center_point + Vector.create_by_degrees(
+                        length,
+                        DegreeMeasure(
+                            degree_area.first_axis,
+                            degree_area.second_axis,
+                            degree_area.shift_degrees
+                        )
+                    ),
+                    self.center_point + Vector.create_by_degrees(
+                        length,
+                        DegreeMeasure(
+                            degree_area.first_axis,
+                            degree_area.second_axis,
+                            degree_area.degrees + degree_area.shift_degrees
+                        )
+                    )
+                )
+                for degree_measure in self._degree_areas
+            )
+        ))
+
 
 class Site(Figure):
     def __init__(self, point: Vector):
