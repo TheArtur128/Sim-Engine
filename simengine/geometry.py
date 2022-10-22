@@ -187,7 +187,7 @@ class Vector:
                 self.__class__((
                     self.coordinates[first_axis],
                     self.coordinates[second_axis]
-                )).get_angle_between(perpendicular_vector)
+                )).get_degrees_between(perpendicular_vector)
             )
             for first_axis in range(len(self.coordinates))
             for second_axis in range(first_axis + 1, len(self.coordinates))
@@ -330,7 +330,7 @@ class Vector:
             )
         )))
 
-    def get_angle_between(self, vector: 'Vector') -> DegreeMeasure:
+    def get_degrees_between(self, vector: 'Vector') -> DegreeMeasure:
         return DegreeMeasure(degrees(acos(
             (self * vector) / (self.length * vector.length)
         )))
