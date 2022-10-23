@@ -620,5 +620,5 @@ class Diapason(StylizedMixin):
     def end_point(self) -> int | float:
         return self._end_number
 
-    def __contains__(self, number: int) -> bool:
+    def __contains__(self, number: int | float) -> bool:
         return self._start_number <= number < self._end_number
