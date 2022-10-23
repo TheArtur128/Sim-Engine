@@ -161,7 +161,8 @@ class DegreeArea(DegreesOnAxes):
     def diapason(self) -> Diapason:
         return Diapason(
             self.shift_degrees.degrees,
-            (self.degrees + self.shift_degrees + 1).degrees
+            (self.degrees + self.shift_degrees).degrees,
+            is_end_inclusive=True
         )
 
 
