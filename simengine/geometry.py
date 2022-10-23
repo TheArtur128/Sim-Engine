@@ -540,22 +540,22 @@ class Angle(Figure, StylizedMixin):
                 (
                     self.center_point + Vector.create_by_degrees(
                         length,
-                        DegreeMeasure(
+                        (DegreesOnAxes(
                             degree_area.first_axis,
                             degree_area.second_axis,
                             degree_area.shift_degrees
-                        )
+                        ), )
                     ),
                     self.center_point + Vector.create_by_degrees(
                         length,
-                        DegreeMeasure(
+                        (DegreesOnAxes(
                             degree_area.first_axis,
                             degree_area.second_axis,
                             degree_area.degrees + degree_area.shift_degrees
-                        )
+                        ), )
                     )
                 )
-                for degree_measure in self._degree_areas
+                for degree_area in self._degree_areas
             )
         ))
 
