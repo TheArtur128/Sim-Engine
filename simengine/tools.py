@@ -602,7 +602,7 @@ class Timer(StylizedMixin):
 
 class Diapason(StylizedMixin):
     _repr_fields = Field(
-        value_getter=lambda diapason, _: (diapason.start_number, diapason.end_point),
+        value_getter=lambda diapason, _: (diapason.start_number, diapason.start_number),
         formatter=lambda value, _: ' ~ '.join(map(str, value))
     ),
 
@@ -617,7 +617,7 @@ class Diapason(StylizedMixin):
         return self._start_number
 
     @property
-    def end_point(self) -> int | float:
+    def end_number(self) -> int | float:
         return self._end_number
 
     def __contains__(self, number: int | float) -> bool:
