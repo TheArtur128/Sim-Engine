@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from math import sqrt, fabs, degrees, acos, cos, asin, sin, radians
 from functools import lru_cache, wraps, cached_property, reduce
-from typing import Iterable, Callable, Union
+from typing import Iterable, Callable, Union, Generator
 
 from beautiful_repr import StylizedMixin, Field, TemplateFormatter, parse_length
 from pyoverload import overload
@@ -25,7 +25,8 @@ from simengine.tools import (
     BadReportHandler,
     Report,
     compare,
-    Diapason
+    Diapason,
+    get_collection_with_reduced_nesting_level_by,
 )
 
 
@@ -491,7 +492,7 @@ class Figure(IZone, ABC):
         )
 
 
-class Angle(Figure): # In developing
+class Angle(Figure):
     def __init__(self, center_point: PositionVector, degrees: Iterable[DegreeArea]):
         self._center_point = center_point
         self._degree_areas = tuple(degrees)
@@ -563,7 +564,37 @@ class Angle(Figure): # In developing
             )
         ))
 
-    def _update_by_points(self, points: Iterable[Vector]) -> None: ...
+    def _update_by_points(self, points: Iterable[Vector]) -> None:
+        self._degree_areas = tuple(self.__create_degree_areas_from(
+            tuple(get_collection_with_reduced_nesting_level_by(
+                1,
+                ((point - self._center_point).degrees for point in points)
+            ))
+        ))
+
+    def __create_degree_areas_from(self, axis_degree_measures: Iterable[DegreesOnAxes]) -> Generator[DegreeArea, any, None]:
+        max_axes = max(get_collection_with_reduced_nesting_level_by(
+            1,
+            (point_degree_measure.axes for point_degree_measure in axis_degree_measures)
+        ))
+
+        for first_axis in range(max_axes + 1):
+            for second_axis in range(first_axis + 1, max_axes + 1):
+                degree_multitude = frozenset(
+                    degree_measure.degrees.degrees
+                    for degree_measure in axis_degree_measures
+                    if (
+                        degree_measure.first_axis == first_axis
+                        and degree_measure.second_axis == second_axis
+                    )
+                )
+
+                yield DegreeArea(
+                    first_axis,
+                    second_axis,
+                    DegreeMeasure(max(degree_multitude) - min(degree_multitude)),
+                    DegreeMeasure(min(degree_multitude))
+                )
 
 
 class Site(Figure):
