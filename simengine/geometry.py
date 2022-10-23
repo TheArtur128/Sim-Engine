@@ -152,7 +152,7 @@ class DegreesOnAxes:
         return f"{self.__class__.__name__}({str(self.axes)[1:-1]}, degrees={self.degrees.degrees})"
 
 
-@dataclass
+@dataclass(repr=False)
 class DegreeArea(DegreesOnAxes):
     shift_degrees: DegreeMeasure
 
