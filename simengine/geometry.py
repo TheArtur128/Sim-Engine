@@ -533,8 +533,8 @@ class Angle(Figure, StylizedMixin):
             for degree_measure in (point - self._center_point).degrees
         ))
 
-    def create_ray_vertices_by(self, length: int | float) -> tuple[Vector]:
-        return tuple(get_collection_with_reduced_nesting_level_by(
+    def create_ray_vertices_by(self, length: int | float) -> frozenset[Vector]:
+        return frozenset(get_collection_with_reduced_nesting_level_by(
             1,
             (
                 (
