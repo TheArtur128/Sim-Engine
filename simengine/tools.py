@@ -606,7 +606,7 @@ class Diapason(StylizedMixin):
         formatter=lambda value, _: ' ~ '.join(map(str, value))
     ),
 
-    def __init__(self, first_number: int | float, second_number: int | float, is_end_inclusive: bool = False):
+    def __init__(self, first_number: int | float, second_number: int | float = 0, is_end_inclusive: bool = False):
         self.is_end_inclusive = is_end_inclusive
         self.update_by(first_number, second_number)
 
