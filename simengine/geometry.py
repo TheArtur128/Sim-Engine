@@ -492,7 +492,9 @@ class Figure(IZone, ABC):
         )
 
 
-class Angle(Figure):
+class Angle(Figure, StylizedMixin):
+    _repr_fields = Field('center_point'),
+
     def __init__(self, center_point: PositionVector, degrees: Iterable[DegreeArea]):
         self._center_point = center_point
         self._degree_areas = tuple(degrees)
