@@ -8,12 +8,7 @@ from beautiful_repr import StylizedMixin, Field, TemplateFormatter, parse_length
 from pyoverload import overload
 
 from simengine.interfaces import IUpdatable, IZone, IZoneFactory
-from simengine.errors.geometry_errors import (
-    UnableToDivideVectorIntoPointsError,
-    FigureIsNotCorrect,
-    FigureIsNotClosedError,
-    VectorError
-)
+from simengine.errors.geometry_errors import *
 from simengine.tools import (
     NumberRounder,
     ShiftNumberRounder,
@@ -144,6 +139,10 @@ class DegreesOnAxes:
     first_axis: int
     second_axis: int
     degrees: DegreeMeasure
+
+    def __post_init__(self) -> None:
+        if self.first_axis == self.second_axis:
+            raise AxisDegreesError(f"{self.__class__.__name__} must be on two axes, not one ({self.first_axis})")
 
     @property
     def axes(self) -> tuple[int, int]:

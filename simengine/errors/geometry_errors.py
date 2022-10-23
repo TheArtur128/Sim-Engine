@@ -5,6 +5,10 @@ class GeometryError(Exception):
     pass
 
 
+class AxisDegreesError(GeometryError):
+    pass
+
+
 class VectorError(GeometryError):
     pass
 
