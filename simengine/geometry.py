@@ -518,7 +518,7 @@ class Angle(Figure, StylizedMixin):
         return DegreeArea(first_axis, second_axis, 0, 0)
 
     def move_by(self, point_changer: IPointChanger) -> None:
-        created_vertices = self._create_ray_vertices_by(1)
+        created_vertices = self.create_ray_vertices_by(1)
         self._center_point = point_changer(self._center_point)
 
         self._update_by_points(tuple(
@@ -534,14 +534,7 @@ class Angle(Figure, StylizedMixin):
             for degree_measure in (point - self._center_point).degrees
         ))
 
-    @classmethod
-    def created_by_points(cls, center_point: PositionVector, points: Iterable[Vector]) -> 'Angle':
-        angle = cls(center_point, tuple())
-        angle._update_by_points(points)
-
-        return angle
-
-    def _create_ray_vertices_by(self, length: int | float) -> tuple[Vector]:
+    def create_ray_vertices_by(self, length: int | float) -> tuple[Vector]:
         return tuple(get_collection_with_reduced_nesting_level_by(
             1,
             (
@@ -566,6 +559,13 @@ class Angle(Figure, StylizedMixin):
                 for degree_measure in self._degree_areas
             )
         ))
+
+    @classmethod
+    def created_by_points(cls, center_point: PositionVector, points: Iterable[Vector]) -> 'Angle':
+        angle = cls(center_point, tuple())
+        angle._update_by_points(points)
+
+        return angle
 
     def _update_by_points(self, points: Iterable[Vector]) -> None:
         self._degree_areas = tuple(self.__create_degree_areas_from(
