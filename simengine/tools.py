@@ -606,7 +606,8 @@ class Diapason(StylizedMixin):
         formatter=lambda value, _: ' ~ '.join(map(str, value))
     ),
 
-    def __init__(self, first_number: int | float, second_number: int | float):
+    def __init__(self, first_number: int | float, second_number: int | float, is_end_inclusive: bool = False):
+        self.is_end_inclusive = is_end_inclusive
         self.update_by(first_number, second_number)
 
     def update_by(self, first_number: int | float, second_number: int | float):
@@ -621,4 +622,7 @@ class Diapason(StylizedMixin):
         return self._end_number
 
     def __contains__(self, number: int | float) -> bool:
-        return self._start_number <= number < self._end_number
+        return (
+            number >= self._start_number
+            and (number.__lt__ if not self.is_end_inclusive else number.__le__)(self._end_number)
+        )
