@@ -591,11 +591,13 @@ class Angle(Figure, StylizedMixin):
                     )
                 )
 
+                min_degrees, max_degrees = min(degree_multitude), max(degree_multitude)
+
                 yield DegreeArea(
                     first_axis,
                     second_axis,
-                    DegreeMeasure(max(degree_multitude) - min(degree_multitude)),
-                    DegreeMeasure(min(degree_multitude))
+                    DegreeMeasure(max_degrees - min_degrees),
+                    DegreeMeasure(min_degrees)
                 )
 
 
