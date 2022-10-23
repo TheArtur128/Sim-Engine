@@ -793,63 +793,6 @@ class Circle(Figure, StylizedMixin):
         return (self.center_point - point).length <= self.radius
 
 
-class Rectangle(Figure, StylizedMixin):
-    _repr_fields = (Field('size'), )
-
-    def __init__(self, first_point: Vector, second_point: Vector):
-        super().__init__()
-        self.first_point = first_point
-        self.second_point = second_point
-
-    @property
-    def size(self):
-        return tuple(
-            fabs(coordinate)
-            for coordinate in (self.first_point - self.second_point).coordinates
-        )
-
-    def move_by(self, point_changer: IPointChanger) -> None:
-        self.first_point = point_changer(self.first_point)
-        self.second_point = point_changer(self.second_point)
-
-    def is_point_inside(self, point: Vector) -> bool:
-        return all(
-             -1 <= sum(
-                compare(point_coordinate, edge_coordinate)
-                for edge_coordinate in edge_coordinates_by_axis
-            ) <= 1
-            for point_coordinate, edge_coordinates_by_axis in zip(
-                point.coordinates,
-                zip(self.first_point.coordinates, self.second_point.coordinates)
-            )
-        )
-
-    @classmethod
-    def create_with_generated_points_by(
-        cls,
-        center_point: Vector,
-        size: Iterable[int | float, ]
-    ) -> 'Rectangle':
-        vector_to_extreme_point = Vector(tuple(coordinate / 2 for coordinate in size))
-
-        return cls(
-            center_point + vector_to_extreme_point,
-            center_point - vector_to_extreme_point
-        )
-
-    @classmethod
-    def create_as_square(
-        cls,
-        center_point: Vector,
-        side_length: int | float,
-        number_of_measurements: int
-    ) -> 'Rectangle':
-        return cls.create_with_generated_points_by(
-            center_point,
-            (side_length * 2, ) * number_of_measurements
-        )
-
-
 class FigureFactory(IZoneFactory):
     def __init__(self, figure_type: type, *args_to_type, **kwargs_to_type):
         self.figure_type = figure_type
