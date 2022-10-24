@@ -602,7 +602,7 @@ class Timer(StylizedMixin):
 
 class Diapason(StylizedMixin):
     _repr_fields = Field(
-        value_getter=lambda diapason, _: (diapason.start_number, diapason.start_number),
+        value_getter=lambda diapason, _: (diapason.start_number, diapason.end_number),
         formatter=lambda value, _: ' ~ '.join(map(str, value))
     ),
 
