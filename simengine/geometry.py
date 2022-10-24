@@ -296,12 +296,13 @@ class Vector:
         reduced_axes_section_vector = axes_section_vector.get_reduced_to_length(1)
 
         coordinates[axes_degrees.first_axis] = axes_section_vector.length * cos(radians(
-            degrees(acos(reduced_axes_section_vector.coordinates[0]))
-            + axes_degrees.degrees
+                axes_section_vector.degrees[0].degrees
+                + axes_degrees.degrees
         ))
+
         coordinates[axes_degrees.second_axis] = axes_section_vector.length * sin(radians(
-            degrees(asin(reduced_axes_section_vector.coordinates[1]))
-            + axes_degrees.degrees
+                axes_section_vector.degrees[0].degrees
+                + axes_degrees.degrees
         ))
 
         return self.__class__(coordinates)
