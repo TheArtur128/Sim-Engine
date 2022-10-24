@@ -143,6 +143,9 @@ class DegreesOnAxes:
 class DegreeArea(DegreesOnAxes):
     shift_degrees: DegreeMeasure
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({str(self.axes)[1:-1]}, {self.diapason})"
+
     @property
     def diapason(self) -> Diapason:
         return Diapason(
