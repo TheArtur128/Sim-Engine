@@ -206,7 +206,7 @@ class Vector:
                 lambda first, second: first + second,
                 *(
                     vector.coordinates
-                    for vector in self.get_mutually_normalized(self, other)
+                    for vector in self.get_mutually_normalized((self, other))
                 )
             ))
         )
@@ -326,7 +326,7 @@ class Vector:
             lambda first, second: first * second,
             *(
                 normalized_vector.coordinates
-                for normalized_vector in self.get_mutually_normalized(self, vector)
+                for normalized_vector in self.get_mutually_normalized((self, vector))
             )
         )))
 
@@ -335,8 +335,8 @@ class Vector:
             (self * vector) / (self.length * vector.length)
         ))) * (-1 if is_external else 1)
 
-    @classmethod
-    def get_mutually_normalized(cls, *vectors: tuple['Vector', ]) -> tuple['Vector', ]:
+    @staticmethod
+    def get_mutually_normalized(vectors: Iterable['Vector']) -> tuple['Vector']:
         maximum_number_of_measurements = max((len(vector.coordinates) for vector in vectors))
 
         return tuple(
