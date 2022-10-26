@@ -789,5 +789,5 @@ class FigureFactory(IZoneFactory):
         self.args_to_type = args_to_type
         self.kwargs_to_type = kwargs_to_type
 
-    def __call__(self, unit: IUpdatable) -> 'Figure':
+    def __call__(self, unit: IUpdatable) -> Figure:
         return self.figure_type(*self.args_to_type, **self.kwargs_to_type)

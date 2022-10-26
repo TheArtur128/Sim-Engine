@@ -191,7 +191,7 @@ class StrictHandlerLoop(HandlerLoop, metaclass=AttributesTransmitterMeta):
 
 
 class CustomHandlerLoop(HandlerLoop):
-    def __init__(self, handlers_factories: Iterable[Callable[['HandlerLoop'], 'LoopHandler']]):
+    def __init__(self, handlers_factories: Iterable[Callable[[HandlerLoop], 'LoopHandler']]):
         self._handlers_factories = handlers_factories
         super().__init__()
 

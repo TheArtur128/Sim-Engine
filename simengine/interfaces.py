@@ -68,7 +68,7 @@ class IRenderActivatorFactory(ABC):
     @abstractmethod
     def __call__(
         self,
-        rersource_keeper: 'IRenderRersourceKeeper',
+        rersource_keeper: IRenderRersourceKeeper,
         redners: Iterable['Render', ]
     ) -> 'RenderActivator':
         pass
