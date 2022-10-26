@@ -499,7 +499,7 @@ class Angle(Figure, StylizedMixin):
     def degree_areas(self) -> tuple[DegreeArea]:
         return self._degree_areas
 
-    def get_degree_area_by_axis(self, first_axis: int, second_axis: int) -> DegreeArea:
+    def get_degree_area_by_axes(self, first_axis: int, second_axis: int) -> DegreeArea:
         axes = frozenset((first_axis, second_axis))
 
         for degree_area in self._degree_areas:
@@ -549,7 +549,7 @@ class Angle(Figure, StylizedMixin):
 
     def is_point_inside(self, point: Vector) -> bool:
         return len(self._degree_areas) > 0 and (point == self._center_point or all(
-            degree_measure.degrees.degrees in self.get_degree_area_by_axis(
+            degree_measure.degrees.degrees in self.get_degree_area_by_axes(
                 degree_measure.first_axis,
                 degree_measure.second_axis
             ).diapason
