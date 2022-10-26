@@ -561,18 +561,21 @@ class Angle(Figure, StylizedMixin):
         self._degree_areas = tuple(self.__create_degree_areas_from(
             tuple(get_collection_with_reduced_nesting_level_by(
                 1,
-                ((point - self._center_point).degrees for point in points)
+                (
+                    (point - self._center_point).degrees
+                    for point in Vector.get_mutually_normalized(points)
+                )
             ))
         ))
 
     def __create_degree_areas_from(self, axis_degree_measures: Iterable[DegreesOnAxes]) -> Generator[DegreeArea, any, None]:
-        max_axes = max(get_collection_with_reduced_nesting_level_by(
+        max_axes = 1 + max(get_collection_with_reduced_nesting_level_by(
             1,
             (point_degree_measure.axes for point_degree_measure in axis_degree_measures)
         ))
 
-        for first_axis in range(max_axes + 1):
-            for second_axis in range(first_axis + 1, max_axes + 1):
+        for first_axis in range(max_axes):
+            for second_axis in range(first_axis + 1, max_axes):
                 degree_multitude = frozenset(
                     degree_measure.degrees.degrees
                     for degree_measure in axis_degree_measures
