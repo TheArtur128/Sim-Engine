@@ -526,29 +526,23 @@ class Angle(Figure, StylizedMixin):
         ))
 
     def create_ray_vertices_by(self, length: int | float) -> frozenset[Vector]:
-        return frozenset(get_collection_with_reduced_nesting_level_by(
-            1,
-            (
+        return frozenset(map(
+            lambda axis_degrees: Vector.create_by_degrees(length, axis_degrees),
+            zip(*(
                 (
-                    self.center_point + Vector.create_by_degrees(
-                        length,
-                        (DegreesOnAxes(
-                            degree_area.first_axis,
-                            degree_area.second_axis,
-                            degree_area.shift_degrees
-                        ), )
+                    DegreesOnAxes(
+                        degree_area.first_axis,
+                        degree_area.second_axis,
+                        degree_area.shift_degrees
                     ),
-                    self.center_point + Vector.create_by_degrees(
-                        length,
-                        (DegreesOnAxes(
-                            degree_area.first_axis,
-                            degree_area.second_axis,
-                            degree_area.degrees + degree_area.shift_degrees
-                        ), )
+                    DegreesOnAxes(
+                        degree_area.first_axis,
+                        degree_area.second_axis,
+                        degree_area.degrees + degree_area.shift_degrees
                     )
                 )
                 for degree_area in self._degree_areas
-            )
+            ))
         ))
 
     @classmethod
