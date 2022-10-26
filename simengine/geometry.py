@@ -181,13 +181,14 @@ class Vector:
                 )).get_degrees_between(
                     perpendicular_vector,
                     0 > self.coordinates[second_axis]
-                ) if any(map(
-                    lambda coordinate: coordinate != 0,
-                    (self.coordinates[first_axis], self.coordinates[second_axis])
-                )) else DegreeMeasure(0)
+                )
             )
             for first_axis in range(len(self.coordinates))
             for second_axis in range(first_axis + 1, len(self.coordinates))
+            if any(map(
+                lambda coordinate: coordinate != 0,
+                (self.coordinates[first_axis], self.coordinates[second_axis])
+            ))
         )
 
     def __repr__(self) -> str:
