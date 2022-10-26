@@ -512,17 +512,8 @@ class Angle(Figure, StylizedMixin):
         created_vertices = self.create_ray_vertices_by(1)
         self._center_point = point_changer(self._center_point)
 
-        self._update_by_points(tuple(
+        self.update_by_points(tuple(
             point_changer(vertex) for vertex in created_vertices
-        ))
-
-    def is_point_inside(self, point: Vector) -> bool:
-        return len(self._degree_areas) > 0 and (point == self._center_point or all(
-            degree_measure.degrees.degrees in self.get_degree_area_by_axis(
-                degree_measure.first_axis,
-                degree_measure.second_axis
-            ).diapason
-            for degree_measure in (point - self._center_point).degrees
         ))
 
     def create_ray_vertices_by(self, length: int | float) -> frozenset[Vector]:
@@ -545,14 +536,7 @@ class Angle(Figure, StylizedMixin):
             ))
         ))
 
-    @classmethod
-    def created_by_points(cls, center_point: PositionVector, points: Iterable[Vector]) -> Self:
-        angle = cls(center_point, tuple())
-        angle._update_by_points(points)
-
-        return angle
-
-    def _update_by_points(self, points: Iterable[Vector]) -> None:
+    def update_by_points(self, points: Iterable[Vector]) -> None:
         self._degree_areas = tuple(self.__create_degree_areas_from(
             tuple(get_collection_with_reduced_nesting_level_by(
                 1,
@@ -562,6 +546,22 @@ class Angle(Figure, StylizedMixin):
                 )
             ))
         ))
+
+    def is_point_inside(self, point: Vector) -> bool:
+        return len(self._degree_areas) > 0 and (point == self._center_point or all(
+            degree_measure.degrees.degrees in self.get_degree_area_by_axis(
+                degree_measure.first_axis,
+                degree_measure.second_axis
+            ).diapason
+            for degree_measure in (point - self._center_point).degrees
+        ))
+
+    @classmethod
+    def created_by_points(cls, center_point: PositionVector, points: Iterable[Vector]) -> Self:
+        angle = cls(center_point, tuple())
+        angle.update_by_points(points)
+
+        return angle
 
     def __create_degree_areas_from(self, axis_degree_measures: Iterable[DegreesOnAxes]) -> Generator[DegreeArea, any, None]:
         max_axes = 1 + max(get_collection_with_reduced_nesting_level_by(
