@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod, ABCMeta
 from dataclasses import dataclass
-from typing import Callable, Iterable, Optional, Generator
+from typing import Callable, Iterable, Optional, Generator, Self
 
 from beautiful_repr import StylizedMixin, Field
 
@@ -55,7 +55,7 @@ class ResourceHandlerWrapper(RenderResourceHandler, StylizedMixin):
         self.resource_handler(resource_pack, surface, render)
 
     @classmethod
-    def create_decorator_by(cls, *args, **kwargs) -> Callable[[], 'ResourceHandlerWrapper']:
+    def create_decorator_by(cls, *args, **kwargs) -> Callable[[], Self]:
         def decorator(resource_handler: IRenderResourceHandler):
             return cls(resource_handler, *args, **kwargs)
 
@@ -132,7 +132,7 @@ class BaseRender(IRender, ABC):
 
 class ResourceHandlingChainMeta(ABCMeta):
     _resource_handlers: Optional[tuple]
-    
+
     def __new__(cls, class_name: str, super_classes: tuple, attributes: dict):
         render_type = super().__new__(cls, class_name, super_classes, attributes)
 

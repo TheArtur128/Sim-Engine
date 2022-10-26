@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod, ABCMeta
 from dataclasses import dataclass
 from time import sleep, time, ctime
 from threading import Thread
-from typing import Iterable, Callable
+from typing import Iterable, Callable, Self
 from math import floor, copysign
 from enum import IntEnum
 from functools import wraps
@@ -169,7 +169,7 @@ class Loop(ILoop):
 
 
 class HandlerLoop(Loop, ABC):
-    _handlers_factories: Iterable[Callable[['HandlerLoop'], 'LoopHandler']]
+    _handlers_factories: Iterable[Callable[[Self], 'LoopHandler']]
 
     def __init__(self):
         self.__handlers = tuple(
@@ -447,7 +447,7 @@ class Report:
         return self.sign
 
     @classmethod
-    def create_error_report(cls, error: Exception) -> 'Report':
+    def create_error_report(cls, error: Exception) -> Self:
         return cls(
             False,
             error=error
@@ -563,7 +563,7 @@ class Arguments:
     kwargs: dict
 
     @classmethod
-    def create_via_call(cls, *args, **kwargs) -> 'Arguments':
+    def create_via_call(cls, *args, **kwargs) -> Self:
         return cls(args, kwargs)
 
 

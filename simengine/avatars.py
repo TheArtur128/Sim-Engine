@@ -1,6 +1,6 @@
 from abc import ABC
 from dataclasses import dataclass
-from typing import Callable, Iterable
+from typing import Callable, Iterable, Self
 
 from beautiful_repr import StylizedMixin, Field
 
@@ -33,7 +33,7 @@ class SingleResourcePackAvatar(Avatar, ABC):
 
 class ResourceAvatar(SingleResourcePackAvatar, StylizedMixin, ABC):
     _repr_fields = (Field('resource'), )
-    _resource_factory: Callable[['ResourceAvatar'], any]
+    _resource_factory: Callable[[Self], any]
     _resource_pack_factory: Callable[[any, Vector], ResourcePack] = ResourcePack
 
     def __init__(self, unit: PositionalUnit):

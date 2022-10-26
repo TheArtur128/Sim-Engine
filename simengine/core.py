@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Iterable, Callable, Optional
+from typing import Iterable, Callable, Optional, Self
 
 from beautiful_repr import StylizedMixin, Field
 
@@ -27,7 +27,7 @@ class ProcessState(IUpdatable, ABC):
         return self.__process
 
     @abstractmethod
-    def get_next_state(self) -> Optional['ProcessState']:
+    def get_next_state(self) -> Optional[Self]:
         pass
 
     @abstractmethod
@@ -632,7 +632,7 @@ class UnitMover(FocusedUnitHandler):
 
 
 class World(IUpdatable, MixinDiscrete, ABC):
-    _unit_handler_factories: Iterable[Callable[['World'], UnitHandler], ]
+    _unit_handler_factories: Iterable[Callable[[Self], UnitHandler], ]
 
     def __init__(self, inhabitants: Iterable = tuple()):
         self.__inhabitant = set()

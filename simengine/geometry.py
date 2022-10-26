@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from math import sqrt, fabs, degrees, acos, cos, asin, sin, radians
 from functools import lru_cache, wraps, cached_property, reduce
-from typing import Iterable, Callable, Union, Generator
+from typing import Iterable, Callable, Union, Generator, Self
 
 from beautiful_repr import StylizedMixin, Field, TemplateFormatter, parse_length
 from pyoverload import overload
@@ -38,21 +38,21 @@ class DegreeMeasure:
         return self.degrees == self.__get_degrees_from(other)
 
     def _degree_measure_creation_from_degrees(
-        method: Callable[['DegreeMeasure', any, ], int | float]
-    ) -> Callable[[any, ], 'DegreeMeasure']:
+        method: Callable[[Self, any, ], int | float]
+    ) -> Callable[[any, ], Self]:
         @wraps(method)
-        def wrapper(self: 'DegreeMeasure', *args, **kwargs) -> 'DegreeMeasure':
+        def wrapper(self: Self, *args, **kwargs) -> Self:
             return self._create_from_degrees(method(self, *args, **kwargs))
 
         return wrapper
 
     def _interpret_input_measure_in_degrees(
         method: Callable[[int | float], any]
-    ) -> Callable[[Union[int, float, 'DegreeMeasure']], any]:
+    ) -> Callable[[Union[int, float, Self]], any]:
         @wraps(method)
         def wrapper(
-            self: 'DegreeMeasure',
-            other: Union[int, float, 'DegreeMeasure'],
+            self,
+            other: Union[int, float, Self],
             *args,
             **kwargs
         ) -> any:
@@ -70,7 +70,7 @@ class DegreeMeasure:
     def __add__(self, number: int | float) -> int | float:
         return self.degrees + number
 
-    def __radd__(self, number: int | float) -> 'DegreeMeasure':
+    def __radd__(self, number: int | float) -> Self:
         return self + number
 
     @_degree_measure_creation_from_degrees
@@ -78,7 +78,7 @@ class DegreeMeasure:
     def __sub__(self, number: int | float) -> int | float:
         return self.degrees - number
 
-    def __rsub__(self, number: int | float) -> 'DegreeMeasure':
+    def __rsub__(self, number: int | float) -> Self:
         return -(self) + number
 
     @_degree_measure_creation_from_degrees
@@ -86,7 +86,7 @@ class DegreeMeasure:
     def __mul__(self, number: int | float) -> int | float:
         return self.degrees * number
 
-    def __rmul__(self, number: int | float) -> 'DegreeMeasure':
+    def __rmul__(self, number: int | float) -> Self:
         return self * number
 
     @_degree_measure_creation_from_degrees
@@ -100,13 +100,13 @@ class DegreeMeasure:
         return (self.degrees / number) // 1
 
     @_degree_measure_creation_from_degrees
-    def __neg__(self) -> 'DegreeMeasure':
+    def __neg__(self) -> Self:
         return self.degrees * -1
 
     def _get_number_from_degrees_or_number(
         cls,
-        number_or_degrees: Union[int, float, 'DegreeMeasure']
-    ) -> 'DegreeMeasure':
+        number_or_degrees: Union[int, float, Self]
+    ) -> Self:
         return (
             number_or_degrees.degrees if isinstance(number_or_degrees, DegreeMeasure)
             else number_or_degrees
@@ -196,11 +196,11 @@ class Vector:
     def __hash__(self) -> int:
         return hash(self.coordinates)
 
-    def __eq__(self, other: 'Vector') -> 'Vector':
+    def __eq__(self, other: Self) -> Self:
         return self.coordinates == other.coordinates
 
     @lru_cache(maxsize=8192)
-    def __add__(self, other: 'Vector') -> 'Vector':
+    def __add__(self, other: Self) -> Self:
         return self.__class__(
             tuple(map(
                 lambda first, second: first + second,
@@ -211,28 +211,28 @@ class Vector:
             ))
         )
 
-    def __sub__(self, other: 'Vector') -> 'Vector':
+    def __sub__(self, other: Self) -> Self:
         return self + (-other)
 
     @lru_cache(maxsize=4096)
-    def __mul__(self, other: Union[int, float, 'Vector']) -> 'Vector':
+    def __mul__(self, other: Union[int, float, Self]) -> Self:
         return (
             self.get_scalar_by(other) if isinstance(other, Vector)
             else self.get_multiplied_by_number(other)
         )
 
-    def __rmul__(self, number: int | float) -> 'Vector':
+    def __rmul__(self, number: int | float) -> Self:
         return self * number
 
-    def __truediv__(self, number: int | float) -> 'Vector':
+    def __truediv__(self, number: int | float) -> Self:
         return self*(1 / number)
 
-    def __floordiv__(self, number: int | float) -> 'Vector':
+    def __floordiv__(self, number: int | float) -> Self:
         return self.__class__(
             tuple(int(coordinate) for coordinate in (self / number).coordinates)
         )
 
-    def __neg__(self) -> 'Vector':
+    def __neg__(self) -> Self:
         return self.get_reflected_by_axes()
 
     def __len__(self) -> int:
@@ -243,7 +243,7 @@ class Vector:
         self,
         number_of_measurements: int,
         default_measurement_point: int | float = 0
-    ) -> 'Vector':
+    ) -> Self:
         measurement_difference = number_of_measurements - len(self.coordinates)
 
         return self.__class__(
@@ -255,7 +255,7 @@ class Vector:
     def get_reflected_by_axes(
         self,
         axis_indexes: Iterable[int, ] | None = None
-    ) -> 'Vector':
+    ) -> Self:
         if axis_indexes is None:
             axis_indexes = range(len(self.coordinates))
 
@@ -265,13 +265,13 @@ class Vector:
         ))
 
     @lru_cache(maxsize=128)
-    def get_reduced_to_length(self, length: int | float) -> 'Vector':
+    def get_reduced_to_length(self, length: int | float) -> Self:
         if self.length == 0:
             raise VectorError("Vector with length == 0 can't be lengthened")
 
         return (self / self.length) * length
 
-    def get_rotated_many_times_by(self, axis_degree_measures: Iterable[DegreesOnAxes]) -> 'Vector':
+    def get_rotated_many_times_by(self, axis_degree_measures: Iterable[DegreesOnAxes]) -> Self:
         result_vector = self
 
         for axis_degree_measure in axis_degree_measures:
@@ -279,7 +279,7 @@ class Vector:
 
         return result_vector
 
-    def get_rotated_by(self, axes_degrees: DegreesOnAxes) -> 'Vector':
+    def get_rotated_by(self, axes_degrees: DegreesOnAxes) -> Self:
         number_of_measurements = max(axes_degrees.axes) + 1
         reduced_vector = (
             self.get_normalized_to_measurements(number_of_measurements)
@@ -310,18 +310,18 @@ class Vector:
 
         return self.__class__(coordinates)
 
-    def get_rounded_by(self, rounder: NumberRounder) -> 'Vector':
+    def get_rounded_by(self, rounder: NumberRounder) -> Self:
         return self.__class__(tuple(
             rounder(coordinate)
             for coordinate in self.coordinates
         ))
 
-    def get_multiplied_by_number(self, number: int | float) -> 'Vector':
+    def get_multiplied_by_number(self, number: int | float) -> Self:
         return self.__class__(
             tuple(number * coordinate for coordinate in self.coordinates)
         )
 
-    def get_scalar_by(self, vector: 'Vector') -> int | float:
+    def get_scalar_by(self, vector: Self) -> int | float:
         return sum(tuple(map(
             lambda first, second: first * second,
             *(
@@ -330,13 +330,13 @@ class Vector:
             )
         )))
 
-    def get_degrees_between(self, vector: 'Vector', is_external: bool = False) -> DegreeMeasure:
+    def get_degrees_between(self, vector: Self, is_external: bool = False) -> DegreeMeasure:
         return DegreeMeasure(degrees(acos(
             (self * vector) / (self.length * vector.length)
         ))) * (-1 if is_external else 1)
 
     @staticmethod
-    def get_mutually_normalized(vectors: Iterable['Vector']) -> tuple['Vector']:
+    def get_mutually_normalized(vectors: Iterable[Self]) -> tuple[Self]:
         maximum_number_of_measurements = max((len(vector.coordinates) for vector in vectors))
 
         return tuple(
@@ -345,7 +345,7 @@ class Vector:
         )
 
     @classmethod
-    def create_by_degrees(cls, length: int | float, axis_degree_measures: Iterable[DegreesOnAxes]) -> 'Vector':
+    def create_by_degrees(cls, length: int | float, axis_degree_measures: Iterable[DegreesOnAxes]) -> Self:
         fill_axis = axis_degree_measures[0].first_axis if len(axis_degree_measures) else 0
 
         return cls(
@@ -365,7 +365,7 @@ class PositionVector:
     def virtual_vector(self) -> Vector:
         return self.end_point - self.start_point
 
-    def get_rounded_by(self, rounder: NumberRounder) -> 'PositionVector':
+    def get_rounded_by(self, rounder: NumberRounder) -> Self:
         return self.__class__(
             self.start_point.get_rounded_by(rounder),
             self.end_point.get_rounded_by(rounder)
@@ -551,7 +551,7 @@ class Angle(Figure, StylizedMixin):
         ))
 
     @classmethod
-    def created_by_points(cls, center_point: PositionVector, points: Iterable[Vector]) -> 'Angle':
+    def created_by_points(cls, center_point: PositionVector, points: Iterable[Vector]) -> Self:
         angle = cls(center_point, tuple())
         angle._update_by_points(points)
 

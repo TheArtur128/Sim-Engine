@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Iterable, NewType, Optional, Callable
+from typing import Iterable, NewType, Optional, Callable, Self
 
 from pygame import *
 
@@ -22,11 +22,11 @@ class PygameSurfaceRender(SurfaceKeeper, Render):
         surface.fill(tuple(self.background_color))
 
     @resource_handler(Surface)
-    def _handle_pygame_surface(resource_pack: ResourcePack, surface: Surface, render: 'PygameSurfaceRender') -> None:
+    def _handle_pygame_surface(resource_pack: ResourcePack, surface: Surface, render: Self) -> None:
         surface.blit(resource_pack.resource, resource_pack.point.coordinates)
 
     @resource_handler(Polygon)
-    def _handle_pygame_polygon(resource_pack: ResourcePack, surface: Surface, render: 'PygameSurfaceRender') -> None:
+    def _handle_pygame_polygon(resource_pack: ResourcePack, surface: Surface, render: Self) -> None:
         draw.polygon(
             surface,
             tuple(resource_pack.resource.color),
@@ -38,7 +38,7 @@ class PygameSurfaceRender(SurfaceKeeper, Render):
         )
 
     @resource_handler(Line)
-    def _handle_pygame_line(resource_pack: ResourcePack, surface: Surface, render: 'PygameSurfaceRender') -> None:
+    def _handle_pygame_line(resource_pack: ResourcePack, surface: Surface, render: Self) -> None:
         (draw.line if not resource_pack.resource.is_smooth else draw.aaline)(
             surface,
             tuple(resource_pack.resource.color),
@@ -48,7 +48,7 @@ class PygameSurfaceRender(SurfaceKeeper, Render):
         )
 
     @resource_handler(Lines)
-    def _handle_pygame_lines(resource_pack: ResourcePack, surface: Surface, render: 'PygameSurfaceRender') -> None:
+    def _handle_pygame_lines(resource_pack: ResourcePack, surface: Surface, render: Self) -> None:
         (draw.lines if not resource_pack.resource.is_smooth else draw.aalines)(
             surface,
             tuple(resource_pack.resource.color),
@@ -61,7 +61,7 @@ class PygameSurfaceRender(SurfaceKeeper, Render):
         )
 
     @resource_handler(Circle)
-    def _handle_pygame_circle(resource_pack: ResourcePack, surface: Surface, render: 'PygameSurfaceRender') -> None:
+    def _handle_pygame_circle(resource_pack: ResourcePack, surface: Surface, render: Self) -> None:
         draw.circle(
             surface,
             tuple(resource_pack.resource.color),
@@ -71,7 +71,7 @@ class PygameSurfaceRender(SurfaceKeeper, Render):
         )
 
     @resource_handler(Rectangle)
-    def _handle_pygame_rect(resource_pack: ResourcePack, surface: Surface, render: 'PygameSurfaceRender') -> None:
+    def _handle_pygame_rect(resource_pack: ResourcePack, surface: Surface, render: Self) -> None:
         draw.rect(
             surface,
             tuple(resource_pack.resource.color),
@@ -84,7 +84,7 @@ class PygameSurfaceRender(SurfaceKeeper, Render):
         )
 
     @resource_handler(Ellipse)
-    def _handle_pygame_ellipse(resource_pack: ResourcePack, surface: Surface, render: 'PygameSurfaceRender') -> None:
+    def _handle_pygame_ellipse(resource_pack: ResourcePack, surface: Surface, render: Self) -> None:
         draw.ellipse(
             surface,
             tuple(resource_pack.resource.color),
@@ -97,7 +97,7 @@ class PygameSurfaceRender(SurfaceKeeper, Render):
         )
 
     @resource_handler(Arc)
-    def _handle_pygame_arc(resource_pack: ResourcePack, surface: Surface, render: 'PygameSurfaceRender') -> None:
+    def _handle_pygame_arc(resource_pack: ResourcePack, surface: Surface, render: Self) -> None:
         draw.arc(
             surface,
             tuple(resource_pack.resource.color),
@@ -202,7 +202,7 @@ class PygameDisplayUpdater(LoopHandler):
 
 
 class PygameClockSleepLoopHandler(TicksSleepLoopHandler, AlwaysReadyForSleepLoopHandler):
-    _clock_factory: Callable[['PygameClockSleepLoopHandler'], time.Clock] = CustomFactory(
+    _clock_factory: Callable[[Self], time.Clock] = CustomFactory(
         lambda pygame_sleep_handler: time.Clock()
     )
 
