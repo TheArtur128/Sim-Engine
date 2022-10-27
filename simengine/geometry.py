@@ -34,9 +34,6 @@ class DegreeMeasure:
     def __hash__(self) -> int:
         return self.degrees
 
-    def __eq__(self, other: int | float) -> bool:
-        return self.degrees == self.__get_degrees_from(other)
-
     def _degree_measure_creation_from_degrees(
         method: Callable[[Self, any, ], int | float]
     ) -> Callable[[any, ], Self]:
@@ -64,6 +61,10 @@ class DegreeMeasure:
             )
 
         return wrapper
+
+    @_interpret_input_measure_in_degrees
+    def __eq__(self, number: int | float) -> bool:
+        return self.degrees == number
 
     @_degree_measure_creation_from_degrees
     @_interpret_input_measure_in_degrees
