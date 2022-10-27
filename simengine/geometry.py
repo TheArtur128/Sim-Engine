@@ -590,6 +590,17 @@ class Angle(Figure, StylizedMixin):
             ))
         ))
 
+    def become_external(self) -> None:
+        self._degree_areas = tuple(
+            DegreeArea(
+                degree_area.first_axis,
+                degree_area.second_axis,
+                degree_area.border_degrees,
+                degree_area.shift_degrees,
+            )
+            for degree_area in self._degree_areas
+        )
+
     def is_point_inside(self, point: Vector) -> bool:
         return len(self._degree_areas) > 0 and (point == self._center_point or all(
             degree_measure.degrees.degrees in self.get_degree_area_by_axes(
