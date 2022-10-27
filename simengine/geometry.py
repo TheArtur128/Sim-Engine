@@ -66,6 +66,24 @@ class DegreeMeasure:
     def __eq__(self, number: int | float) -> bool:
         return self.degrees == number
 
+    @_interpret_input_measure_in_degrees
+    def __ne__(self, number: int | float) -> bool:
+        return self.degrees != number
+
+    @_interpret_input_measure_in_degrees
+    def __lt__(self, number: int | float) -> bool:
+        return self.degrees < number
+
+    def __le__(self, number: int | float | Self) -> bool:
+        return self < number or self == number
+
+    @_interpret_input_measure_in_degrees
+    def __gt__(self, number: int | float) -> bool:
+        return self.degrees > number
+
+    def __ge__(self, number: int | float | Self) -> bool:
+        return self > number or self == number
+
     @_degree_measure_creation_from_degrees
     @_interpret_input_measure_in_degrees
     def __add__(self, number: int | float) -> int | float:
