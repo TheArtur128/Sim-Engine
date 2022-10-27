@@ -172,7 +172,7 @@ class DegreeArea(DegreesOnAxes):
     @property
     def diapason(self) -> Diapason:
         return Diapason(
-            self.shift_degrees.degrees,
+            self.shift_degrees,
             self.border_degrees,
             is_end_inclusive=True
         )
