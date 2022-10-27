@@ -630,27 +630,33 @@ class Comparable(Protocol):
 
 class Diapason(StylizedMixin):
     _repr_fields = Field(
-        value_getter=lambda diapason, _: (diapason.start_number, diapason.end_number),
+        value_getter=lambda diapason, _: (diapason.start, diapason.end),
         formatter=lambda value, _: ' ~ '.join(map(str, value))
     ),
 
-    def __init__(self, first_number: int | float, second_number: int | float = 0, is_end_inclusive: bool = False):
+    def __init__(self, first: Comparable, second: Comparable = 0, is_end_inclusive: bool = False):
         self.is_end_inclusive = is_end_inclusive
-        self.update_by(first_number, second_number)
+        self.update_by(first, second)
 
-    def update_by(self, first_number: int | float, second_number: int | float):
-        self._start_number, self._end_number = sorted((first_number, second_number))
-
-    @property
-    def start_number(self) -> int | float:
-        return self._start_number
+    def __contains__(self, something: Comparable) -> bool:
+        return self.is_having(something)
 
     @property
-    def end_number(self) -> int | float:
-        return self._end_number
+    def start(self) -> Comparable:
+        return self._start
 
-    def __contains__(self, number: int | float) -> bool:
+    @property
+    def end(self) -> Comparable:
+        return self._end
+
+    def update_by(self, first: Comparable, second: Comparable):
+        self._start, self._end = sorted((first, second))
+
+    def is_having(self, something: Comparable) -> bool:
         return (
-            number >= self._start_number
-            and (number.__lt__ if not self.is_end_inclusive else number.__le__)(self._end_number)
+            something >= self._start
+            and (
+                something < self._end
+                or (something == self._end if self.is_end_inclusive else False)
+            )
         )
