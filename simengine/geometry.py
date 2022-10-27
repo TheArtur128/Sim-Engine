@@ -165,6 +165,9 @@ class DegreeArea(DegreesOnAxes):
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({str(self.axes)[1:-1]}, {self._diapason})"
 
+    def __contains__(self, degrees: int | float | DegreeMeasure) -> bool:
+        return self.is_degrees_inside(degrees)
+
     @property
     def border_degrees(self) -> DegreeMeasure:
         return self.degrees + self.shift_degrees
@@ -179,6 +182,19 @@ class DegreeArea(DegreesOnAxes):
             self.shift_degrees,
             self.border_degrees,
             is_end_inclusive=True
+        )
+
+    def is_degrees_inside(self, degrees: int | float | DegreeMeasure) -> bool:
+        is_degrees_in_diapason = degrees in self._diapason
+
+        return (
+            is_degrees_in_diapason
+            if self.shift_degrees <= self.border_degrees
+            else (
+                not is_degrees_in_diapason
+                or degrees == self.shift_degrees
+                or degrees == self.border_degrees
+            )
         )
 
 
