@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod, ABCMeta
 from dataclasses import dataclass
 from time import sleep, time, ctime
 from threading import Thread
-from typing import Iterable, Callable, Self
+from typing import Iterable, Callable, Self, Protocol
 from math import floor, copysign
 from enum import IntEnum
 from functools import wraps
@@ -598,6 +598,34 @@ class Timer(StylizedMixin):
             raise TimerError(f"Timer {self} has already started")
 
         self._end_time = time() + self.period
+
+
+class Comparable(Protocol):
+    """Protocol for annotating comparable types."""
+
+    @abstractmethod
+    def __eq__(self, other: any) -> bool:
+        pass
+
+    @abstractmethod
+    def __ne__(self, other: any) -> bool:
+        pass
+
+    @abstractmethod
+    def __lt__(self, other: any) -> bool:
+        pass
+
+    @abstractmethod
+    def __le__(self, other: any) -> bool:
+        pass
+
+    @abstractmethod
+    def __gt__(self, other: any) -> bool:
+        pass
+
+    @abstractmethod
+    def __ge__(self, other: any) -> bool:
+        pass
 
 
 class Diapason(StylizedMixin):
