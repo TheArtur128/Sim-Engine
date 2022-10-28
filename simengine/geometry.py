@@ -605,13 +605,13 @@ class Angle(Figure, StylizedMixin):
         )
 
     def is_point_inside(self, point: Vector) -> bool:
-        return len(self._degree_areas) > 0 and (point == self._center_point or all(
-            degree_measure.degrees.degrees in self.get_degree_area_by_axes(
+        return point == self._center_point or not any(
+            degree_measure.degrees.degrees not in self.get_degree_area_by_axes(
                 degree_measure.first_axis,
                 degree_measure.second_axis
-            ).diapason
+            )
             for degree_measure in (point - self._center_point).degrees
-        ))
+        )
 
     def get_degree_area_by_axes(self, first_axis: int, second_axis: int) -> DegreeArea:
         for degree_area in self.degree_areas:
