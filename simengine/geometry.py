@@ -150,12 +150,13 @@ class AxisPlaneDegrees:
         if self.first_axis == self.second_axis:
             raise AxisPlaneDegreesError(f"{self.__class__.__name__} must be on two axes, not one ({self.first_axis})")
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({str(self.axes)[1:-1]}, degrees={self.degrees.degrees})"
+
     @cached_property
     def axes(self) -> tuple[int, int]:
         return (self.first_axis, self.second_axis)
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({str(self.axes)[1:-1]}, degrees={self.degrees.degrees})"
 
 
 
