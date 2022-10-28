@@ -565,15 +565,6 @@ class Angle(Figure, StylizedMixin):
     def degree_areas(self) -> tuple[DegreeArea]:
         return self._degree_areas
 
-    def get_degree_area_by_axes(self, first_axis: int, second_axis: int) -> DegreeArea:
-        axes = frozenset((first_axis, second_axis))
-
-        for degree_area in self._degree_areas:
-            if frozenset(degree_area.axes) == axes:
-                return degree_area
-
-        return DegreeArea(first_axis, second_axis, 0, 0)
-
     def move_by(self, point_changer: IPointChanger) -> None:
         created_vertices = self.create_ray_vertices_by(1)
         self._center_point = point_changer(self._center_point)
@@ -632,6 +623,13 @@ class Angle(Figure, StylizedMixin):
             ).diapason
             for degree_measure in (point - self._center_point).degrees
         ))
+
+    def get_degree_area_by_axes(self, first_axis: int, second_axis: int) -> DegreeArea:
+        for degree_area in self.degree_areas:
+            if degree_area.first_axis == first_axis and degree_area.second_axis == second_axis:
+                return degree_area
+        else:
+            return DegreeArea(first_axis, second_axis, DegreeMeasure(0), DegreeMeasure(0))
 
     @classmethod
     def created_by_points(cls, center_point: PositionVector, points: Iterable[Vector]) -> Self:
