@@ -174,13 +174,6 @@ class DegreeArea(AxisPlaneDegrees):
     def border_degrees(self) -> DegreeMeasure:
         return self.degrees + self.shift_degrees
 
-    @property
-    def _diapason(self) -> Diapason:
-        return Diapason(
-            self.shift_degrees,
-            self.border_degrees,
-            is_end_inclusive=True
-        )
 
     def is_degrees_inside(self, degrees: int | float | DegreeMeasure) -> bool:
         is_degrees_in_diapason = degrees in self._diapason
@@ -193,6 +186,14 @@ class DegreeArea(AxisPlaneDegrees):
                 or degrees == self.shift_degrees
                 or degrees == self.border_degrees
             )
+        )
+
+    @cached_property
+    def _diapason(self) -> Diapason:
+        return Diapason(
+            self.shift_degrees,
+            self.border_degrees,
+            is_end_inclusive=True
         )
 
 
