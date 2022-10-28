@@ -160,6 +160,8 @@ class AxisPlaneDegrees:
     def is_on_same_plane_with(self, axis_degrees: Self) -> bool:
         return frozenset(self.axes) == frozenset(axis_degrees.axes)
 
+    def get_external(self) -> Self:
+        return self.__class__(self.first_axis, self.second_axis, -self.degrees)
 
 
 @dataclass(repr=False, frozen=True)
@@ -192,6 +194,14 @@ class DegreeArea(AxisPlaneDegrees):
                 or degrees == self.shift_degrees
                 or degrees == self.border_degrees
             )
+        )
+
+    def get_external(self) -> Self:
+        return self.__class__(
+            self.first_axis,
+            self.second_axis,
+            -self.degrees,
+            self.border_degrees
         )
 
     @cached_property
