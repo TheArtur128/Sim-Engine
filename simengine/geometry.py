@@ -165,7 +165,11 @@ class DegreeArea(AxisPlaneDegrees):
     shift_degrees: DegreeMeasure
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({str(self.axes)[1:-1]}, {self._diapason})"
+        return "{class_name}({axes}, degrees={degree_diapason})".format(
+            class_name=self.__class__.__name__,
+            axes=str(self.axes)[1:-1],
+            degree_diapason=f"({self.shift_degrees.degrees} ~ {self.border_degrees.degrees})"
+        )
 
     def __contains__(self, degrees: int | float | DegreeMeasure) -> bool:
         return self.is_degrees_inside(degrees)
