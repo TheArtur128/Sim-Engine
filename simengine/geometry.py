@@ -555,6 +555,8 @@ class Angle(Figure, StylizedMixin):
         self._center_point = center_point
         self._degree_areas = tuple(degree_areas)
 
+        self.update_by_points(self.create_ray_vertices_by(1))
+
     @property
     def center_point(self) -> Vector:
         return self._center_point
