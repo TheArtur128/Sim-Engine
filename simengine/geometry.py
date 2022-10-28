@@ -140,7 +140,7 @@ class DegreeMeasure:
         return number - (number // 360)*360
 
 
-@dataclass(repr=False)
+@dataclass(repr=False, frozen=True)
 class AxisPlaneDegrees:
     first_axis: int
     second_axis: int
@@ -158,7 +158,8 @@ class AxisPlaneDegrees:
         return f"{self.__class__.__name__}({str(self.axes)[1:-1]}, degrees={self.degrees.degrees})"
 
 
-@dataclass(repr=False)
+
+@dataclass(repr=False, frozen=True)
 class DegreeArea(AxisPlaneDegrees):
     shift_degrees: DegreeMeasure
 
