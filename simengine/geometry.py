@@ -157,6 +157,8 @@ class AxisPlaneDegrees:
     def axes(self) -> tuple[int, int]:
         return (self.first_axis, self.second_axis)
 
+    def is_on_same_plane_with(self, axis_degrees: Self) -> bool:
+        return frozenset(self.axes) == frozenset(axis_degrees.axes)
 
 
 
