@@ -150,7 +150,7 @@ class AxisPlaneDegrees:
         if self.first_axis == self.second_axis:
             raise AxisPlaneDegreesError(f"{self.__class__.__name__} must be on two axes, not one ({self.first_axis})")
 
-    @property
+    @cached_property
     def axes(self) -> tuple[int, int]:
         return (self.first_axis, self.second_axis)
 
@@ -169,7 +169,7 @@ class DegreeArea(AxisPlaneDegrees):
     def __contains__(self, degrees: int | float | DegreeMeasure) -> bool:
         return self.is_degrees_inside(degrees)
 
-    @property
+    @cached_property
     def border_degrees(self) -> DegreeMeasure:
         return self.degrees + self.shift_degrees
 
