@@ -5,7 +5,7 @@ class GeometryError(Exception):
     pass
 
 
-class AxisDegreesError(GeometryError):
+class AxisPlaneDegreesError(GeometryError):
     pass
 
 

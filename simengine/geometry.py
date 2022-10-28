@@ -141,14 +141,14 @@ class DegreeMeasure:
 
 
 @dataclass(repr=False)
-class DegreesOnAxes:
+class AxisPlaneDegrees:
     first_axis: int
     second_axis: int
     degrees: DegreeMeasure
 
     def __post_init__(self) -> None:
         if self.first_axis == self.second_axis:
-            raise AxisDegreesError(f"{self.__class__.__name__} must be on two axes, not one ({self.first_axis})")
+            raise AxisPlaneDegreesError(f"{self.__class__.__name__} must be on two axes, not one ({self.first_axis})")
 
     @property
     def axes(self) -> tuple[int, int]:
@@ -159,7 +159,7 @@ class DegreesOnAxes:
 
 
 @dataclass(repr=False)
-class DegreeArea(DegreesOnAxes):
+class DegreeArea(AxisPlaneDegrees):
     shift_degrees: DegreeMeasure
 
     def __repr__(self) -> str:
@@ -211,11 +211,11 @@ class Vector:
         return sqrt(sum(coordinate**2 for coordinate in self.coordinates))
 
     @cached_property
-    def degrees(self) -> tuple[DegreesOnAxes, ]:
+    def degrees(self) -> tuple[AxisPlaneDegrees, ]:
         perpendicular_vector = Vector((1, ))
 
         return tuple(
-            DegreesOnAxes(
+            AxisPlaneDegrees(
                 first_axis,
                 second_axis,
                 self.__class__((
@@ -315,7 +315,7 @@ class Vector:
 
         return (self / self.length) * length
 
-    def get_rotated_many_times_by(self, axis_degree_measures: Iterable[DegreesOnAxes]) -> Self:
+    def get_rotated_many_times_by(self, axis_degree_measures: Iterable[AxisPlaneDegrees]) -> Self:
         result_vector = self
 
         for axis_degree_measure in axis_degree_measures:
@@ -323,7 +323,7 @@ class Vector:
 
         return result_vector
 
-    def get_rotated_by(self, axes_degrees: DegreesOnAxes) -> Self:
+    def get_rotated_by(self, axes_degrees: AxisPlaneDegrees) -> Self:
         number_of_measurements = max(axes_degrees.axes) + 1
         reduced_vector = (
             self.get_normalized_to_measurements(number_of_measurements)
@@ -389,7 +389,7 @@ class Vector:
         )
 
     @classmethod
-    def create_by_degrees(cls, length: int | float, axis_degree_measures: Iterable[DegreesOnAxes]) -> Self:
+    def create_by_degrees(cls, length: int | float, axis_degree_measures: Iterable[AxisPlaneDegrees]) -> Self:
         fill_axis = axis_degree_measures[0].first_axis if len(axis_degree_measures) else 0
 
         return cls(
@@ -440,7 +440,7 @@ class PointRotator(StylizedMixin, IPointChanger):
         )
     )
 
-    def __init__(self, axis_degree_measures: Iterable[DegreesOnAxes], center_point: Vector = Vector()):
+    def __init__(self, axis_degree_measures: Iterable[AxisPlaneDegrees], center_point: Vector = Vector()):
         self.axis_degree_measures = tuple(axis_degree_measures)
         self.center_point = center_point
 
@@ -530,9 +530,9 @@ class Figure(IZone, ABC):
 class Angle(Figure, StylizedMixin):
     _repr_fields = Field('center_point'),
 
-    def __init__(self, center_point: PositionVector, degrees: Iterable[DegreeArea]):
+    def __init__(self, center_point: PositionVector, degree_areas: Iterable[DegreeArea]):
         self._center_point = center_point
-        self._degree_areas = tuple(degrees)
+        self._degree_areas = tuple(degree_areas)
 
     @property
     def center_point(self) -> Vector:
@@ -617,7 +617,7 @@ class Angle(Figure, StylizedMixin):
 
         return angle
 
-    def __create_degree_areas_from(self, axis_degree_measures: Iterable[DegreesOnAxes]) -> Generator[DegreeArea, any, None]:
+    def __create_degree_areas_from(self, axis_degree_measures: Iterable[AxisPlaneDegrees]) -> Generator[DegreeArea, any, None]:
         max_axes = 1 + max(get_collection_with_reduced_nesting_level_by(
             1,
             (point_degree_measure.axes for point_degree_measure in axis_degree_measures)
