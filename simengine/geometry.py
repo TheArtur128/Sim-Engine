@@ -600,12 +600,7 @@ class Angle(Figure, StylizedMixin):
 
     def become_external(self) -> None:
         self._degree_areas = tuple(
-            DegreeArea(
-                degree_area.first_axis,
-                degree_area.second_axis,
-                degree_area.border_degrees,
-                degree_area.shift_degrees,
-            )
+            degree_area.get_external()
             for degree_area in self._degree_areas
         )
 
