@@ -566,11 +566,10 @@ class Angle(Figure, StylizedMixin):
         return self._degree_areas
 
     def move_by(self, point_changer: IPointChanger) -> None:
-        created_vertices = self.create_ray_vertices_by(1)
         self._center_point = point_changer(self._center_point)
 
         self.update_by_points(tuple(
-            point_changer(vertex) for vertex in created_vertices
+            point_changer(vertex) for vertex in self.create_ray_vertices_by(1)
         ))
 
     def create_ray_vertices_by(self, length: int | float) -> frozenset[Vector]:
