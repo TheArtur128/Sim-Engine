@@ -187,6 +187,9 @@ class DegreeArea(AxisPlaneDegrees):
         return self.shift_degrees == self.border_degrees
 
     def is_degrees_inside(self, degrees: int | float | DegreeMeasure) -> bool:
+        if self.is_empty:
+            return False
+
         is_degrees_in_diapason = degrees in self._diapason
 
         return (
