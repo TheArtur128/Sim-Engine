@@ -175,10 +175,6 @@ class DegreeArea(AxisPlaneDegrees):
         return self.degrees + self.shift_degrees
 
     @property
-    def is_inner(self) -> bool:
-        return self.shift_degrees <= self.border_degrees
-
-    @property
     def _diapason(self) -> Diapason:
         return Diapason(
             self.shift_degrees,
