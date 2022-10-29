@@ -7,7 +7,7 @@ from simengine.interfaces import *
 from simengine.renders import ResourcePack, RenderActivator, IRender
 from simengine.errors.core_errors import *
 from simengine.tools import *
-from simengine.geometry import Vector, Figure, Site, DynamicTransporter
+from simengine.geometry import Vector, Figure, Site, DynamicTransporter, IPointChanger
 
 
 class IProcessState(IUpdatable, ABC):
@@ -542,7 +542,6 @@ class ProcessMovableUnit(MovableUnit):
     def next_position(self) -> Vector:
         return self._moving_process.next_unit_position
 
-class ImpulseUnit(InfinitelyImpulseUnit):
     def move(self) -> None:
         super().move()
         self._moving_process.state = UnitMovingProcessState(self._moving_process)
@@ -556,6 +555,14 @@ class DirectedMovingProcess(MovingProcess):
     @property
     def next_unit_position(self) -> Vector:
         return self.movable_unit.position + self.vector_to_next_unit_position
+
+
+class ImpulseMovingProcess(DirectedMovingProcess, ABC):
+    _impulse_changer: IPointChanger
+
+    def _handle(self):
+        if isinstance(self.state, UnitMovingProcessState):
+            self.vector_to_next_point = self._impulse_changer(self.vector_to_next_point)
 
 
 
