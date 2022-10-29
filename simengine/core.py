@@ -509,10 +509,6 @@ class MovableUnit(PositionalUnit, IMovable, ABC):
         self._zone.move_by(DynamicTransporter(self.position - self.previous_position))
 
 
-class InfinitelyImpulseUnit(MovableUnit, ABC):
-    def __init__(self, position: Vector):
-        super().__init__(position)
-        self.impulse = Vector()
 class MovingProcess(Process):
     def __init__(self, movable_unit: 'ProcessMovableUnit'):
         self._movable_unit = movable_unit
@@ -547,8 +543,16 @@ class ImpulseUnit(InfinitelyImpulseUnit):
         self.impulse = Vector()
 
 
+class DirectedMovingProcess(MovingProcess):
+    def __init__(self, movable_unit: ProcessMovableUnit):
+        super().__init__(movable_unit)
+        self.vector_to_next_unit_position = Vector()
 
     @property
+    def next_unit_position(self) -> Vector:
+        return self.movable_unit.position + self.vector_to_next_unit_position
+
+
 
 
 class UnitHandler(ABC):
