@@ -86,7 +86,7 @@ class ActiveProcessState(ProcessState):
 
 
 class NewStateByValidationProcessState(ProcessState, ABC):
-    _new_state_factory: Callable[['Process'], ProcessState] = CustomFactory(ActiveProcessState)
+    _new_state_factory: Callable[['Process'], ProcessState | None] = CustomFactory(ActiveProcessState)
 
     def get_next_state(self) -> ProcessState | None:
         return self._new_state_factory(self.process) if self.is_valid() else None
