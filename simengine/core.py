@@ -513,16 +513,33 @@ class InfinitelyImpulseUnit(MovableUnit, ABC):
     def __init__(self, position: Vector):
         super().__init__(position)
         self.impulse = Vector()
+class MovingProcess(Process):
+    def __init__(self, movable_unit: 'ProcessMovableUnit'):
+        self._movable_unit = movable_unit
+
+    @property
+    def movable_unit(self) -> 'ProcessMovableUnit':
+        return self._movable_unit
 
     @property
     @abstractmethod
-    def speed(self) -> int | float:
+    def next_unit_position(self) -> Vector:
         pass
+
+class ProcessMovableUnit(MovableUnit):
+    _moving_process_factory: Callable[[Self], MovingProcess]
+
+    def __init__(self, position: Vector):
+        super().__init__(position)
+        self._moving_process = self._moving_process_factory(self)
+
+    @property
+    def moving_process(self) -> MovingProcess:
+        return self._moving_process
 
     @property
     def next_position(self) -> Vector:
-        return self.position + self.impulse
-
+        return self._moving_process.next_unit_position
 
 class ImpulseUnit(InfinitelyImpulseUnit):
     def move(self) -> None:
