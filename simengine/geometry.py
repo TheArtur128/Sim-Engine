@@ -548,6 +548,99 @@ class Figure(IZone, ABC):
         )
 
 
+class AxisZone(Figure, StylizedMixin):
+    _repr_fields = Field('axis_diapasons', formatter=lambda value, _: f"{str(value)[1:-1]}"),
+
+    def __init__(self, first_point: Vector, second_point: Vector):
+        super().__init__()
+        self.__first_point = first_point
+        self.__second_point = second_point
+
+        self._update()
+
+    @property
+    def first_point(self) -> Vector:
+        return self.__first_point
+
+    @first_point.setter
+    def first_point(self, new_point: Vector) -> Vector:
+        self.__first_point = new_point
+        self._update()
+
+    @property
+    def second_point(self) -> Vector:
+        return self.__second_point
+
+    @second_point.setter
+    def second_point(self, new_point: Vector) -> Vector:
+        self.__second_point = new_point
+        self._update()
+
+    @property
+    def size(self) -> tuple[int | float]:
+        return self.__size
+
+    @property
+    def axis_diapasons(self) -> tuple[Diapason]:
+        return self.__axis_diapasons
+
+    def move_by(self, point_changer: IPointChanger) -> None:
+        self.first_point = point_changer(self.first_point)
+        self.second_point = point_changer(self.second_point)
+
+    def is_point_inside(self, point: Vector) -> bool:
+        return all(
+            coordinate in self.axis_diapasons[axis]
+            for axis, coordinate in enumerate(
+                point.get_normalized_to_measurements(len(self.size)).coordinates
+            )
+        )
+
+    @classmethod
+    def create_with_generated_points_by(
+        cls,
+        center_point: Vector,
+        size: Iterable[int | float, ]
+    ) -> Self:
+        vector_to_extreme_point = Vector(size) / 2
+
+        return cls(
+            center_point + vector_to_extreme_point,
+            center_point - vector_to_extreme_point
+        )
+
+    @classmethod
+    def create_as_square(
+        cls,
+        center_point: Vector,
+        side_length: int | float,
+        number_of_measurements: int
+    ) -> Self:
+        return cls.create_with_generated_points_by(
+            center_point,
+            (side_length, ) * number_of_measurements
+        )
+
+    def _update(self) -> None:
+        self.__first_point, self.__second_point = Vector.get_mutually_normalized((
+            self.__first_point,
+            self.__second_point
+        ))
+
+        self.__axis_diapasons = tuple(
+            Diapason(first_point_coordinate, second_point_coordinate, True)
+            for first_point_coordinate, second_point_coordinate  in zip(
+                self.__first_point.coordinates,
+                self.__second_point.coordinates
+            )
+        )
+
+        self.__size = tuple(
+            axis_diapason.end - axis_diapason.start
+            for axis_diapason in self.__axis_diapasons
+        )
+
+
 class Angle(Figure, StylizedMixin):
     _repr_fields = Field('center_point'),
 
@@ -769,7 +862,7 @@ class Line(Figure, StylizedMixin):
         self.__all_available_points = self._vector_divider(
             PositionVector(self.first_point, self.second_point)
         )
-        self.__proposed_location_area = Rectangle(self.first_point, self.second_point)
+        self.__proposed_location_area = AxisZone(self.first_point, self.second_point)
 
 
 class Polygon(Figure, StrictToStateMixin, StylizedMixin):
