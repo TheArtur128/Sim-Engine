@@ -117,6 +117,17 @@ class SleepProcessState(ProcessState, NewStateByValidationProcessStateMixin):
         self.ticks_to_activate -= self.tick
 
 
+class FlagProcessState(ProcessState, NewStateByValidationProcessStateMixin):
+    is_compelling_to_handle = True
+    _is_standing: bool = False
+
+    def is_valid(self) -> Report:
+        return Report(self._is_standing)
+
+    def update(self) -> None:
+        pass
+
+
 class Process(StrictToStateMixin, IUpdatable, ABC):
     _report_analyzer = ReportAnalyzer((BadReportHandler(
         ProcessError,
