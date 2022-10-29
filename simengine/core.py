@@ -85,14 +85,14 @@ class ActiveProcessState(ProcessState):
         pass
 
 
-class NewStateByValidationProcessState(ProcessState, ABC):
+class NewStateByValidationProcessStateMixin(IProcessState, ABC):
     _new_state_factory: Callable[['Process'], ProcessState | None] = CustomFactory(ActiveProcessState)
 
     def get_next_state(self) -> ProcessState | None:
         return self._new_state_factory(self.process) if self.is_valid() else None
 
 
-class SleepProcessState(NewStateByValidationProcessState):
+class SleepProcessState(ProcessState, NewStateByValidationProcessStateMixin):
     is_compelling_to_handle = False
 
     def __init__(
