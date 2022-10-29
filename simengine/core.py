@@ -10,7 +10,25 @@ from simengine.tools import *
 from simengine.geometry import Vector, Figure, Site, DynamicTransporter
 
 
-class ProcessState(IUpdatable, ABC):
+class IProcessState(IUpdatable, ABC):
+    @property
+    def process(self) -> 'Process':
+        pass
+
+    @abstractmethod
+    def get_next_state(self) -> Optional[Self]:
+        pass
+
+    @abstractmethod
+    def is_valid(self) -> Report:
+        pass
+
+    @abstractmethod
+    def update(self) -> None:
+        pass
+
+
+class ProcessState(IProcessState, ABC):
     _report_analyzer = ReportAnalyzer((BadReportHandler(
         ProcessStateIsNotValidError,
         "Process state is not valid to update"
@@ -25,14 +43,6 @@ class ProcessState(IUpdatable, ABC):
     @property
     def process(self) -> 'Process':
         return self.__process
-
-    @abstractmethod
-    def get_next_state(self) -> Optional[Self]:
-        pass
-
-    @abstractmethod
-    def is_valid(self) -> Report:
-        pass
 
     def update(self) -> None:
         self._report_analyzer(self.is_valid())
