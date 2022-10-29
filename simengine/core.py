@@ -565,6 +565,8 @@ class ImpulseMovingProcess(DirectedMovingProcess, ABC):
             self.vector_to_next_point = self._impulse_changer(self.vector_to_next_point)
 
 
+class AbruptImpulseUnit(ImpulseMovingProcess):
+    _impulse_changer = CustomFactory(lambda original_vector: Vector())
 
 
 class UnitHandler(ABC):
