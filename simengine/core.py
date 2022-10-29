@@ -522,6 +522,11 @@ class MovingProcess(Process):
     def next_unit_position(self) -> Vector:
         pass
 
+
+class UnitMovingProcessState(FlagProcessState):
+    pass
+
+
 class ProcessMovableUnit(MovableUnit):
     _moving_process_factory: Callable[[Self], MovingProcess]
 
@@ -540,7 +545,7 @@ class ProcessMovableUnit(MovableUnit):
 class ImpulseUnit(InfinitelyImpulseUnit):
     def move(self) -> None:
         super().move()
-        self.impulse = Vector()
+        self._moving_process.state = UnitMovingProcessState(self._moving_process)
 
 
 class DirectedMovingProcess(MovingProcess):
