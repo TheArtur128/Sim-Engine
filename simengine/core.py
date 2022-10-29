@@ -20,6 +20,10 @@ class IProcessState(IUpdatable, ABC):
         pass
 
     @abstractmethod
+    def is_compelling_to_handle(self) -> bool:
+        pass
+
+    @abstractmethod
     def is_valid(self) -> Report:
         pass
 
@@ -54,6 +58,8 @@ class ProcessState(IProcessState, ABC):
 
 
 class CompletedProcessState(ProcessState):
+    is_compelling_to_handle = False
+
     def get_next_state(self) -> None:
         return None
 
@@ -67,6 +73,8 @@ class CompletedProcessState(ProcessState):
 
 
 class ActiveProcessState(ProcessState):
+    is_compelling_to_handle = True
+
     def get_next_state(self) -> None:
         return None
 
@@ -74,7 +82,7 @@ class ActiveProcessState(ProcessState):
         return Report(True)
 
     def _handle(self) -> None:
-        self.process._handle()
+        pass
 
 
 class NewStateByValidationProcessState(ProcessState, ABC):
@@ -85,6 +93,8 @@ class NewStateByValidationProcessState(ProcessState, ABC):
 
 
 class SleepProcessState(NewStateByValidationProcessState):
+    is_compelling_to_handle = False
+
     def __init__(
         self,
         process: 'Process',
@@ -131,6 +141,9 @@ class Process(StrictToStateMixin, IUpdatable, ABC):
             self.start()
 
         self.state.update()
+
+        if self.state.is_compelling_to_handle:
+            self._handle()
 
         while True:
             old_state = self.state
