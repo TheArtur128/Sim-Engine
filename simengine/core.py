@@ -175,6 +175,8 @@ class Process(StrictToStateMixin, IProcess, ABC):
         self._check_state_errors()
 
     @property
+    def original_process(self) -> IProcess:
+        return self
 
     def start(self) -> None:
         self.state = ActiveProcessState(self)
@@ -222,6 +224,15 @@ class ProxyProcess(IProcess, ABC):
     @property
     def process(self) -> IProcess:
         return self._process
+
+    @property
+    def original_process(self) -> IProcess:
+        current_process = self._process
+
+        while isinstance(current_process, ProxyProcess):
+            current_process = current_process.process
+
+        return current_process
 
     @property
     def state(self) -> IProcessState | None:
