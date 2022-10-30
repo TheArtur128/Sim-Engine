@@ -593,7 +593,11 @@ class MovableUnit(PositionalUnit, IMovable, ABC):
 
 
 
+class IMovingProcess(IProcess, ABC):
     @property
+    @abstractmethod
+    def movable_unit(self) -> ProcessMovableUnit:
+        pass
 
     @property
     @abstractmethod
