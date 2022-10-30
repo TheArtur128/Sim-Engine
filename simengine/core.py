@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Iterable, Callable, Optional, Self
+from typing import Iterable, Callable, Optional, Self, NamedTuple
 
 from beautiful_repr import StylizedMixin, Field
 
