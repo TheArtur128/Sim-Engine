@@ -181,10 +181,6 @@ class Process(StrictToStateMixin, IUpdatable, ABC):
             if hash(old_state) == hash(self.state):
                 break
 
-    @classmethod
-    def is_support_participants(cls, participants: Iterable) -> Report:
-        return Report(True)
-
     @abstractmethod
     def _handle(self) -> None:
         pass
@@ -203,6 +199,16 @@ class Process(StrictToStateMixin, IUpdatable, ABC):
 
         if next_state:
             self.state = next_state
+
+
+class StrictToParticipantsProcess(Process, ABC):
+    def _is_correct(self) -> Report:
+        self.is_support_participants(self.participants)
+
+    @classmethod
+    @abstractmethod
+    def is_support_participants(cls, participants: Iterable) -> Report:
+        pass
 
 
 class ManyPassProcess(Process, ABC):
