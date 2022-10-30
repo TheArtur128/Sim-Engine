@@ -675,6 +675,11 @@ class UnitHandler(ABC):
         pass
 
 
+class TypeSuportingUnitHandler(UnitHandler, ABC, metaclass=TypeReporterKeeperMeta):
+    def is_unit_suitable(self, unit: IUpdatable) -> Report:
+        return self._type_reporter.create_report_of((unit, ))
+
+
 class FocusedUnitHandler(UnitHandler, ABC):
     def _handle_units(self, units: Iterable[IUpdatable, ]) -> None:
         for unit in units:
