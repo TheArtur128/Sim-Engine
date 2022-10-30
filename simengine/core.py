@@ -32,8 +32,8 @@ class IProcessState(IUpdatable, ABC):
         pass
 
 
-class ProcessState(IProcessState, ABC):
-    _report_analyzer = ReportAnalyzer((BadReportHandler(
+class ProcessState(StrictToStateMixin, IProcessState, ABC):
+    _state_report_analyzer = ReportAnalyzer((BadReportHandler(
         ProcessStateIsNotValidError,
         "Process state is not valid to update"
     ), ))
@@ -49,12 +49,15 @@ class ProcessState(IProcessState, ABC):
         return self.__process
 
     def update(self) -> None:
-        self._report_analyzer(self.is_valid())
+        self._check_state_errors()
         self._handle()
 
     @abstractmethod
     def _handle(self) -> None:
         pass
+
+    def _is_correct(self) -> Report:
+        return self.is_valid()
 
 
 class CompletedProcessState(ProcessState):
