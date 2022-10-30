@@ -215,6 +215,30 @@ class Process(StrictToStateMixin, IProcess, ABC):
             self.state = next_state
 
 
+class ProxyProcess(IProcess, ABC):
+    def __init__(self, process: IProcess):
+        self._process = process
+
+    @property
+    def process(self) -> IProcess:
+        return self._process
+
+    @property
+    def state(self) -> IProcessState | None:
+        return self.process.state
+
+    @state.setter
+    def state(self, new_state: IProcessState | None) -> None:
+        self.process.state = new_state
+
+    @property
+    def participants(self) -> tuple:
+        return self._process.participants
+
+    def start(self) -> None:
+        self.process.start()
+
+
 class StrictToParticipantsProcess(Process, ABC):
     def _is_correct(self) -> Report:
         self.is_support_participants(self.participants)
