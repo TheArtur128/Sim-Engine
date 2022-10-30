@@ -129,7 +129,7 @@ class FlagProcessState(ProcessState, NewStateByValidationProcessStateMixin):
 
 
 class Process(StrictToStateMixin, IUpdatable, ABC):
-    _report_analyzer = ReportAnalyzer((BadReportHandler(
+    _state_report_analyzer = ReportAnalyzer((BadReportHandler(
         ProcessError,
         "Process is not valid"
     ), ))

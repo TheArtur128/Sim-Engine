@@ -621,14 +621,14 @@ class TypeReporterKeeperMeta(AttributesTransmitterMeta):
 
 
 class StrictToStateMixin(ABC):
-    _report_analyzer: ReportAnalyzer
+    _state_report_analyzer: ReportAnalyzer
 
     @abstractmethod
     def _is_correct(self) -> Report:
         pass
 
     def _check_state_errors(self) -> None:
-        self._report_analyzer(self._is_correct())
+        self._state_report_analyzer(self._is_correct())
 
 
 class Divider(ABC):
