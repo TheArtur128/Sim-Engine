@@ -605,6 +605,21 @@ class TypeReporter(StylizedMixin, IReporter):
         )
 
 
+class TypeReporterKeeperMeta(AttributesTransmitterMeta):
+    _attribute_names_to_parse = '_suported_types',
+    _type_reporter_factory: Callable[[tuple[type]], TypeReporter] = TypeReporter
+
+    def __new__(cls, class_name: str, super_classes: tuple, attributes: dict):
+        isinstance_type = super().__new__(cls, class_name, super_classes, attributes)
+        isinstance_type._type_reporter = TypeReporter(isinstance_type._suported_types)
+
+        return isinstance_type
+
+    @property
+    def type_reporter(cls) -> TypeReporter:
+        return cls._type_reporter
+
+
 class StrictToStateMixin(ABC):
     _report_analyzer: ReportAnalyzer
 
