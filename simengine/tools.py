@@ -551,6 +551,11 @@ class ProxyReporter(IReporter):
             return report
 
 
+class CallableProxyReporter(ProxyReporter):
+    def __call__(self, objects: Iterable[object]) -> Report:
+        return self.create_report_of(objects)
+
+
 class StrictToStateMixin(ABC):
     _report_analyzer: ReportAnalyzer
 
