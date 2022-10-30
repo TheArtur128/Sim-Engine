@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod, ABCMeta
 from dataclasses import dataclass
 from time import sleep, time, ctime
 from threading import Thread
-from typing import Iterable, Callable, Self, Protocol
+from typing import Iterable, Callable, Self, Protocol, NamedTuple
 from math import floor, copysign
 from enum import IntEnum
 from functools import wraps
@@ -55,6 +55,11 @@ class IValueTransformer(ABC):
 class ForwardableValueTransformer(IValueTransformer):
     def __call__(self, attribute_keeper: object, original_value: any) -> any:
         return original_value
+
+
+class ChangerPack(NamedTuple):
+    item_changer: IValueTransformer
+    collection_changer: IValueTransformer
 
 
 class AttributesTransmitterMeta(ABCMeta):
