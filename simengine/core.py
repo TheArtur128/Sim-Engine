@@ -601,8 +601,6 @@ class MovableUnit(PositionalUnit, IMovable, ABC):
         pass
 
 
-class UnitMovingProcessState(FlagProcessState):
-    pass
 class MovingProcess(Process, IMovingProcess, ABC):
     is_support_participants = CallableProxyReporter((TypeReporter((ProcessMovableUnit, )), ))
 
@@ -634,6 +632,8 @@ class ProcessMovableUnit(MovableUnit):
     def move(self) -> None:
         super().move()
         self._moving_process.state = UnitMovingProcessState(self._moving_process)
+class UnitMovingProcessState(FlagProcessState):
+    pass
 
 
 class DirectedMovingProcess(MovingProcess):
