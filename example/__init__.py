@@ -37,7 +37,7 @@ class MainHeroManagement(PygameEventHandler, EventSupportStackHandler):
         if event.key in self._down_movement_keys:
             impulse += Vector((0, self.main_hero.speed))
 
-        self.main_hero.impulse = impulse
+        self.main_hero.moving_process.original_process.vector_to_next_point = impulse
 
 
 class TestUnit(SpeedKeeperMixin, InfinitelyImpulseUnit):
@@ -74,12 +74,9 @@ class ObserveUnit(SpeedKeeperMixin, ImpulseUnit):
         self.observed_unit = observed_unit
 
     def update(self) -> None:
-        vector_to_observed_unit = Vector(
-            (self.observed_unit.position - self.position).coordinates
-        )
-        self.impulse = vector_to_observed_unit / (
-            (vector_to_observed_unit.length / self.speed)
-            if vector_to_observed_unit.length else 1
+        self._moving_process.original_process.vector_to_next_point = (
+            self.observed_unit.position
+            - self.position
         )
 
 
