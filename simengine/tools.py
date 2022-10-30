@@ -523,6 +523,12 @@ class ReportAnalyzer:
                 report_handler(report)
 
 
+class IReporter(ABC):
+    @abstractmethod
+    def create_report_of(self, objects: Iterable[object]) -> Report:
+        pass
+
+
 class StrictToStateMixin(ABC):
     _report_analyzer: ReportAnalyzer
 
