@@ -639,6 +639,9 @@ class DirectedMovingProcess(MovingProcess):
     def next_unit_position(self) -> Vector:
         return self.movable_unit.position + self.vector_to_next_unit_position
 
+    def _handle(self):
+        pass
+
 
 class ImpulseMovingProcess(DirectedMovingProcess, ABC):
     _impulse_changer: IPointChanger
