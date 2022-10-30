@@ -592,6 +592,25 @@ class MovableUnit(PositionalUnit, IMovable, ABC):
         self._zone.move_by(DynamicTransporter(self.position - self.previous_position))
 
 
+class ProcessMovableUnit(MovableUnit, ABC):
+    _moving_process_factory: Callable[[Self], 'IMovingProcess']
+
+    def __init__(self, position: Vector):
+        super().__init__(position)
+        self._moving_process = self._moving_process_factory(self)
+
+    @property
+    def moving_process(self) -> 'IMovingProcess':
+        return self._moving_process
+
+    @property
+    def next_position(self) -> Vector:
+        return self._moving_process.next_unit_position
+
+    def move(self) -> None:
+        super().move()
+        self._moving_process.state = UnitMovingProcessState(self._moving_process)
+
 
 class IMovingProcess(IProcess, ABC):
     @property
@@ -615,27 +634,15 @@ class MovingProcess(Process, IMovingProcess, ABC):
     def participants(self) -> tuple[ProcessMovableUnit]:
         return self._movable_unit
 
-class ProcessMovableUnit(MovableUnit):
-    _moving_process_factory: Callable[[Self], MovingProcess]
     @property
     def movable_unit(self) -> ProcessMovableUnit:
         return self._movable_unit
 
-    def __init__(self, position: Vector):
-        super().__init__(position)
-        self._moving_process = self._moving_process_factory(self)
 
     @property
-    def moving_process(self) -> MovingProcess:
-        return self._moving_process
 
     @property
-    def next_position(self) -> Vector:
-        return self._moving_process.next_unit_position
 
-    def move(self) -> None:
-        super().move()
-        self._moving_process.state = UnitMovingProcessState(self._moving_process)
 class UnitMovingProcessState(FlagProcessState):
     pass
 
