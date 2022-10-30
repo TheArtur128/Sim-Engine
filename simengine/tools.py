@@ -561,6 +561,50 @@ class FocusedProxyReporter(ProxyReporter):
         return self.create_report_of((objects, ))
 
 
+class TypeReporter(StylizedMixin, IReporter):
+    _repr_fields = Field(
+        'supported_types',
+        value_transformer=lambda types: str(tuple(type.__name__ for type in types)).replace('\'', '')
+    ),
+
+    def __init__(self, supported_types: Iterable[type], is_all_types_needed: bool = False):
+        self.is_all_types_needed = is_all_types_needed
+        self.supported_types = supported_types
+
+    @property
+    def supported_types(self) -> tuple[type]:
+        return self.__supported_types
+
+    @supported_types.setter
+    def supported_types(self, new_types: Iterable[type]) -> None:
+        self.__supported_types = tuple(new_types)
+        self._update_report_message()
+
+    def create_report_of(self, objects: Iterable[object]) -> Report:
+        return Report(
+            (all if self.is_all_types_needed else any)(
+                isinstance(object_, supported_type)
+                for object_ in objects
+                for supported_type in self.supported_types
+            ),
+            self._report_message
+        )
+
+    def _update_report_message(self) -> None:
+        base_template = "object type must be {type_names}"
+        type_names = tuple(map(
+            lambda type_: type_.__name__, self.supported_types
+        ))
+
+        self._report_message = "object type must be {}".format(
+            "{first_type_names} {set_type_determinant_word} {last_type_name}".format(
+                first_type_names=', '.join(type_names[:-1]),
+                last_type_name=type_names[-1],
+                set_type_determinant_word='and' if self.is_all_types_needed else 'or'
+            ) if len(self.supported_types) > 1 else ', '.join(type_names)
+        )
+
+
 class StrictToStateMixin(ABC):
     _report_analyzer: ReportAnalyzer
 
