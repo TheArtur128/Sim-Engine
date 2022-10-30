@@ -145,8 +145,25 @@ class FlagProcessState(ProcessState, NewStateByValidationProcessStateMixin):
         )
 
 
+class IProcess(IUpdatable, ABC):
+    state: IProcessState | None
 
-class Process(StrictToStateMixin, IUpdatable, ABC):
+    @property
+    @abstractmethod
+    def original_process(self) -> Self:
+        pass
+
+    @property
+    @abstractmethod
+    def participants(self) -> tuple:
+        pass
+
+    @abstractmethod
+    def start(self) -> None:
+        pass
+
+
+class Process(StrictToStateMixin, IProcess, ABC):
     _state_report_analyzer = ReportAnalyzer((BadReportHandler(
         ProcessError,
         "Process is not valid"
@@ -158,9 +175,6 @@ class Process(StrictToStateMixin, IUpdatable, ABC):
         self._check_state_errors()
 
     @property
-    @abstractmethod
-    def participants(self) -> tuple:
-        pass
 
     def start(self) -> None:
         self.state = ActiveProcessState(self)
@@ -291,20 +305,20 @@ class CustomBilateralProcessFactory(IBilateralProcessFactory, ABC):
 class IProcessKeeper(ABC):
     @property
     @abstractmethod
-    def processes(self) -> frozenset[Process, ]:
+    def processes(self) -> frozenset[IProcess, ]:
         pass
 
     @property
     @abstractmethod
-    def completed_processes(self) -> frozenset[Process, ]:
+    def completed_processes(self) -> frozenset[IProcess, ]:
         pass
 
     @abstractmethod
-    def add_process(self, process: Process) -> None:
+    def add_process(self, process: IProcess) -> None:
         pass
 
     @abstractmethod
-    def remove_process(self, process: Process) -> None:
+    def remove_process(self, process: IProcess) -> None:
         pass
 
     @abstractmethod
@@ -327,21 +341,21 @@ class ProcessKeeper(IProcessKeeper, ABC):
         self.__completed_processes = list()
 
     @property
-    def processes(self) -> frozenset[Process, ]:
+    def processes(self) -> frozenset[IProcess]:
         return frozenset(self._processes)
 
     @property
-    def completed_processes(self) -> frozenset[Process, ]:
+    def completed_processes(self) -> frozenset[IProcess]:
         return frozenset(self.__completed_processes)
 
-    def is_support_process(self, process: Process) -> Report:
-        return Report(isinstance(process, Process))
+    def is_support_process(self, process: IProcess) -> Report:
+        return Report(isinstance(process, IProcess))
 
-    def add_process(self, process: Process) -> None:
+    def add_process(self, process: IProcess) -> None:
         self._process_adding_report_analyzer(self.is_support_process(process))
         self._processes.add(process)
 
-    def remove_process(self, process: Process) -> None:
+    def remove_process(self, process: IProcess) -> None:
         self._processes.remove(process)
 
     def activate_processes(self) -> None:

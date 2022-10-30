@@ -96,7 +96,7 @@ class IBilateralProcessFactory(ABC):
         pass
 
     @abstractmethod
-    def __call__(self, active_unit: IUpdatable, passive_unit: IUpdatable) -> 'Process':
+    def __call__(self, active_unit: IUpdatable, passive_unit: IUpdatable) -> 'IProcess':
         pass
 
 
