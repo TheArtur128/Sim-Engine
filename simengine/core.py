@@ -639,7 +639,16 @@ class MovingProcess(Process, IMovingProcess, ABC):
         return self._movable_unit
 
 
+class ProxyMovingProcess(ProxyProcess, IMovingProcess, ABC):
     @property
+    def movable_unit(self) -> ProcessMovableUnit:
+        return self.process.movable_unit
+
+    @property
+    def next_unit_position(self) -> Vector:
+        return self.process.next_unit_position
+
+
 
     @property
 
