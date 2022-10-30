@@ -430,6 +430,7 @@ class DependentUnit(IUpdatable, ABC):
 
 class PartUnit(DependentUnit, StrictToStateMixin, StylizedMixin, ABC):
     _repr_fields = (Field("master"), )
+    _state_report_analyzer = ReportAnalyzer((BadReportHandler(UnitPartError), ))
 
     def _is_correct(self) -> Report:
         return Report(
