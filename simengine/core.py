@@ -716,6 +716,16 @@ class SpeedLimitedUnit(ProcessMovableUnit, ABC):
         super().__init__(position)
 
 
+class CustomSpeedLimitedUnit(SpeedLimitedUnit):
+    def __init__(self, position: Vector, speed_limit: int | float):
+        self._speed_limit = speed_limit
+        super().__init__(position)
+
+    @property
+    def speed_limit(self) -> int | float:
+        return self._speed_limit
+
+
 class UnitHandler(ABC):
     _unit_suitabing_report_analyzer = ReportAnalyzer((BadReportHandler(UnsupportedUnitForHandlerError), ))
 
