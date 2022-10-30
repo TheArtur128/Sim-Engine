@@ -734,7 +734,7 @@ class WorldProcessesActivator(ProcessKeeper, ProcessKeeperHandler):
                 self.add_process(process)
 
 
-class RenderResourceParser(UnitHandler, IRenderRersourceKeeper):
+class RenderResourceParser(FocusedUnitHandler, IRenderRersourceKeeper):
     def __init__(self, world: 'World'):
         super().__init__(world)
         self._parsed_resource_packs = list()
@@ -746,21 +746,17 @@ class RenderResourceParser(UnitHandler, IRenderRersourceKeeper):
     def clear_parsed_resource_packs(self) -> None:
         self._parsed_resource_packs = list()
 
-    def is_unit_suitable(self, unit: IUpdatable) -> Report:
-        return (
-            super().is_unit_suitable(unit) and
-            Report(
-                isinstance(unit, PositionalUnit) and
-                unit.avatar is not None
-            )
-        )
-
     def _handle_units(self, units: Iterable[IUpdatable, ]) -> None:
         self.clear_parsed_resource_packs()
+        super()._handle_units(units)
 
-        for unit in units:
-            unit.avatar.update()
-            self._parsed_resource_packs.extend(unit.avatar.render_resource_packs)
+
+class UnitAvatarRenderResourceParser(RenderResourceParser, TypeSuportingUnitHandler):
+    _suported_types = PositionalUnit,
+
+    def _handle_unit(self, unit: IUpdatable) -> None:
+        unit.avatar.update()
+        self._parsed_resource_packs.extend(unit.avatar.render_resource_packs)
 
 
 class UnitRelationsActivator(UnitHandler):
