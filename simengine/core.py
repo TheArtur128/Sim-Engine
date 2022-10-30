@@ -609,6 +609,9 @@ class MovingProcess(Process, IMovingProcess, ABC):
     def __init__(self, movable_unit: ProcessMovableUnit):
         self._movable_unit = movable_unit
 
+    @property
+    def participants(self) -> tuple[ProcessMovableUnit]:
+        return self._movable_unit
 
 class ProcessMovableUnit(MovableUnit):
     _moving_process_factory: Callable[[Self], MovingProcess]
