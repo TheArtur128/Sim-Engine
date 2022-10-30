@@ -387,6 +387,20 @@ class CustomFactory(CustomArgumentFactory):
         self.is_stored_arguments_first = is_stored_arguments_first
         super().__init__(*args_for_factory, **kwargs_for_factory)
 
+    @classmethod
+    def create_by_arguments(
+        cls,
+        factory: Callable,
+        arguments: Arguments,
+        is_stored_arguments_first: bool = False
+    ) -> Self:
+        return cls(
+            factory,
+            *arguments.args,
+            is_stored_arguments_first=is_stored_arguments_first,
+            **arguments.kwargs
+        )
+
 
 class NumberRounder(ABC):
     def __call__(self, number: any) -> any:
