@@ -13,6 +13,16 @@ from simengine.interfaces import IUpdatable, ILoop
 from simengine.errors.tool_errors import *
 
 
+@dataclass(frozen=True)
+class Arguments:
+    args: tuple
+    kwargs: dict
+
+    @classmethod
+    def create_via_call(cls, *args, **kwargs) -> Self:
+        return cls(args, kwargs)
+
+
 def get_collection_with_reduced_nesting_level_by(
     nesting_level: int,
     collection: Iterable
@@ -555,16 +565,6 @@ class RGBAColor:
 
     def __iter__(self) -> iter:
         return iter((self.red, self.green, self.blue, self.alpha_channel))
-
-
-@dataclass(frozen=True)
-class Arguments:
-    args: tuple
-    kwargs: dict
-
-    @classmethod
-    def create_via_call(cls, *args, **kwargs) -> Self:
-        return cls(args, kwargs)
 
 
 def like_object(func: Callable) -> Callable:
