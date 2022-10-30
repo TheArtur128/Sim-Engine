@@ -653,17 +653,14 @@ class AbruptImpulseUnit(ImpulseMovingProcess):
 
 
 class UnitHandler(ABC):
-    _report_analyzer = ReportAnalyzer((BadReportHandler(
-        UnsupportedUnitForHandlerError,
-        "Unit handler can't handle unit"
-    ), ))
+    _unit_suitabing_report_analyzer = ReportAnalyzer((BadReportHandler(UnsupportedUnitForHandlerError), ))
 
     def __init__(self, world: 'World'):
         self.world = world
 
     def __call__(self, units: Iterable[IUpdatable, ]) -> None:
         for unit in units:
-            self._report_analyzer(self.is_unit_suitable(unit))
+            self._unit_suitabing_report_analyzer(self.is_unit_suitable(unit))
 
         self._handle_units(units)
 
