@@ -130,6 +130,21 @@ class FlagProcessState(ProcessState, NewStateByValidationProcessStateMixin):
     def update(self) -> None:
         pass
 
+    @classmethod
+    def create_flag_state(
+        cls,
+        name: str,
+        is_standing: bool = False,
+        bases: Iterable[type] = tuple(),
+        attributes: dict = dict()
+    ) -> Self:
+        return type(
+            name,
+            bases + (cls, ),
+            {'is_standing': is_standing} | attributes
+        )
+
+
 
 class Process(StrictToStateMixin, IUpdatable, ABC):
     _state_report_analyzer = ReportAnalyzer((BadReportHandler(
