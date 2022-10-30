@@ -649,8 +649,31 @@ class ProxyMovingProcess(ProxyProcess, IMovingProcess, ABC):
         return self.process.next_unit_position
 
 
+class SpeedLimitedProxyMovingProcess(ProxyMovingProcess):
+    def __init__(self, process: MovingProcess, speed_limit: int | float):
+        super().__init__(process)
+        self._speed_limit = speed_limit
 
     @property
+    def speed_limit(self) -> int | float:
+        return self._speed_limit
+
+    @property
+    def next_unit_position(self) -> Vector:
+        vector_to_next_position = (
+            self.process.next_unit_position
+            - self.process.movable_unit.previous_position
+        )
+
+        return self.process.movable_unit.position + (
+            vector_to_next_position
+            if vector_to_next_position.length <= self.speed_limit
+            else vector_to_next_position.get_reduced_to_length(self.speed_limit)
+        )
+
+    def update(self) -> None:
+        pass
+
 
 class UnitMovingProcessState(FlagProcessState):
     pass
