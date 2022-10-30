@@ -704,6 +704,18 @@ class AbruptImpulseProcess(ImpulseMovingProcess):
     _impulse_changer = CustomFactory(lambda original_vector: Vector())
 
 
+class SpeedLimitedUnit(ProcessMovableUnit, ABC):
+    _speed_limit: int | float
+    _moving_process_factory = CustomDecoratorFactory(
+        CustomFactory(SpeedLimitedProxyMovingProcess, speed_limit=None),
+        AbruptImpulseProcess
+    )
+
+    def __init__(self, position: Vector):
+        self._moving_process_factory.decorator_factory.arguments_for_factory.kwargs['speed_limit'] = self._speed_limit
+        super().__init__(position)
+
+
 class UnitHandler(ABC):
     _unit_suitabing_report_analyzer = ReportAnalyzer((BadReportHandler(UnsupportedUnitForHandlerError), ))
 
