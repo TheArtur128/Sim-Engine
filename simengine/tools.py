@@ -529,6 +529,28 @@ class IReporter(ABC):
         pass
 
 
+class ProxyReporter(IReporter):
+    def __init__(self, reporters: Iterable[IReporter], is_unanimous: bool = True):
+        self.is_unanimous = is_unanimous
+        self._reporters = tuple(reporters)
+
+    @property
+    def reporters(self) -> tuple[IReporter]:
+        return self._reporters
+
+    def create_report_of(self, objects: Iterable[object]) -> Report:
+        for reporter in self._reporters:
+            report = reporter.create_report_of(objects)
+
+            if (
+                report.sign and not self.is_unanimous
+                or not report.sign and self.is_unanimous
+            ):
+                return report
+        else:
+            return report
+
+
 class StrictToStateMixin(ABC):
     _report_analyzer: ReportAnalyzer
 
