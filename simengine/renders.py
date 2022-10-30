@@ -205,21 +205,25 @@ class SurfaceKeeper:
 
 
 class RenderActivator(IUpdatable):
-    def __init__(self, render_resource_keeper: IRenderRersourceKeeper, renders: Iterable[Render, ]):
-        self.render_resource_keeper = render_resource_keeper
+    def __init__(self, render_resource_keepers: Iterable[IRenderRersourceKeeper], renders: Iterable[Render, ]):
+        self.render_resource_keepers = render_resource_keepers
         self.renders = tuple(renders)
 
     def update(self) -> None:
         for render in self.renders:
-            render.draw_scene(self.render_resource_keeper.render_resource_packs)
+            render.draw_scene(self._get_render_resource_packs())
+
+    def _get_render_resource_packs(self) -> Generator[ResourcePack, any, None]:
+        for keeper in self.render_resource_keepers:
+            yield from keeper.render_resource_packs
 
 
 class CustomRenderActivatorFactory(CustomArgumentFactory, IRenderActivatorFactory):
     def __call__(
         self,
-        rersource_keeper: IRenderRersourceKeeper,
+        render_resource_keepers: Iterable[IRenderRersourceKeeper],
         redners: Iterable[Render, ],
         *args,
         **kwargs
     ) -> RenderActivator:
-        return super().__call__(rersource_keeper, redners, *args, **kwargs)
+        return super().__call__(render_resource_keepers, redners, *args, **kwargs)

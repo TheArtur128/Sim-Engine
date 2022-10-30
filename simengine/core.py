@@ -764,7 +764,7 @@ class AppFactory(IAppFactory, metaclass=AttributesTransmitterMeta):
         renders: Iterable[IRender, ]
     ) -> ILoop:
         render_activator = self._render_activator_factory(
-            self._get_resource_parser_from(world),
+            self._get_resource_parsers_from(world),
             renders
         )
 
@@ -773,10 +773,14 @@ class AppFactory(IAppFactory, metaclass=AttributesTransmitterMeta):
             *self._loop_handler_factories
         ))
 
-    def _get_resource_parser_from(self, world: World) -> RenderResourceParser:
-        for unit_handler in world.unit_handlers:
-            if isinstance(unit_handler, RenderResourceParser):
-                return unit_handler
+    def _get_resource_parsers_from(self, world: World) -> tuple[RenderResourceParser]:
+        resource_parsers = tuple(filter(
+            lambda handler: isinstance(unit_handler, RenderResourceParser),
+            world.unit_handlers
+        ))
+
+        if resource_parsers:
+            return resource_parsers
 
         raise InvalidWorldError(f"World {world} does not have resource parsers for render")
 
