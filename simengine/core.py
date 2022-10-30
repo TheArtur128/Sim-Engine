@@ -759,6 +759,13 @@ class UnitAvatarRenderResourceParser(RenderResourceParser, TypeSuportingUnitHand
         self._parsed_resource_packs.extend(unit.avatar.render_resource_packs)
 
 
+class AvatarRenderResourceParser(RenderResourceParser, TypeSuportingUnitHandler):
+    _suported_types = IAvatar,
+
+    def _handle_unit(self, unit: IAvatar) -> None:
+        self._parsed_resource_packs.extend(unit.render_resource_packs)
+
+
 class UnitRelationsActivator(UnitHandler):
     def _handle_units(self, units: Iterable[IUpdatable, ]) -> None:
         for active_unit in units:
