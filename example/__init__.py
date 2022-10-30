@@ -40,7 +40,7 @@ class MainHeroManagement(PygameEventHandler, EventSupportStackHandler):
         self.main_hero.moving_process.original_process.vector_to_next_point = impulse
 
 
-class TestUnit(SpeedKeeperMixin, InfinitelyImpulseUnit):
+class TestUnit(SpeedLimitedUnit):
     _avatar_factory = CustomFactory(
         lambda unit: PrimitiveAvatar(
             unit,
@@ -50,7 +50,7 @@ class TestUnit(SpeedKeeperMixin, InfinitelyImpulseUnit):
             )
         )
     )
-    _speed = 2
+    _speed_limit = 2
 
     def update(self) -> None:
         pass
@@ -65,9 +65,9 @@ class ObserveUnitAvatar(ResourceAvatar):
         self.render_resource.radius = vector_to_observed_unit.length
 
 
-class ObserveUnit(SpeedKeeperMixin, ImpulseUnit):
+class ObserveUnit(SpeedLimitedUnit):
     _avatar_factory = ObserveUnitAvatar
-    _speed = 1
+    _speed_limit = 1
 
     def __init__(self, position: Vector, observed_unit: PositionalUnit):
         super().__init__(position)
