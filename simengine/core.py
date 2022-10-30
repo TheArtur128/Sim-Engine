@@ -358,28 +358,35 @@ class InteractiveUnit(IUpdatable, ABC):
         pass
 
 
+class _ObjectFactoriesCash(NamedTuple):
+    object_: object
+    factories: tuple[IBilateralProcessFactory | StrictToParticipantsProcess]
+
+
 class ProcessInteractiveUnit(InteractiveUnit, MultitaskingUnit, ABC):
-    _bilateral_process_factories: Iterable[IBilateralProcessFactory | type, ]
-    __cash_factories_for_object: tuple[object, tuple[IBilateralProcessFactory, ]] = (object(), tuple())
+    _bilateral_process_factories: Iterable[IBilateralProcessFactory | type]
 
     def is_support_interaction_with(self, unit: IUpdatable) -> Report:
         return (
-            Report(True) if self.__get_cachedly_suported_process_factories_for(unit)
-            else Report.create_error_report(
-                IncorrectUnitInteractionError("No possible processes to occur")
+            Report(
+                bool(self._get_suported_process_factories_for(unit)),
+                error=IncorrectUnitInteractionError("No possible processes to occur")
             )
         )
 
     def _handle_interaction_with(self, unit: IUpdatable) -> None:
-        for factory in self.__get_cachedly_suported_process_factories_for(unit):
+        for factory in self._get_suported_process_factories_for(unit):
             process = factory(self, unit)
             process.start()
 
             self.add_process(process)
 
-    def __get_cachedly_suported_process_factories_for(self, unit: IUpdatable) -> tuple[IBilateralProcessFactory, ]:
-        if unit is self.__cash_factories_for_object[0]:
-            return self.__cash_factories_for_object[1]
+    def _get_suported_process_factories_for(self, unit: IUpdatable) -> tuple[IBilateralProcessFactory]:
+        return self.__get_cachedly_suported_process_factories_for(unit)
+
+    def __get_cachedly_suported_process_factories_for(self, unit: IUpdatable) -> tuple[IBilateralProcessFactory]:
+        if unit is self.__cashed_factories_for_object.object_:
+            return self.__cashed_factories_for_object.factories
 
         factories = tuple(
             (
@@ -387,9 +394,11 @@ class ProcessInteractiveUnit(InteractiveUnit, MultitaskingUnit, ABC):
             ).is_support_participants((self, unit))
             for factory in self._bilateral_process_factories
         )
-        self.__cash_factories_for_object = (unit, factories)
+        self.__cashed_factories_for_object = _ObjectFactoriesCash(unit, factories)
 
         return factories
+
+    __cashed_factories_for_object: _ObjectFactoriesCash = _ObjectFactoriesCash(object(), tuple())
 
 
 class DependentUnit(IUpdatable, ABC):
