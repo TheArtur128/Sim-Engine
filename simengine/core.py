@@ -193,7 +193,7 @@ class Process(StrictToStateMixin, IUpdatable, ABC):
         return None
 
     def _is_correct(self) -> Report:
-        return self.is_support_participants(self.participants)
+        return Report(True)
 
     def __reset_state(self) -> None:
         next_state = self.state.get_next_state()
