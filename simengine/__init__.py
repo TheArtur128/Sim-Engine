@@ -9,7 +9,7 @@ file_names_of_module = (
     if '.py' == file_name[-3:]
 )
 
-ignore_fiele_names = ('__init__.py', '__pycache__')
+ignore_fiele_names = ('__init__.py', )
 
 for file_name in (
     file_name
