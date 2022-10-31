@@ -1,3 +1,2 @@
 beautiful_repr==1.1.1
-pygame==2.1.2
 pyoverload==1.1.24
