@@ -1,5 +1,12 @@
+from typing import NewType
+from sys import version_info
 from os import *
 
+
+is_supports_self_annotation = version_info >= (3, 11)
+
+if not is_supports_self_annotation:
+    Self: NewType = object
 
 current_path = path.dirname(path.abspath(__file__))
 current_directory = path.basename(current_path)
@@ -17,3 +24,6 @@ for file_name in (
     if file_name not in ignore_fiele_names
 ):
     exec(f"from {current_directory}.{file_name.split('.')[0]} import *")
+
+if not is_supports_self_annotation:
+    del Self
