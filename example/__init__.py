@@ -28,14 +28,14 @@ class MainHeroManagement(PygameEventHandler, EventSupportStackHandler):
         impulse = Vector((0, 0))
 
         if event.key in self._right_movement_keys:
-            impulse += Vector((self.main_hero.speed, 0))
+            impulse += Vector((self.main_hero._speed_limit, 0))
         if event.key in self._left_movement_keys:
-            impulse -= Vector((self.main_hero.speed, 0))
+            impulse -= Vector((self.main_hero._speed_limit, 0))
 
         if event.key in self._up_movement_keys:
-            impulse -= Vector((0, self.main_hero.speed))
+            impulse -= Vector((0, self.main_hero._speed_limit))
         if event.key in self._down_movement_keys:
-            impulse += Vector((0, self.main_hero.speed))
+            impulse += Vector((0, self.main_hero._speed_limit))
 
         self.main_hero.moving_process.original_process.vector_to_next_point = impulse
 
