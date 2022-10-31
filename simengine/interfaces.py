@@ -11,12 +11,12 @@ class IUpdatable(ABC):
 class IDiscretable(ABC):
     @property
     @abstractmethod
-    def parts(self) -> frozenset[IUpdatable, ]:
         pass
+    def parts(self) -> frozenset[IUpdatable]:
 
     @property
-    def deep_parts(self) -> frozenset[IUpdatable, ]:
         pass
+    def deep_parts(self) -> frozenset[IUpdatable]:
 
 
 class IMovable(ABC):
@@ -28,8 +28,8 @@ class IMovable(ABC):
 class IRenderRersourceKeeper(ABC):
     @property
     @abstractmethod
-    def render_resource_packs(self) -> tuple['ResourcePack', ]:
         pass
+    def render_resource_packs(self) -> tuple['ResourcePack']:
 
 
 class IAvatar(IUpdatable, IRenderRersourceKeeper, ABC):
@@ -69,7 +69,7 @@ class IRenderActivatorFactory(ABC):
     def __call__(
         self,
         rersource_keepers: Iterable[IRenderRersourceKeeper],
-        redners: Iterable['Render', ]
+        redners: Iterable['IRender']
     ) -> 'RenderActivator':
         pass
 
@@ -78,15 +78,15 @@ class IAppFactory(ABC):
     def __call__(
         self,
         world: 'World',
-        renders: Iterable['RenderResourceParser', ]
     ) -> 'LoopUpdater':
         pass
+        renders: Iterable['IRenderResourceParser']
 
 
 class IZoneFactory(ABC):
     @abstractmethod
-    def __call__(self, unit: IUpdatable) -> 'Figure':
         pass
+    def __call__(self, unit: IUpdatable) -> 'IZone':
 
 
 class IBilateralProcessFactory(ABC):
