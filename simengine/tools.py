@@ -23,6 +23,84 @@ class Arguments:
         return cls(args, kwargs)
 
 
+class DecoratorFactory(ABC):
+    _decorator_factory: Callable[[Callable], any]
+    _nested_factory: Callable
+
+    def __call__(self, *args_for_nested_factory, **kwargs_for_nested_factory) -> any:
+        return self._decorator_factory(
+            self._nested_factory(
+                *args_for_nested_factory,
+                **kwargs_for_nested_factory
+            )
+        )
+
+
+class CustomDecoratorFactory(DecoratorFactory):
+    def __init__(self, decorator_factory: Callable, nested_factory: Callable):
+        self._decorator_factory = decorator_factory
+        self._nested_factory = nested_factory
+
+    @property
+    def decorator_factory(self) -> Callable[[Callable], any]:
+        return self._decorator_factory
+
+    @property
+    def nested_factory(self) -> Callable:
+        return self._nested_factory
+
+
+class CustomArgumentFactory(ABC):
+    factory: Callable
+    is_stored_arguments_first: bool = False
+
+    def __init__(self, *args_for_factory, **kwargs_for_factory):
+        self.arguments_for_factory = Arguments.create_via_call(
+            *args_for_factory,
+            **kwargs_for_factory
+        )
+
+    def __call__(self, *args, **kwargs) -> any:
+        argument_groups = [args, self.arguments_for_factory.args]
+
+        if self.is_stored_arguments_first:
+            argument_groups.reverse()
+
+        return self.factory(
+            *argument_groups[0],
+            *argument_groups[1],
+            **kwargs,
+            **self.arguments_for_factory.kwargs
+        )
+
+
+class CustomFactory(CustomArgumentFactory):
+    def __init__(
+        self,
+        factory: Callable,
+        *args_for_factory,
+        is_stored_arguments_first: bool = False,
+        **kwargs_for_factory
+    ):
+        self.factory = factory
+        self.is_stored_arguments_first = is_stored_arguments_first
+        super().__init__(*args_for_factory, **kwargs_for_factory)
+
+    @classmethod
+    def create_by_arguments(
+        cls,
+        factory: Callable,
+        arguments: Arguments,
+        is_stored_arguments_first: bool = False
+    ) -> Self:
+        return cls(
+            factory,
+            *arguments.args,
+            is_stored_arguments_first=is_stored_arguments_first,
+            **arguments.kwargs
+        )
+
+
 def get_collection_with_reduced_nesting_level_by(
     nesting_level: int,
     collection: Iterable
@@ -322,84 +400,6 @@ class TickerSleepLoopHandler(TicksSleepLoopHandler, RollbackSleepLoopHandler, AB
 
 class CustomTickerSleepLoopHandler(CustomTicksSleepLoopHandler, TickerSleepLoopHandler):
     pass
-
-
-class DecoratorFactory(ABC):
-    _decorator_factory: Callable[[Callable], any]
-    _nested_factory: Callable
-
-    def __call__(self, *args_for_nested_factory, **kwargs_for_nested_factory) -> any:
-        return self._decorator_factory(
-            self._nested_factory(
-                *args_for_nested_factory,
-                **kwargs_for_nested_factory
-            )
-        )
-
-
-class CustomDecoratorFactory(DecoratorFactory):
-    def __init__(self, decorator_factory: Callable, nested_factory: Callable):
-        self._decorator_factory = decorator_factory
-        self._nested_factory = nested_factory
-
-    @property
-    def decorator_factory(self) -> Callable[[Callable], any]:
-        return self._decorator_factory
-
-    @property
-    def nested_factory(self) -> Callable:
-        return self._nested_factory
-
-
-class CustomArgumentFactory(ABC):
-    factory: Callable
-    is_stored_arguments_first: bool = False
-
-    def __init__(self, *args_for_factory, **kwargs_for_factory):
-        self.arguments_for_factory = Arguments.create_via_call(
-            *args_for_factory,
-            **kwargs_for_factory
-        )
-
-    def __call__(self, *args, **kwargs) -> any:
-        argument_groups = [args, self.arguments_for_factory.args]
-
-        if self.is_stored_arguments_first:
-            argument_groups.reverse()
-
-        return self.factory(
-            *argument_groups[0],
-            *argument_groups[1],
-            **kwargs,
-            **self.arguments_for_factory.kwargs
-        )
-
-
-class CustomFactory(CustomArgumentFactory):
-    def __init__(
-        self,
-        factory: Callable,
-        *args_for_factory,
-        is_stored_arguments_first: bool = False,
-        **kwargs_for_factory
-    ):
-        self.factory = factory
-        self.is_stored_arguments_first = is_stored_arguments_first
-        super().__init__(*args_for_factory, **kwargs_for_factory)
-
-    @classmethod
-    def create_by_arguments(
-        cls,
-        factory: Callable,
-        arguments: Arguments,
-        is_stored_arguments_first: bool = False
-    ) -> Self:
-        return cls(
-            factory,
-            *arguments.args,
-            is_stored_arguments_first=is_stored_arguments_first,
-            **arguments.kwargs
-        )
 
 
 class NumberRounder(ABC):
