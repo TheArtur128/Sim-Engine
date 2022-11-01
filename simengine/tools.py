@@ -226,11 +226,11 @@ class CreatingAttributesTransmitterMeta(AttributesTransmitterMeta):
 
 
 class SeparateThreadedLoop(ILoop):
-    _thread_factory: Callable[[Callable], Thread] = Thread
+    _thread_factory: Callable[[Callable], Thread] = CustomFactory(lambda target: Thread(target=target))
 
     def __init__(self, loop: ILoop):
         self._loop = loop
-        self._thread = self._thread_factory(target=loop.run)
+        self._thread = self._thread_factory(loop.run)
 
     @property
     def thread(self) -> Thread:
