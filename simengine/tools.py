@@ -720,27 +720,27 @@ class Comparable(Protocol):
     """Protocol for annotating comparable types."""
 
     @abstractmethod
-    def __eq__(self, other: any) -> bool:
+    def __eq__(self, other: int | float | Self) -> bool:
         pass
 
     @abstractmethod
-    def __ne__(self, other: any) -> bool:
+    def __ne__(self, other: int | float | Self) -> bool:
         pass
 
     @abstractmethod
-    def __lt__(self, other: any) -> bool:
+    def __lt__(self, other: int | float | Self) -> bool:
         pass
 
     @abstractmethod
-    def __le__(self, other: any) -> bool:
+    def __le__(self, other: int | float | Self) -> bool:
         pass
 
     @abstractmethod
-    def __gt__(self, other: any) -> bool:
+    def __gt__(self, other: int | float | Self) -> bool:
         pass
 
     @abstractmethod
-    def __ge__(self, other: any) -> bool:
+    def __ge__(self, other: int | float | Self) -> bool:
         pass
 
 
