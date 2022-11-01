@@ -15,19 +15,39 @@ from simengine.errors.tool_errors import *
 
 @dataclass(frozen=True)
 class Arguments:
+    """
+    Dateclass representing storage for args and kwargs. Has two corresponding
+    fields: args and kwargs.
+    """
+
     args: tuple
     kwargs: dict
 
     @classmethod
     def create_via_call(cls, *args, **kwargs) -> Self:
+        """
+        method that allows you to create Arguments with args and kwargs as
+        inputs to this function.
+        """
+
         return cls(args, kwargs)
 
 
 class DecoratorFactory(ABC):
+    """
+    Class for the ability to construct a component and wrap it in a proxy at the
+    time of creation.
+
+    Descendants must have _decorator_factory proxy factory and _nested_factory
+    factory of the generated component.
+    """
+
     _decorator_factory: Callable[[Callable], any]
     _nested_factory: Callable
 
     def __call__(self, *args_for_nested_factory, **kwargs_for_nested_factory) -> any:
+        """Method for directly creating and wrapping a component in a decorator."""
+
         return self._decorator_factory(
             self._nested_factory(
                 *args_for_nested_factory,
@@ -37,6 +57,11 @@ class DecoratorFactory(ABC):
 
 
 class CustomDecoratorFactory(DecoratorFactory):
+    """
+    DecoratorFactory takes _nested_factory and _decorator_factory as their
+    respective input arguments on object initialization.
+    """
+
     def __init__(self, decorator_factory: Callable, nested_factory: Callable):
         self._decorator_factory = decorator_factory
         self._nested_factory = nested_factory
@@ -51,16 +76,32 @@ class CustomDecoratorFactory(DecoratorFactory):
 
 
 class CustomArgumentFactory(ABC):
+    """
+    Factory class that is a layer for creating an object using an interface
+    other than the direct method of initializing this object.
+
+    Stores the arguments and pads them to the call to the internal factory that
+    it delegates to create the desired object.
+
+    factory - Internal factory to which object creation is delegated.
+    is_stored_arguments_first - Boolean argument specifying the position of the
+    stored arguments when delegating.
+    """
+
     factory: Callable
     is_stored_arguments_first: bool = False
 
     def __init__(self, *args_for_factory, **kwargs_for_factory):
+        """Specifies arguments for the internal factory."""
+
         self.arguments_for_factory = Arguments.create_via_call(
             *args_for_factory,
             **kwargs_for_factory
         )
 
     def __call__(self, *args, **kwargs) -> any:
+        """Creates some object by internal and input arguments."""
+
         argument_groups = [args, self.arguments_for_factory.args]
 
         if self.is_stored_arguments_first:
@@ -75,6 +116,10 @@ class CustomArgumentFactory(ABC):
 
 
 class CustomFactory(CustomArgumentFactory):
+    """
+    Specifies the attributes of the parent's behavior during initialization.
+    """
+
     def __init__(
         self,
         factory: Callable,
@@ -93,6 +138,11 @@ class CustomFactory(CustomArgumentFactory):
         arguments: Arguments,
         is_stored_arguments_first: bool = False
     ) -> Self:
+        """
+        Method that simplifies the creation of a CustomFactory if there are
+        Arguments for this.
+        """
+
         return cls(
             factory,
             *arguments.args,
@@ -105,6 +155,11 @@ def get_collection_with_reduced_nesting_level_by(
     nesting_level: int,
     collection: Iterable
 ) -> list:
+    """
+    Function that allows you to get a lower nested representation of the input
+    collection by unpacking nested collections, by the input nesting_level.
+    """
+
     is_reduced = False
 
     while not is_reduced and nesting_level > 0:
@@ -125,26 +180,64 @@ def get_collection_with_reduced_nesting_level_by(
 
 
 class IValueTransformer(ABC):
+    """
+    Interface representing an atomic value converter to reduce dependencies on
+    implementation of changes.
+    """
+
     @abstractmethod
     def __call__(self, attribute_keeper: object, original_value: any) -> any:
-        pass
+        """Method for changing a value."""
 
 
 class ForwardableValueTransformer(IValueTransformer):
+    """
+    Formal implementation of the ValueTransformer interface that does not change
+    the value in any way.
+
+    It makes sense to use it as a default implementation.
+    """
+
     def __call__(self, attribute_keeper: object, original_value: any) -> any:
         return original_value
 
 
 class ChangerPack(NamedTuple):
+    """
+    Storage class for modifying any collection and its items.
+
+    Has two corresponding fields for changers.
+    """
+
     item_changer: IValueTransformer
     collection_changer: IValueTransformer
 
 
 class AttributesTransmitterMeta(ABCMeta):
+    """
+    Metaclass for automatically extending collection attributes of its instances
+    by collections of the descendants.
+
+    For correct use by classes, these classes must have a mandatory
+    _attribute_names_to_parse attribute that describes the attributes to be
+    extended by descendants. By default, this attribute is also expanded on a par
+    with attributes whose names are stored in it. The final form of
+    _attribute_names_to_parse is a dictionary that stores the attribute names as
+    keys and as value changers that change the values of the inherited
+    corresponding attributes, but for convenience, you can specify it as a
+    collection of attribute names, subsequently converted to the final form.
+
+    A child class can specify a _default_value_transformer that modifies inherited
+    attributes and applies to attributes that do not have an explicit
+    value_transformer in _attribute_names_to_parse.
+    """
+
     _attribute_names_to_parse: Iterable[str] | dict[str, IValueTransformer | None]
     _default_value_transformer: IValueTransformer = ForwardableValueTransformer()
 
     def __new__(cls, class_name: str, super_classes: tuple, attributes: dict):
+        """Assembly method of the class in which the attributes are converted and extended."""
+
         isinstance_type = super().__new__(cls, class_name, super_classes, attributes)
 
         isinstance_type._update_attribute_names()
@@ -162,6 +255,11 @@ class AttributesTransmitterMeta(ABCMeta):
         return isinstance_type
 
     def _update_attribute_names(cls) -> None:
+        """
+        Method that converts _attribute_names_to_parse to its final form if it
+        hasn't already, and extends it with ancestor class names.
+        """
+
         if not isinstance(cls._attribute_names_to_parse, dict):
             cls._attribute_names_to_parse = dict.fromkeys(cls._attribute_names_to_parse)
 
@@ -172,6 +270,11 @@ class AttributesTransmitterMeta(ABCMeta):
         )
 
     def _deeply_get_attribute_names(cls) -> dict[str, Callable[[any], any]]:
+        """
+        Method for getting _attribute_names of own and descendants and subsequent
+        caching.
+        """
+
         if '_deeply_attribute_names' in cls.__dict__:
             return cls._deeply_attribute_names
 
@@ -190,6 +293,11 @@ class AttributesTransmitterMeta(ABCMeta):
         return result
 
     def _parse_collection_by_attribute_name_from(cls, attributes: dict, attribute_name_to_parse: str) -> tuple:
+        """
+        Method for getting the final form of a collection by attribute name,
+        including attribute elements with this name of all ancestors.
+        """
+
         return (
             tuple(get_collection_with_reduced_nesting_level_by(
                 1,
@@ -210,6 +318,13 @@ class AttributesTransmitterMeta(ABCMeta):
         attribute_name_to_parse: str,
         is_changing: bool = False
     ) -> tuple:
+        """
+        Method for getting all elements of an attribute collection by the input
+        name of it from parents, with the ability to change these elements with
+        the specified inherited value changer or the default inherent in the
+        current class.
+        """
+
         value_getter = cls._deeply_get_attribute_names()[attribute_name_to_parse]
 
         return tuple(
@@ -219,6 +334,11 @@ class AttributesTransmitterMeta(ABCMeta):
 
 
 class CreatingAttributesTransmitterMeta(AttributesTransmitterMeta):
+    """
+    AttributesTransmitterMeta Metaclass with default transformation of elements
+    by creating them if the value is a factory.
+    """
+
     _default_value_transformer = lambda attribute_keeper, original_value: (
         original_value() if isinstance(original_value, CustomArgumentFactory)
         else original_value
@@ -226,9 +346,17 @@ class CreatingAttributesTransmitterMeta(AttributesTransmitterMeta):
 
 
 class SeparateThreadedLoop(ILoop):
+    """
+    Proxy implementation of the Loop interface that runs a real implementation
+    of that interface on a separate thread. Uses _thread_factory to get the
+    desired thread.
+    """
+
     _thread_factory: Callable[[Callable], Thread] = CustomFactory(lambda target: Thread(target=target))
 
     def __init__(self, loop: ILoop):
+        """Gets the implementation of the loop and gets the thread for further work."""
+
         self._loop = loop
         self._thread = self._thread_factory(loop.run)
 
@@ -245,23 +373,40 @@ class SeparateThreadedLoop(ILoop):
 
 
 class Loop(ILoop, ABC):
+    """Loop class implemented via standard \"while\"."""
+
     _is_working = False
 
     def run(self) -> None:
+        """Method for starting a while loop with a boolean condition _is_working."""
+
         self._is_working = True
 
         while self._is_working:
             self._handle()
 
     def finish(self) -> None:
+        """
+        Method for terminating a loop by \"turning off\" the loop condition
+        created by the run method.
+        """
+
         self._is_working = False
 
     @abstractmethod
     def _handle(self) -> None:
-        pass
+        """Method executing inside the \"while\" body and being its representation."""
 
 
 class HandlerLoop(Loop, ABC):
+    """
+    Class with the implementation of the "while" body method through a chain of
+    actions represented as its special handlers.
+
+    Creates its own handlers through _handlers_factories factories and leaves the
+    responsibility for the implementation of receiving them to the heirs.
+    """
+
     _handlers_factories: Iterable[Callable[[Self], 'LoopHandler']]
 
     def __init__(self):
@@ -280,16 +425,34 @@ class HandlerLoop(Loop, ABC):
 
 
 class StrictHandlerLoop(HandlerLoop, metaclass=AttributesTransmitterMeta):
+    """
+    Descendant of HandlerLoop that implements getting _handlers_factories through
+    inheritance and strict indication of them in class fields backed by
+    AttributesTransmitterMeta.
+    """
+
     _attribute_names_to_parse = ('_handlers_factories', )
 
 
 class CustomHandlerLoop(HandlerLoop):
+    """
+    HandlerLoop is a successor that implements getting _handlers_factories
+    through the corresponding input argument.
+    """
+
     def __init__(self, handlers_factories: Iterable[Callable[[HandlerLoop], 'LoopHandler']]):
         self._handlers_factories = handlers_factories
         super().__init__()
 
 
 class LoopHandler(IUpdatable, ABC):
+    """
+    Special handler for body variation of HandlerLoop.
+
+    Differs from a regular unit by having a reference to any HandlerLoop.
+    Leaves action implementation in update method.
+    """
+
     def __init__(self, loop: HandlerLoop):
         self._loop = loop
 
@@ -299,6 +462,8 @@ class LoopHandler(IUpdatable, ABC):
 
 
 class UpdaterLoopHandler(LoopHandler):
+    """LoopHandler that starts processing of input units."""
+
     def __init__(self, loop: HandlerLoop, units: Iterable[IUpdatable]):
         self.units = tuple(units)
 
@@ -308,6 +473,8 @@ class UpdaterLoopHandler(LoopHandler):
 
 
 class SleepLoopHandler(LoopHandler, ABC):
+    """LoopHandler implementing loop delay."""
+
     def update(self) -> None:
         self._handle_sleep_conditions()
 
@@ -316,15 +483,18 @@ class SleepLoopHandler(LoopHandler, ABC):
 
     @abstractmethod
     def is_ready_to_sleep(self) -> bool:
-        pass
+        """Method for determining readiness for the beginning of the delay."""
 
     @abstractmethod
     def _handle_sleep_conditions(self) -> None:
-        pass
+        """
+        Method of processing wait conditions that is not related to the direct
+        receipt of waiting readiness.
+        """
 
     @abstractmethod
     def _sleep(self) -> None:
-        pass
+        """Method with loop delay implementation."""
 
 
 class AlwaysReadyForSleepLoopHandler(SleepLoopHandler):
