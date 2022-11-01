@@ -244,7 +244,7 @@ class SeparateThreadedLoop(ILoop):
         self._thread.join()
 
 
-class Loop(ILoop):
+class Loop(ILoop, ABC):
     _is_working = False
 
     def run(self) -> None:
