@@ -271,7 +271,7 @@ class HandlerLoop(Loop, ABC):
         )
 
     @property
-    def handlers(self) -> tuple['LoopHandler', ]:
+    def handlers(self) -> tuple['LoopHandler']:
         return self.__handlers
 
     def _handle(self) -> None:
@@ -514,7 +514,7 @@ class BadReportHandler(ReportHandler):
 
 
 class ReportAnalyzer:
-    def __init__(self, report_handlers: Iterable[ReportHandler, ]):
+    def __init__(self, report_handlers: Iterable[ReportHandler]):
         self.report_handlers = frozenset(report_handlers)
 
     def __call__(self, report: Report) -> None:
