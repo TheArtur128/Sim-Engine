@@ -498,6 +498,11 @@ class SleepLoopHandler(LoopHandler, ABC):
 
 
 class AlwaysReadyForSleepLoopHandler(SleepLoopHandler, ABC):
+    """
+    SleepLoopHandler child class with the implementation of a permanent
+    completed preparation for sleep.
+    """
+
     def is_ready_to_sleep(self) -> bool:
         return True
 
@@ -506,6 +511,11 @@ class AlwaysReadyForSleepLoopHandler(SleepLoopHandler, ABC):
 
 
 class RollbackSleepLoopHandler(SleepLoopHandler, ABC):
+    """
+    SleepLoopHandler child class with the ability to roll back sleep conditions
+    after the same sleep, if its condition is still active.
+    """
+
     def update(self) -> None:
         super().update()
 
@@ -514,10 +524,17 @@ class RollbackSleepLoopHandler(SleepLoopHandler, ABC):
 
     @abstractmethod
     def _sleep_rollback(self) -> None:
-        pass
+        """Method that implements rollback of sleep conditions."""
 
 
 class TicksSleepLoopHandler(SleepLoopHandler):
+    """
+    SleepLoopHandler child class delegating the implementation of the wait.
+
+    Uses abstract \"ticks\" as a measure of the degree of wait, matching the
+    delegate interface. The immediate delegate is _sleep_function.
+    """
+
     _sleep_function: Callable[[int | float], any]
 
     def __init__(self, loop: HandlerLoop, ticks_to_sleep: int | float):
@@ -529,6 +546,8 @@ class TicksSleepLoopHandler(SleepLoopHandler):
 
 
 class CustomTicksSleepLoopHandler(TicksSleepLoopHandler):
+    """TicksSleepLoopHandler child class using the input _sleep_function."""
+
     def __init__(
         self,
         loop: HandlerLoop,
@@ -540,6 +559,15 @@ class CustomTicksSleepLoopHandler(TicksSleepLoopHandler):
 
 
 class TickerSleepLoopHandler(TicksSleepLoopHandler, RollbackSleepLoopHandler, ABC):
+    """
+    TicksSleepLoopHandler child class that implements a condition to wait after
+    a certain specified time.
+
+    Strictly binds \"ticks\" to the amount of updating its state, through which
+    it is implemented. Leaves the possibility for descendants to change the
+    quantitative assignment of updating their state to a \"tick\".
+    """
+
     _real_ticks_to_sleep: int | float = 0
     _tick: int | float = 1
 
@@ -569,30 +597,53 @@ class TickerSleepLoopHandler(TicksSleepLoopHandler, RollbackSleepLoopHandler, AB
 
 
 class CustomTickerSleepLoopHandler(CustomTicksSleepLoopHandler, TickerSleepLoopHandler):
-    pass
+    """
+    Class that is an addition of TickerSleepLoopHandler to a custom
+    implementation of its parent for a custom version of the
+    TickerSleepLoopHandler itself.
+    """
 
 
 class INumberRounder(ABC):
+    """Interface that allows you to somehow round the entered number."""
+
     @abstractmethod
     def __call__(self, number: any) -> any:
-        pass
+        """Gateway call method to start rounding."""
 
 
 class NumberRounder(INumberRounder, ABC):
+    """
+    Base class for INumberRounder interface.
+
+    Implements delegation of the main rounding method to a protected
+    corresponding method.
+    """
+
     def __call__(self, number: any) -> any:
         return self._round(number)
 
     @abstractmethod
     def _round(self, number: int | float) -> float:
-        pass
+        """Internal rounding method that implements rounding of a number."""
 
 
 class FastNumberRounder(NumberRounder):
+    """
+    NumberRounder child class that implements rounding through the standard
+    floor function.
+    """
+
     def _round(self, number: int | float) -> float:
         return floor(number)
 
 
 class AccurateNumberRounder(NumberRounder):
+    """
+    NumberRounder child class that implements rounding through string conversion
+    and subsequent determination of the rounding side.
+    """
+
     def _round(self, number: int | float) -> float:
         number_after_point = int(str(float(number)).split('.')[1][0])
 
@@ -603,6 +654,11 @@ class AccurateNumberRounder(NumberRounder):
 
 
 class ProxyRounder(NumberRounder):
+    """
+    Proxy NumberRounder delegating the rounding to real NumberRounder.
+    Gets a delegate during initialization.
+    """
+
     def __init__(self, rounder: NumberRounder):
         self.rounder = rounder
 
@@ -611,6 +667,8 @@ class ProxyRounder(NumberRounder):
 
 
 class ShiftNumberRounder(ProxyRounder):
+    """ProxyRounder child class that implements rounding to a certain degree."""
+
     def __init__(self, rounder: NumberRounder, comma_shift: int):
         super().__init__(rounder)
         self.comma_shift = comma_shift
@@ -624,6 +682,8 @@ class ShiftNumberRounder(ProxyRounder):
         )
 
     def __move_point_in_number(self, number: int | float, shift: int) -> float:
+        """Method for moving a dot in the input numebr."""
+
         letters_of_number = list(str(float(number)))
         point_index = letters_of_number.index('.')
         letters_of_number.pop(point_index)
@@ -644,6 +704,11 @@ class ShiftNumberRounder(ProxyRounder):
 
 @dataclass
 class Report:
+    """
+    Structure for storing and passing data about the state of something before
+    further processing.
+    """
+
     sign: bool
     message: str | None = None
     error: Exception | None = None
@@ -653,6 +718,8 @@ class Report:
 
     @classmethod
     def create_error_report(cls, error: Exception) -> Self:
+        """Method for quickly creating a report from a ready-made error."""
+
         return cls(
             False,
             error=error
@@ -660,6 +727,8 @@ class Report:
 
 
 class ReportHandler(ABC):
+    """Base class of a report handler."""
+
     @abstractmethod
     def __call__(self, report: Report) -> None:
         pass
@@ -669,6 +738,15 @@ class ReportHandler(ABC):
 
 
 class BadReportHandler(ReportHandler):
+    """
+    ReportHandler child class that strictly reacts to negative reports by
+    raising an error that is present in the report or made according to the
+    report model.
+
+    During initialization, it receives the default data filled into the error
+    that has arisen if strictly specified in the "bad" report is left out.
+    """
+
     def __init__(
         self,
         default_error_type: type,
@@ -690,6 +768,8 @@ class BadReportHandler(ReportHandler):
 
 
 class ReportAnalyzer:
+    """Action chain class from report handlers for, respectively, reports."""
+
     def __init__(self, report_handlers: Iterable[ReportHandler]):
         self.report_handlers = frozenset(report_handlers)
 
@@ -700,12 +780,22 @@ class ReportAnalyzer:
 
 
 class IReporter(ABC):
+    """Interface for creating a report based on a set of objects."""
+
     @abstractmethod
     def create_report_of(self, objects: Iterable) -> Report:
-        pass
+        """Method of corresponding report receipt on objects."""
 
 
 class ProxyReporter(IReporter):
+    """
+    Proxy reporter to structure multiple reports from multiple reporters.
+
+    Works like "and" or "or" for newly created reports. The is_unanimous
+    attribute is responsible for the selected mod. Enabled is_unanimous is
+    responsible for the "and" mod, Disabled, respectively, for "or" mod.
+    """
+
     def __init__(self, reporters: Iterable[IReporter], is_unanimous: bool = True):
         self.is_unanimous = is_unanimous
         self._reporters = tuple(reporters)
@@ -728,16 +818,28 @@ class ProxyReporter(IReporter):
 
 
 class CallableProxyReporter(ProxyReporter):
+    """ProxyReporter with the ability to call it as a function."""
+
     def __call__(self, objects: Iterable) -> Report:
         return self.create_report_of(objects)
 
 
 class FocusedProxyReporter(ProxyReporter):
+    """ProxyReporter with an interface calling to report on a single object."""
+
     def __call__(self, object_: object) -> Report:
         return self.create_report_of((objects, ))
 
 
 class TypeReporter(StylizedMixin, IReporter):
+    """
+    Reporter class checking the correctness of the types of the input objects to
+    its stored ones.
+
+    Has two strictness modes for matching stored tops: to all or only to one.
+    Selects a mod by the corresponding input is_all_types_needed attribute.
+    """
+
     _repr_fields = Field(
         'supported_types',
         value_transformer=lambda types: str(tuple(type.__name__ for type in types)).replace('\'', '')
@@ -767,6 +869,8 @@ class TypeReporter(StylizedMixin, IReporter):
         )
 
     def _update_report_message(self) -> None:
+        """Report message pre-creation method."""
+
         base_template = "object type must be {type_names}"
         type_names = tuple(map(
             lambda type_: type_.__name__, self.supported_types
@@ -782,6 +886,13 @@ class TypeReporter(StylizedMixin, IReporter):
 
 
 class TypeReporterKeeperMeta(AttributesTransmitterMeta):
+    """
+    Metaclass for native creation of type_reporter from the fields of the used
+    class.
+
+    Used classes must have the _supported_types attribute.
+    """
+
     _attribute_names_to_parse = '_suported_types',
     _type_reporter_factory: Callable[[tuple[type]], TypeReporter] = TypeReporter
 
@@ -797,17 +908,27 @@ class TypeReporterKeeperMeta(AttributesTransmitterMeta):
 
 
 class StrictToStateMixin(ABC):
+    """
+    Mixin class that implements handling of object state reports.
+
+    Child Class must have _state_report_analyzer attribute to perform handling.
+    """
+
     _state_report_analyzer: ReportAnalyzer
 
     @abstractmethod
     def _is_correct(self) -> Report:
-        pass
+        """Method for creating object state reports."""
 
     def _check_state_errors(self) -> None:
+        """Method that starts handling the state of current object."""
+
         self._state_report_analyzer(self._is_correct())
 
 
 class Divider(ABC):
+    """Base class that allows you to share any data."""
+
     _report_analyzer = ReportAnalyzer((BadReportHandler(UnableToDivideError), ))
 
     def __call__(self, data: any) -> None:
@@ -819,16 +940,23 @@ class Divider(ABC):
 
     @abstractmethod
     def _divide(self, data: any) -> None:
-        pass
+        """Data division method."""
 
 
 class ComparisonResult(IntEnum):
+    """Flags to describe comparison results."""
+
     less = -1
     equals = 0
     more = 1
 
 
 def compare(main: any, relatival: any) -> ComparisonResult:
+    """
+    Comparer function that returns the result of a comparison with the
+    ComparisonResult flag. Compares relatival from main
+    """
+
     if main > relatival:
         return ComparisonResult.more
     elif main < relatival:
@@ -839,6 +967,11 @@ def compare(main: any, relatival: any) -> ComparisonResult:
 
 @dataclass(frozen=True)
 class RGBAColor:
+    """
+    Structure for storing color data in RGBA format and maintaining the data in
+    the correct form.
+    """
+
     red: int = 0
     green: int = 0
     blue: int = 0
@@ -860,6 +993,8 @@ class RGBAColor:
 
 
 def like_object(func: Callable) -> Callable:
+    """Decorator passing a link of the input function to it."""
+
     @wraps(func)
     def wrapper(*args, **kwargs) -> any:
         return func(func, *args, **kwargs)
@@ -868,6 +1003,8 @@ def like_object(func: Callable) -> Callable:
 
 
 class Timer(StylizedMixin):
+    """Class that implements a countdown."""
+
     _repr_fields = (
         Field('period', value_transformer=lambda value: f"{value} second{'s' if value > 1 else ''}"),
         Field('end_time', value_transformer=ctime)
@@ -921,6 +1058,8 @@ class Comparable(Protocol):
 
 
 class Diapason(StylizedMixin):
+    """Class to simulate a range."""
+
     _repr_fields = Field(
         value_getter=lambda diapason, _: (diapason.start, diapason.end),
         formatter=lambda value, _: ' ~ '.join(map(str, value))
