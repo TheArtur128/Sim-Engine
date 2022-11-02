@@ -701,7 +701,7 @@ class ReportAnalyzer:
 
 class IReporter(ABC):
     @abstractmethod
-    def create_report_of(self, objects: Iterable[object]) -> Report:
+    def create_report_of(self, objects: Iterable) -> Report:
         pass
 
 
@@ -714,7 +714,7 @@ class ProxyReporter(IReporter):
     def reporters(self) -> tuple[IReporter]:
         return self._reporters
 
-    def create_report_of(self, objects: Iterable[object]) -> Report:
+    def create_report_of(self, objects: Iterable) -> Report:
         for reporter in self._reporters:
             report = reporter.create_report_of(objects)
 
@@ -728,7 +728,7 @@ class ProxyReporter(IReporter):
 
 
 class CallableProxyReporter(ProxyReporter):
-    def __call__(self, objects: Iterable[object]) -> Report:
+    def __call__(self, objects: Iterable) -> Report:
         return self.create_report_of(objects)
 
 
@@ -756,7 +756,7 @@ class TypeReporter(StylizedMixin, IReporter):
         self.__supported_types = tuple(new_types)
         self._update_report_message()
 
-    def create_report_of(self, objects: Iterable[object]) -> Report:
+    def create_report_of(self, objects: Iterable) -> Report:
         return Report(
             (all if self.is_all_types_needed else any)(
                 isinstance(object_, supported_type)
