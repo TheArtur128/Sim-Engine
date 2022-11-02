@@ -497,7 +497,7 @@ class SleepLoopHandler(LoopHandler, ABC):
         """Method with loop delay implementation."""
 
 
-class AlwaysReadyForSleepLoopHandler(SleepLoopHandler):
+class AlwaysReadyForSleepLoopHandler(SleepLoopHandler, ABC):
     def is_ready_to_sleep(self) -> bool:
         return True
 
@@ -505,7 +505,7 @@ class AlwaysReadyForSleepLoopHandler(SleepLoopHandler):
         pass
 
 
-class RollbackSleepLoopHandler(SleepLoopHandler):
+class RollbackSleepLoopHandler(SleepLoopHandler, ABC):
     def update(self) -> None:
         super().update()
 
