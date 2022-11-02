@@ -572,7 +572,13 @@ class CustomTickerSleepLoopHandler(CustomTicksSleepLoopHandler, TickerSleepLoopH
     pass
 
 
-class NumberRounder(ABC):
+class INumberRounder(ABC):
+    @abstractmethod
+    def __call__(self, number: any) -> any:
+        pass
+
+
+class NumberRounder(INumberRounder, ABC):
     def __call__(self, number: any) -> any:
         return self._round(number)
 
