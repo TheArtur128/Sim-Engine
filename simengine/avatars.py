@@ -48,7 +48,7 @@ class ResourceAvatar(SingleResourcePackAvatar, StylizedMixin, ABC):
         return self._main_resource_pack.resource
 
 
-class PrimitiveAvatar(ResourceAvatar, ABC):
+class PrimitiveAvatar(ResourceAvatar):
     def __init__(self, unit: PositionalUnit, resource: any):
         self._resource_factory = lambda _: resource
         super().__init__(unit)
