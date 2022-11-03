@@ -24,7 +24,7 @@ class SingleResourcePackAvatar(Avatar, ABC):
     _main_resource_pack: ResourcePack
 
     @property
-    def render_resource_packs(self) -> tuple[ResourcePack, ]:
+    def render_resource_packs(self) -> tuple[ResourcePack]:
         return (self._main_resource_pack, )
 
     def update(self) -> None:
@@ -72,7 +72,7 @@ class Sprite:
 
 
 class Animation(SingleResourcePackAvatar, ABC):
-    _sprites: tuple[Sprite, ]
+    _sprites: tuple[Sprite]
     _current_sprite_index: int = 0
 
     def __init__(self, unit: PositionalUnit):
@@ -138,7 +138,7 @@ class AnimationAvatar(Avatar, ABC):
         self._current_animation = self._default_animation = self._default_animation_factory(unit)
 
     @property
-    def render_resource_packs(self) -> tuple[ResourcePack, ]:
+    def render_resource_packs(self) -> tuple[ResourcePack]:
         return self._current_animation.render_resource_packs
 
     def update(self) -> None:
