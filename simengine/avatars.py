@@ -12,6 +12,8 @@ from simengine.errors.avatar_errors import AnimationAlreadyFinishedError
 
 
 class Avatar(IAvatar, ABC):
+    """Base avatar with unit acquisition implementation."""
+
     def __init__(self, unit: PositionalUnit):
         self._unit = unit
 
@@ -21,6 +23,8 @@ class Avatar(IAvatar, ABC):
 
 
 class SingleResourcePackAvatar(Avatar, ABC):
+    """Avatar class using only one resource pack."""
+
     _main_resource_pack: ResourcePack
 
     @property
@@ -32,6 +36,13 @@ class SingleResourcePackAvatar(Avatar, ABC):
 
 
 class ResourceAvatar(SingleResourcePackAvatar, StylizedMixin, ABC):
+    """
+    Avatar class operating on only one render resource.
+
+    To create a resource and its pack uses the appropriate factories from
+    _resource_factory and _resource_pack_factory attributes.
+    """
+
     _repr_fields = (Field('resource'), )
     _resource_factory: Callable[[Self], any]
     _resource_pack_factory: Callable[[any, Vector], ResourcePack] = ResourcePack
@@ -45,10 +56,14 @@ class ResourceAvatar(SingleResourcePackAvatar, StylizedMixin, ABC):
 
     @property
     def render_resource(self) -> any:
+        """Property to get one available render resource."""
+
         return self._main_resource_pack.resource
 
 
 class PrimitiveAvatar(ResourceAvatar):
+    """Avatar class that wraps the position of a unit and an input render resource."""
+
     def __init__(self, unit: PositionalUnit, resource: any):
         self._resource_factory = lambda _: resource
         super().__init__(unit)
@@ -64,6 +79,8 @@ class PrimitiveAvatar(ResourceAvatar):
 
 @dataclass
 class Sprite:
+    """Dataclass pack render resource processed as a sprite."""
+
     resource: any
     max_stay_ticks: int
 
@@ -72,6 +89,13 @@ class Sprite:
 
 
 class Animation(SingleResourcePackAvatar, ABC):
+    """
+    Avatar class implemented as an animation from sprites.
+
+    Leaves the sprite storage implementation to childs. Throws an error when
+    playing all sprites.
+    """
+
     _sprites: tuple[Sprite]
     _current_sprite_index: int = 0
 
@@ -100,25 +124,38 @@ class Animation(SingleResourcePackAvatar, ABC):
 
     @property
     def _active_sprite(self) -> Sprite:
+        """Property for the current animation sprite."""
+
         return self._sprites[self._current_sprite_index]
 
     def _update_main_resource_pack(self) -> None:
+        """Method for updating the main resource pack."""
+
         self._main_resource_pack = ResourcePack(
             self._sprites[self.__current_sprite_index].resource,
             self.unit.position
         )
 
     def _handle_finish(self) -> None:
+        """
+        Method for handling the end of sprites for assignment to the main
+        main_resource_pack.
+        """
+
         raise AnimationAlreadyFinishedError(f"Animation {self} already finished")
 
 
 class CustomAnimation(Animation):
+    """Animation class with input sprites."""
+
     def __init__(self, unit: PositionalUnit, sprites: Iterable[Sprite]):
         super().__init__(unit)
         self._sprites = tuple(sprites)
 
 
 class EndlessAnimation(Animation, ABC):
+    """Animation class for looping sprites."""
+
     def _handle_finish(self) -> None:
         self._current_sprite_index = 0
 
@@ -127,10 +164,12 @@ class EndlessAnimation(Animation, ABC):
 
 
 class CustomEndlessAnimation(EndlessAnimation, CustomAnimation):
-    pass
+    """Endless Animation class with input sprites."""
 
 
 class AnimationAvatar(Avatar, ABC):
+    """Avatar class delegating responsibilities to animations."""
+
     _default_animation_factory: Callable[[PositionalUnit], EndlessAnimation]
 
     def __init__(self, unit: PositionalUnit):
@@ -146,6 +185,8 @@ class AnimationAvatar(Avatar, ABC):
 
 
 class TopicAnimationAvatar(AnimationAvatar, ABC):
+    """Animation Avatar class that implements selection of animations by topic."""
+
     _animation_factory_by_topic: dict[str, Callable[[PositionalUnit], EndlessAnimation]]
 
     def __init__(self, unit: PositionalUnit):
@@ -166,10 +207,14 @@ class TopicAnimationAvatar(AnimationAvatar, ABC):
         super().update()
 
     def activate_animation_by_topic(self, topic: str) -> None:
+        """Animation selection method by topic."""
+
         self._current_animation = self._animation_by_topic[topic]
 
 
 class CustomTopicAnimationAvatar(TopicAnimationAvatar):
+    """Topic Animation Avatar class with input animation factories and topics."""
+
     def __init__(
         self,
         unit: PositionalUnit,
@@ -180,6 +225,11 @@ class CustomTopicAnimationAvatar(TopicAnimationAvatar):
 
 
 class ProcessAnimationAvatar(AnimationAvatar):
+    """
+    Animation Avatar class that implements the choice of animations for the
+    processes running in the unit.
+    """
+    
     _animation_factory_by_process_type: dict[type, Callable[[MultitaskingUnit], EndlessAnimation]]
 
     def __init__(self, unit: PositionalUnit):
