@@ -55,7 +55,7 @@ class ResourceHandlerWrapper(RenderResourceHandler, StylizedMixin):
         self.resource_handler(resource_pack, surface, render)
 
     @classmethod
-    def create_decorator_by(cls, *args, **kwargs) -> Callable[[], Self]:
+    def create_decorator_by(cls, *args, **kwargs) -> Callable[[IRenderResourceHandler], Self]:
         def decorator(resource_handler: IRenderResourceHandler):
             return cls(resource_handler, *args, **kwargs)
 
@@ -89,8 +89,8 @@ class IRender(ABC):
         pass
 
     @abstractmethod
-    def draw_scene(self, resource_packs: Iterable[ResourcePack, ]) -> None:
         pass
+    def draw_scene(self, resource_packs: Iterable[ResourcePack]) -> None:
 
     @abstractmethod
     def clear_surfaces(self) -> None:
@@ -159,7 +159,7 @@ class ResourceHandlingChainMeta(ABCMeta):
 
         return decorator
 
-    def _get_resource_handlers_of_parents(cls) -> tuple[IRenderResourceHandler, ]:
+    def _get_resource_handlers_of_parents(cls) -> tuple[IRenderResourceHandler]:
         return sum(
             tuple(
                 parent_type._resource_handlers for parent_type in cls.__bases__
@@ -205,7 +205,7 @@ class SurfaceKeeper:
 
 
 class RenderActivator(IUpdatable):
-    def __init__(self, render_resource_keepers: Iterable[IRenderRersourceKeeper], renders: Iterable[Render, ]):
+    def __init__(self, render_resource_keepers: Iterable[IRenderRersourceKeeper], renders: Iterable[Render]):
         self.render_resource_keepers = render_resource_keepers
         self.renders = tuple(renders)
 
@@ -222,7 +222,7 @@ class CustomRenderActivatorFactory(CustomArgumentFactory, IRenderActivatorFactor
     def __call__(
         self,
         render_resource_keepers: Iterable[IRenderRersourceKeeper],
-        redners: Iterable[Render, ],
+        redners: Iterable[Render],
         *args,
         **kwargs
     ) -> RenderActivator:
