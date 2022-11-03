@@ -16,7 +16,7 @@ from simengine.errors.tool_errors import *
 @dataclass(frozen=True)
 class Arguments:
     """
-    Dateclass representing storage for args and kwargs. Has two corresponding
+    Dataclass representing storage for args and kwargs. Has two corresponding
     fields: args and kwargs.
     """
 
