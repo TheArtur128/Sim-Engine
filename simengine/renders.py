@@ -12,17 +12,34 @@ from simengine.tools import ReportAnalyzer, BadReportHandler, Report, Arguments,
 
 @dataclass
 class ResourcePack:
+    """
+    Dataclass for transport representation of atomic data for rendering in
+    positional form.
+
+    Has two attributes: resource - data to render and point - position to render
+    the resource.
+    """
+
     resource: any
     point: any
 
 
 class IRenderResourceHandler(ABC):
+    """Resource pack handler interface in conjunction with surface and render."""
+
     @abstractmethod
     def __call__(self, resource_pack: ResourcePack, surface: any, render: 'BaseRender') -> None:
-        pass
+        """Resource pack handling method with an environment."""
 
 
 class RenderResourceHandler(IRenderResourceHandler, ABC):
+    """
+    Base class that template implements the RenderResourceHandler interface.
+
+    Templates the main handling method by analyzing the processing support of
+    a pack and its environment.
+    """
+
     _report_analyzer = ReportAnalyzer(
         (BadReportHandler(UnsupportedResourceError, "Resource Handler can't handle resource"), )
     )
@@ -32,14 +49,18 @@ class RenderResourceHandler(IRenderResourceHandler, ABC):
         self._handle(resource_pack, surface, render)
 
     def is_support_to_handle(self, resource_pack: ResourcePack, surface: any, render: 'BaseRender') -> Report:
+        """Method for obtaining analysis of handling conditions."""
+
         return Report(True)
 
     @abstractmethod
     def _handle(self, resource_pack: ResourcePack, surface: any, render: 'BaseRender') -> None:
-        pass
+        """Unconditional Packet handling method."""
 
 
 class ResourceHandlerWrapper(RenderResourceHandler, StylizedMixin):
+    """RenderResourceHandler delegating handling to another RenderResourceHandler."""
+
     _repr_fields = (Field('resource_handler'), )
 
     def __init__(self, resource_handler: IRenderResourceHandler):
@@ -56,6 +77,8 @@ class ResourceHandlerWrapper(RenderResourceHandler, StylizedMixin):
 
     @classmethod
     def create_decorator_by(cls, *args, **kwargs) -> Callable[[IRenderResourceHandler], Self]:
+        """Decorator creation method to create ResourceHandlerWrapper via @."""
+
         def decorator(resource_handler: IRenderResourceHandler):
             return cls(resource_handler, *args, **kwargs)
 
@@ -63,6 +86,8 @@ class ResourceHandlerWrapper(RenderResourceHandler, StylizedMixin):
 
 
 class TypedResourceHandler(ResourceHandlerWrapper):
+    """Resource Handler Wrapper using types as handling conditions."""
+
     _repr_fields = (Field(
         'supported_resource_type',
         value_getter=lambda handler, _: handler.supported_resource_type.__name__
@@ -80,33 +105,37 @@ class TypedResourceHandler(ResourceHandlerWrapper):
 
 
 class IRender(ABC):
+    """Render interface for rendering data from resource packs."""
+
     @abstractmethod
     def __call__(self, resource_pack: ResourcePack) -> None:
-        pass
+        """Native method of rendering a single render pack."""
 
     @abstractmethod
     def draw_resource_pack(self, resource_pack: ResourcePack) -> None:
-        pass
+        """Render pack drawing method."""
 
     @abstractmethod
-        pass
     def draw_scene(self, resource_packs: Iterable[ResourcePack]) -> None:
+        """Method for rendering an entire scene from resource packs."""
 
     @abstractmethod
     def clear_surfaces(self) -> None:
-        pass
+        """Method that allows you to clear surfaces from rendered entities."""
 
 
 class BaseRender(IRender, ABC):
+    """Class that abstractly implements the Render interface."""
+
     @property
     @abstractmethod
     def surfaces(self) -> tuple:
-        pass
+        """Property of surfaces used by the render."""
 
     def __call__(self, resource_pack: ResourcePack) -> None:
         self.draw_resource_pack(resource_pack)
 
-    def draw_scene(self, resource_packs: Iterable[ResourcePack, ]) -> None:
+    def draw_scene(self, resource_packs: Iterable[ResourcePack]) -> None:
         for surface in self.surfaces:
             self._clear_surface(surface)
 
@@ -123,14 +152,21 @@ class BaseRender(IRender, ABC):
 
     @abstractmethod
     def _draw_resource_pack_on(self, surface: any, resource_pack: ResourcePack) -> None:
-        pass
+        """Atomic rendering method resource packs on the surface."""
 
     @abstractmethod
     def _clear_surface(self, surface: any) -> None:
-        pass
+        """Atomic single surface cleaning method."""
 
 
 class ResourceHandlingChainMeta(ABCMeta):
+    """
+    Metaclass for collecting resource handlers from a class at the time of
+    creation of this very class.
+
+    Gathers handlers in _resource_handlers attribute.
+    """
+
     _resource_handlers: Optional[tuple]
 
     def __new__(cls, class_name: str, super_classes: tuple, attributes: dict):
@@ -149,6 +185,8 @@ class ResourceHandlingChainMeta(ABCMeta):
         wrapper_factory: Optional[ResourceHandlerWrapper] = None,
         **kwargs_for_factory,
     ) -> Callable[[IRenderResourceHandler], ResourceHandlerWrapper]:
+        """Decorator for system adding a resource handler to a class."""
+
         def decorator(resource_handler: IRenderResourceHandler) -> ResourceHandlerWrapper | Arguments:
             # Arguments here to initialize handler by metaclass
             return (wrapper_factory if wrapper_factory else Arguments.create_via_call)(
@@ -160,6 +198,8 @@ class ResourceHandlingChainMeta(ABCMeta):
         return decorator
 
     def _get_resource_handlers_of_parents(cls) -> tuple[IRenderResourceHandler]:
+        """Method for collecting all available handlers in the inheritance tree."""
+
         return sum(
             tuple(
                 parent_type._resource_handlers for parent_type in cls.__bases__
@@ -169,6 +209,8 @@ class ResourceHandlingChainMeta(ABCMeta):
         )
 
     def __get_resource_handlers_from(cls, attributes: dict) -> Generator[IRenderResourceHandler, any, None]:
+        """Method for collecting handlers from attribute space."""
+
         for attribute_name, attribute_value in attributes.items():
             if isinstance(attribute_value, RenderResourceHandler):
                 yield attribute_value
@@ -185,6 +227,8 @@ resource_handler = ResourceHandlingChainMeta.resource_handler
 
 
 class Render(BaseRender, ABC, metaclass=ResourceHandlingChainMeta):
+    """BaseRender child class that delegates rendering of packs to pack handlers."""
+
     _resource_handler_wrapper_factory = ResourceHandlerWrapper
 
     def _draw_resource_pack_on(self, surface: any, resource_pack: ResourcePack) -> None:
@@ -205,6 +249,13 @@ class SurfaceKeeper:
 
 
 class RenderActivator(IUpdatable):
+    """
+    Unit class that activates the rendering of scenes from resource packs.
+
+    Gets packages from input render_resource_keepers and delegates rendering to
+    input renders.
+    """
+
     def __init__(self, render_resource_keepers: Iterable[IRenderRersourceKeeper], renders: Iterable[Render]):
         self.render_resource_keepers = render_resource_keepers
         self.renders = tuple(renders)
@@ -214,11 +265,15 @@ class RenderActivator(IUpdatable):
             render.draw_scene(self._get_render_resource_packs())
 
     def _get_render_resource_packs(self) -> Generator[ResourcePack, any, None]:
+        """Method to get all resource packs from stored render resource keepers."""
+
         for keeper in self.render_resource_keepers:
             yield from keeper.render_resource_packs
 
 
 class CustomRenderActivatorFactory(CustomArgumentFactory, IRenderActivatorFactory):
+    """Class of factory render activators."""
+    
     def __call__(
         self,
         render_resource_keepers: Iterable[IRenderRersourceKeeper],
