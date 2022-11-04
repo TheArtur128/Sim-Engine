@@ -13,6 +13,8 @@ from simengine.tools import *
 
 
 class DegreeMeasure:
+    """Class for holding degrees in normalized form and manipulations with them."""
+
     __slots__ = ('__degrees')
 
     def __init__(self, degrees: int | float):
@@ -20,6 +22,8 @@ class DegreeMeasure:
 
     @property
     def degrees(self) -> int | float:
+        """Property for unprotected degree form."""
+
         return self.__degrees
 
     def __int__(self) -> int:
@@ -37,6 +41,8 @@ class DegreeMeasure:
     def _degree_measure_creation_from_degrees(
         method: Callable[[Self, any], int | float]
     ) -> Callable[[any], Self]:
+        """Method decorator for native creation of DegreemMeasure from output numeric degrees."""
+
         @wraps(method)
         def wrapper(self: Self, *args, **kwargs) -> Self:
             return self.__class__(method(self, *args, **kwargs))
@@ -46,6 +52,8 @@ class DegreeMeasure:
     def _interpret_input_measure_in_degrees(
         method: Callable[[int | float], any]
     ) -> Callable[[Union[int, float, Self]], any]:
+        """Decorator for methods that converts the input DegreeMeasure to its bare degrees."""
+
         @wraps(method)
         def wrapper(
             self,
@@ -126,6 +134,11 @@ class DegreeMeasure:
         cls,
         number_or_degrees: Union[int, float, Self]
     ) -> int | float:
+        """
+        Method for natively converting the input DegreeMeasure to its bare
+        numeric form, or non-converting if a number is entered.
+        """
+
         return (
             number_or_degrees.degrees if isinstance(number_or_degrees, DegreeMeasure)
             else number_or_degrees
@@ -133,11 +146,15 @@ class DegreeMeasure:
 
     @staticmethod
     def _bring_number_into_degrees(number: int | float) -> int | float:
+        """Method for resetting a number on overflow greater than 359."""
+
         return number - (number // 360)*360
 
 
 @dataclass(repr=False, frozen=True)
 class AxisPlaneDegrees:
+    """Dataclass for positioning degrees on an axial plane."""
+
     first_axis: int
     second_axis: int
     degrees: DegreeMeasure
@@ -151,17 +168,25 @@ class AxisPlaneDegrees:
 
     @cached_property
     def axes(self) -> tuple[int, int]:
+        """Property representing axes in collection format."""
+
         return (self.first_axis, self.second_axis)
 
     def is_on_same_plane_with(self, axis_degrees: Self) -> bool:
+        """Method for comparing axes of two AxisPlaneDegrees."""
+
         return frozenset(self.axes) == frozenset(axis_degrees.axes)
 
     def get_external(self) -> Self:
+        """Method for getting the other degrees located in the same plane."""
+
         return self.__class__(self.first_axis, self.second_axis, -self.degrees)
 
 
 @dataclass(repr=False, frozen=True)
 class DegreeArea(AxisPlaneDegrees):
+    """Class representing degrees on a plane in a certain zone."""
+
     shift_degrees: DegreeMeasure
 
     def __repr__(self) -> str:
@@ -176,13 +201,19 @@ class DegreeArea(AxisPlaneDegrees):
 
     @cached_property
     def border_degrees(self) -> DegreeMeasure:
+        """Property for defining the top border of the area."""
+
         return self.degrees + self.shift_degrees
 
     @cached_property
     def is_empty(self) -> bool:
+        """Property for determining the emptiness of an area."""
+
         return self.shift_degrees == self.border_degrees
 
     def is_degrees_inside(self, degrees: int | float | DegreeMeasure) -> bool:
+        """Method for determining the presence of degrees in an area."""
+
         if self.is_empty:
             return False
 
@@ -208,6 +239,8 @@ class DegreeArea(AxisPlaneDegrees):
 
     @cached_property
     def _diapason(self) -> Diapason:
+        """Degree range rough shape property."""
+
         return Diapason(
             self.shift_degrees,
             self.border_degrees,
@@ -216,19 +249,27 @@ class DegreeArea(AxisPlaneDegrees):
 
 
 class Vector:
+    """Class for manipulating vectors. Are not strict to the number of measurements."""
+
     def __init__(self, coordinates: Iterable[float | int] = tuple()):
         self.__coordinates = tuple(coordinates)
 
     @property
     def coordinates(self) -> tuple[int | float]:
+        """Vector Coordinate Property."""
+
         return self.__coordinates
 
     @cached_property
     def length(self) -> float:
+        """Vector length property."""
+
         return sqrt(sum(coordinate**2 for coordinate in self.coordinates))
 
     @cached_property
     def degrees(self) -> tuple[AxisPlaneDegrees]:
+        """Property of degrees of a vector sliced on a plane."""
+
         perpendicular_vector = Vector((1, ))
 
         return tuple(
@@ -305,6 +346,11 @@ class Vector:
         number_of_measurements: int,
         default_measurement_point: int | float = 0
     ) -> Self:
+        """
+        Method for getting a vector expanded or reduced to a certain number of
+        dimensions.
+        """
+
         measurement_difference = number_of_measurements - len(self.coordinates)
 
         return self.__class__(
@@ -317,6 +363,8 @@ class Vector:
         self,
         axis_indexes: Iterable[int] | None = None
     ) -> Self:
+        """Method for getting a vector unfolded in a plane."""
+
         if axis_indexes is None:
             axis_indexes = range(len(self.coordinates))
 
@@ -327,12 +375,16 @@ class Vector:
 
     @lru_cache(maxsize=128)
     def get_reduced_to_length(self, length: int | float) -> Self:
+        """Method for getting a similar vector but with an input length."""
+
         if self.length == 0:
             raise VectorError("Vector with length == 0 can't be lengthened")
 
         return (self / self.length) * length
 
     def get_rotated_many_times_by(self, axis_degree_measures: Iterable[AxisPlaneDegrees]) -> Self:
+        """Method for getting a rotated vector along many axes many times."""
+
         result_vector = self
 
         for axis_degree_measure in axis_degree_measures:
@@ -341,6 +393,8 @@ class Vector:
         return result_vector
 
     def get_rotated_by(self, axes_degrees: AxisPlaneDegrees) -> Self:
+        """Method for getting a vector rotated on a plane."""
+
         number_of_measurements = max(axes_degrees.axes) + 1
         reduced_vector = (
             self.get_normalized_to_measurements(number_of_measurements)
@@ -372,17 +426,23 @@ class Vector:
         return self.__class__(coordinates)
 
     def get_rounded_by(self, rounder: NumberRounder) -> Self:
+        """Method for getting rounded vector with rounding input implementation."""
+
         return self.__class__(tuple(
             rounder(coordinate)
             for coordinate in self.coordinates
         ))
 
     def get_multiplied_by_number(self, number: int | float) -> Self:
+        """Method for getting a vector multiplied by a number."""
+
         return self.__class__(
             tuple(number * coordinate for coordinate in self.coordinates)
         )
 
     def get_scalar_by(self, vector: Self) -> int | float:
+        """Method to get a scalar between two vectors."""
+
         return sum(tuple(map(
             lambda first, second: first * second,
             *(
@@ -392,12 +452,16 @@ class Vector:
         )))
 
     def get_degrees_between(self, vector: Self, is_external: bool = False) -> DegreeMeasure:
+        """Method for getting angle degrees between two vectors."""
+
         return DegreeMeasure(degrees(acos(
             (self * vector) / (self.length * vector.length)
         ))) * (-1 if is_external else 1)
 
     @staticmethod
     def get_mutually_normalized(vectors: Iterable[Self]) -> tuple[Self]:
+        """Method for getting vectors in the same dimensions."""
+
         maximum_number_of_measurements = max((len(vector.coordinates) for vector in vectors))
 
         return tuple(
@@ -407,6 +471,14 @@ class Vector:
 
     @classmethod
     def create_by_degrees(cls, length: int | float, axis_degree_measures: Iterable[AxisPlaneDegrees]) -> Self:
+        """
+        Method for creating a vector of an input length unfolded along the
+        degrees of input certain planes.
+
+        Doesn't guarantee the creation of a vector with degrees contradicting
+        the input.
+        """
+
         fill_axis = axis_degree_measures[0].first_axis if len(axis_degree_measures) else 0
 
         return cls(
@@ -416,6 +488,8 @@ class Vector:
 
 @dataclass(repr=False)
 class PositionVector:
+    """Dataclass to emulate a vector with a specific start and end."""
+
     start_point: Vector
     end_point: Vector
 
@@ -424,9 +498,13 @@ class PositionVector:
 
     @property
     def virtual_vector(self) -> Vector:
+        """Property for immediate vector lying between start and end."""
+
         return self.end_point - self.start_point
 
     def get_rounded_by(self, rounder: NumberRounder) -> Self:
+        """Method for rounding vectors annotating start and end."""
+
         return self.__class__(
             self.start_point.get_rounded_by(rounder),
             self.end_point.get_rounded_by(rounder)
@@ -434,12 +512,24 @@ class PositionVector:
 
 
 class IPointChanger(ABC):
+    """
+    Vector changer interface for changing a vector without dependencies on a
+    specific change implementation.
+    """
+
     @abstractmethod
     def __call__(self, point: Vector) -> Vector:
-        pass
+        """Method for getting a vector modified according to the similarity of the input."""
 
 
 class DynamicTransporter(IPointChanger):
+    """
+    PointChanger class which returns a vector sum of the input and that contained in
+    the changer itself.
+
+    Abstracts addition.
+    """
+
     def __init__(self, shift: Vector):
         self.shift = shift
 
@@ -448,6 +538,13 @@ class DynamicTransporter(IPointChanger):
 
 
 class PointRotator(StylizedMixin, IPointChanger):
+    """
+    PointChanger class returning the rotated analog of the input vector.
+
+    Abstracts rotation.
+    Rotates the vector from the center_point vector by axis_degree_measures degrees.
+    """
+
     _repr_fields = (
         Field('center_point', formatter=TemplateFormatter('about {value}')),
         Field(
@@ -472,6 +569,8 @@ class PointRotator(StylizedMixin, IPointChanger):
 
 
 class VectorDivider(Divider, StylizedMixin):
+    """Class dividing a vector into points."""
+
     _repr_fields = (Field('distance_between_points'), )
 
     def __init__(self, distance_between_points: int | float, rounder: NumberRounder):
@@ -517,6 +616,13 @@ class VectorDivider(Divider, StylizedMixin):
 
 
 class Figure(IZone, ABC):
+    """
+    Base zone class.
+
+    Template-wise implements finding vectors in the zone by dividing them into
+    points and working with them already.
+    """
+
     _vector_divider_factory: Callable[['Line'], VectorDivider] = (
         lambda _: VectorDivider(0.1, ShiftNumberRounder(AccurateNumberRounder(), 1))
     )
@@ -545,6 +651,14 @@ class Figure(IZone, ABC):
 
 
 class AxisZone(Figure, StylizedMixin):
+    """
+    Class that implements a zone representation as a space between two points.
+
+    Similar to a rectangle, but only because of its implementation of finding a
+    point in it compared to its coordinates with its own diapasons of valid
+    coordinates of certain axes.
+    """
+
     _repr_fields = Field('axis_diapasons', formatter=lambda value, _: f"{str(value)[1:-1]}"),
 
     def __init__(self, first_point: Vector, second_point: Vector):
@@ -574,10 +688,14 @@ class AxisZone(Figure, StylizedMixin):
 
     @property
     def size(self) -> tuple[int | float]:
+        """Virtual rectangle size property."""
+
         return self.__size
 
     @property
     def axis_diapasons(self) -> tuple[Diapason]:
+        """Property of diapasons of available coordinates along the axes."""
+
         return self.__axis_diapasons
 
     def move_by(self, point_changer: IPointChanger) -> None:
@@ -598,6 +716,8 @@ class AxisZone(Figure, StylizedMixin):
         center_point: Vector,
         size: Iterable[int | float]
     ) -> Self:
+        """Creation method using point generation by size and center point."""
+
         vector_to_extreme_point = Vector(size) / 2
 
         return cls(
@@ -612,12 +732,19 @@ class AxisZone(Figure, StylizedMixin):
         side_length: int | float,
         number_of_measurements: int
     ) -> Self:
+        """
+        Method of creating by the shape of a square using the generation of
+        points by the center point and the length of the edge of the square.
+        """
+
         return cls.create_with_generated_points_by(
             center_point,
             (side_length, ) * number_of_measurements
         )
 
     def _update(self) -> None:
+        """Method for updating the whole body of a zone."""
+
         self.__first_point, self.__second_point = Vector.get_mutually_normalized((
             self.__first_point,
             self.__second_point
@@ -638,6 +765,8 @@ class AxisZone(Figure, StylizedMixin):
 
 
 class Angle(Figure, StylizedMixin):
+    """Class of providing a zone of an angle originating from some point."""
+
     _repr_fields = Field('center_point'),
 
     def __init__(self, center_point: PositionVector, degree_areas: Iterable[DegreeArea]):
@@ -648,10 +777,14 @@ class Angle(Figure, StylizedMixin):
 
     @property
     def center_point(self) -> Vector:
+        """Center point property."""
+
         return self._center_point
 
     @property
     def degree_areas(self) -> tuple[DegreeArea]:
+        """Angle degree property."""
+
         return self._degree_areas
 
     def move_by(self, point_changer: IPointChanger) -> None:
@@ -662,6 +795,8 @@ class Angle(Figure, StylizedMixin):
         ))
 
     def create_ray_vertices_by(self, length: int | float) -> frozenset[Vector]:
+        """Method for creating vectors with a fixed length from center point."""
+
         return frozenset(
             self.center_point + Vector.create_by_degrees(
                 length,
@@ -688,6 +823,8 @@ class Angle(Figure, StylizedMixin):
         ))
 
     def become_external(self) -> None:
+        """Angle reversal method."""
+
         self._degree_areas = tuple(
             degree_area.get_external()
             for degree_area in self._degree_areas
@@ -703,6 +840,8 @@ class Angle(Figure, StylizedMixin):
         )
 
     def get_degree_area_by_axes(self, first_axis: int, second_axis: int) -> DegreeArea:
+        """Vector to get the axial degrees of the angle along the input plane."""
+
         for degree_area in self.degree_areas:
             if degree_area.first_axis == first_axis and degree_area.second_axis == second_axis:
                 return degree_area
@@ -711,12 +850,22 @@ class Angle(Figure, StylizedMixin):
 
     @classmethod
     def created_by_points(cls, center_point: PositionVector, points: Iterable[Vector]) -> Self:
+        """
+        Method for creating from a set of points. Creates an angle capable of
+        accommodating all input.
+        """
+
         angle = cls(center_point, tuple())
         angle.update_by_points(points)
 
         return angle
 
     def __create_degree_areas_from(self, axis_degree_measures: Iterable[AxisPlaneDegrees]) -> Generator[DegreeArea, any, None]:
+        """
+        Method for creating degree areas from multiple axial degrees.
+        Is a generator.
+        """
+
         max_axes = 1 + max(get_collection_with_reduced_nesting_level_by(
             1,
             (point_degree_measure.axes for point_degree_measure in axis_degree_measures)
@@ -744,6 +893,8 @@ class Angle(Figure, StylizedMixin):
 
 
 class Site(Figure):
+    """Class representation of a point with a zone interface."""
+
     def __init__(self, point: Vector):
         self.point = point
 
@@ -755,6 +906,8 @@ class Site(Figure):
 
 
 class CompositeFigure(Figure, StylizedMixin):
+    """Zone proxy class consisting of multiple zones."""
+
     _repr_fields = (
         Field(
             'main_figures',
@@ -790,6 +943,8 @@ class CompositeFigure(Figure, StylizedMixin):
 
 
 class Line(Figure, StylizedMixin):
+    """Position vector representation class with zone interface."""
+
     _repr_fields = (
         Field(
             value_getter=lambda line, _: (line.first_point, line.second_point),
@@ -827,6 +982,8 @@ class Line(Figure, StylizedMixin):
 
     @property
     def all_available_points(self) -> tuple[Vector]:
+        """Class of all possible line points."""
+
         return self.__all_available_points
 
     def move_by(self, point_changer: IPointChanger) -> None:
@@ -850,6 +1007,8 @@ class Line(Figure, StylizedMixin):
         )
 
     def _update_points(self) -> None:
+        """Method for updating all possible points."""
+
         self.__first_point, self.__second_point = map(
             lambda vector: vector.get_rounded_by(self._rounder),
             (self.__first_point, self.__second_point)
@@ -862,6 +1021,8 @@ class Line(Figure, StylizedMixin):
 
 
 class Polygon(Figure, StrictToStateMixin, StylizedMixin):
+    """Polygon Face (!) Zone Class."""
+
     _repr_fields = (
         Field(
             'summits',
@@ -920,6 +1081,8 @@ class Polygon(Figure, StrictToStateMixin, StylizedMixin):
 
 
 class Circle(Figure, StylizedMixin):
+    """Zone class of a circle or its multidimensional variations."""
+
     _repr_fields = (Field('radius'), Field('center_point'))
 
     def __init__(self, center_point: Vector, radius: int | float):
