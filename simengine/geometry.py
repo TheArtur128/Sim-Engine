@@ -932,13 +932,3 @@ class Circle(Figure, StylizedMixin):
 
     def is_point_inside(self, point: Vector) -> bool:
         return (self.center_point - point).length <= self.radius
-
-
-class FigureFactory(IZoneFactory):
-    def __init__(self, figure_type: type, *args_to_type, **kwargs_to_type):
-        self.figure_type = figure_type
-        self.args_to_type = args_to_type
-        self.kwargs_to_type = kwargs_to_type
-
-    def __call__(self, unit: IUpdatable) -> Figure:
-        return self.figure_type(*self.args_to_type, **self.kwargs_to_type)
