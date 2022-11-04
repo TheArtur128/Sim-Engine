@@ -35,8 +35,8 @@ class DegreeMeasure:
         return self.degrees
 
     def _degree_measure_creation_from_degrees(
-        method: Callable[[Self, any, ], int | float]
-    ) -> Callable[[any, ], Self]:
+        method: Callable[[Self, any], int | float]
+    ) -> Callable[[any], Self]:
         @wraps(method)
         def wrapper(self: Self, *args, **kwargs) -> Self:
             return self._create_from_degrees(method(self, *args, **kwargs))
@@ -125,7 +125,7 @@ class DegreeMeasure:
     def _get_number_from_degrees_or_number(
         cls,
         number_or_degrees: Union[int, float, Self]
-    ) -> Self:
+    ) -> int | float:
         return (
             number_or_degrees.degrees if isinstance(number_or_degrees, DegreeMeasure)
             else number_or_degrees
@@ -224,7 +224,7 @@ class Vector:
         self.__coordinates = tuple(coordinates)
 
     @property
-    def coordinates(self) -> tuple[int | float, ]:
+    def coordinates(self) -> tuple[int | float]:
         return self.__coordinates
 
     @cached_property
@@ -232,7 +232,7 @@ class Vector:
         return sqrt(sum(coordinate**2 for coordinate in self.coordinates))
 
     @cached_property
-    def degrees(self) -> tuple[AxisPlaneDegrees, ]:
+    def degrees(self) -> tuple[AxisPlaneDegrees]:
         perpendicular_vector = Vector((1, ))
 
         return tuple(
@@ -319,7 +319,7 @@ class Vector:
     @lru_cache(maxsize=128)
     def get_reflected_by_axes(
         self,
-        axis_indexes: Iterable[int, ] | None = None
+        axis_indexes: Iterable[int] | None = None
     ) -> Self:
         if axis_indexes is None:
             axis_indexes = range(len(self.coordinates))
@@ -489,7 +489,7 @@ class VectorDivider(Divider, StylizedMixin):
             )
         ) if data.virtual_vector.length == 0 else super().is_possible_to_divide(data)
 
-    def _divide(self, vector: PositionVector) -> frozenset[Vector, ]:
+    def _divide(self, vector: PositionVector) -> frozenset[Vector]:
         distance_factor = self.distance_between_points / vector.virtual_vector.length
 
         vector_to_next_point = Vector(tuple(
@@ -507,7 +507,7 @@ class VectorDivider(Divider, StylizedMixin):
         start_point: Vector,
         number_of_points_to_create: int,
         vector_to_next_point: Vector
-    ) -> frozenset[Vector, ]:
+    ) -> frozenset[Vector]:
         created_points = [start_point]
 
         for created_point_index in range(1, int(number_of_points_to_create) + 1):
@@ -600,7 +600,7 @@ class AxisZone(Figure, StylizedMixin):
     def create_with_generated_points_by(
         cls,
         center_point: Vector,
-        size: Iterable[int | float, ]
+        size: Iterable[int | float]
     ) -> Self:
         vector_to_extreme_point = Vector(size) / 2
 
@@ -774,8 +774,8 @@ class CompositeFigure(Figure, StylizedMixin):
 
     def __init__(
         self,
-        main_figures: Iterable[Figure, ],
-        subtraction_figures: Iterable[Figure, ] = tuple()
+        main_figures: Iterable[Figure],
+        subtraction_figures: Iterable[Figure] = tuple()
     ):
         super().__init__()
         self.main_figures = set(main_figures)
@@ -830,7 +830,7 @@ class Line(Figure, StylizedMixin):
         self._update_points()
 
     @property
-    def all_available_points(self) -> tuple[Vector, ]:
+    def all_available_points(self) -> tuple[Vector]:
         return self.__all_available_points
 
     def move_by(self, point_changer: IPointChanger) -> None:
@@ -878,7 +878,7 @@ class Polygon(Figure, StrictToStateMixin, StylizedMixin):
         (BadReportHandler(FigureIsNotCorrect, "Polygon not viable"), )
     )
 
-    def __init__(self, points: Iterable[Vector, ]):
+    def __init__(self, points: Iterable[Vector]):
         super().__init__()
         self._update_lines_by(points)
 
@@ -886,7 +886,7 @@ class Polygon(Figure, StrictToStateMixin, StylizedMixin):
         return f"{self.__class__.__name__}({len(self.summits)} summit{'s' if len(self.summits) > 0 else ''})"
 
     @property
-    def summits(self) -> tuple[Vector, ]:
+    def summits(self) -> tuple[Vector]:
         return self.__summits
 
     def move_by(self, point_changer: IPointChanger) -> None:
@@ -910,7 +910,7 @@ class Polygon(Figure, StrictToStateMixin, StylizedMixin):
         else:
             return Report(True)
 
-    def _update_lines_by(self, points: Iterable[Vector, ]) -> tuple[Line, ]:
+    def _update_lines_by(self, points: Iterable[Vector]) -> tuple[Line]:
         self._lines = tuple(
             self._line_factory(
                 points[point_index - 1],
