@@ -39,7 +39,7 @@ class DegreeMeasure:
     ) -> Callable[[any], Self]:
         @wraps(method)
         def wrapper(self: Self, *args, **kwargs) -> Self:
-            return self._create_from_degrees(method(self, *args, **kwargs))
+            return self.__class__(method(self, *args, **kwargs))
 
         return wrapper
 
@@ -130,10 +130,6 @@ class DegreeMeasure:
             number_or_degrees.degrees if isinstance(number_or_degrees, DegreeMeasure)
             else number_or_degrees
         )
-
-    @classmethod
-    def _create_from_degrees(cls, number):
-        return cls(cls._bring_number_into_degrees(number))
 
     @staticmethod
     def _bring_number_into_degrees(number: int | float) -> int | float:
