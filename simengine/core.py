@@ -606,7 +606,7 @@ class PartUnit(DependentUnit, StrictToStateMixin, StylizedMixin, ABC):
         )
 
 
-class MixinDiscrete(IDiscretable, ABC):
+class DeepPartDiscreteMixin(IDiscretable, ABC):
     """Mixin with the implementation of getting all parts for the Discrete interface."""
 
     @property
@@ -1052,7 +1052,7 @@ class UnitMover(FocusedUnitHandler):
         unit.move()
 
 
-class World(IUpdatable, MixinDiscrete, ABC):
+class World(IUpdatable, DeepPartDiscreteMixin, ABC):
     """
     The domain object habitat class.
 
