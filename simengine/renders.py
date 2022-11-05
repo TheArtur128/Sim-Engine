@@ -24,6 +24,13 @@ class ResourcePack:
     point: any
 
 
+@dataclass
+class ColorResourcePack(ResourcePack):
+    """ResourcePack dataclass with color annotation."""
+
+    color: RGBAColor
+
+
 class IRenderResourceHandler(ABC):
     """Resource pack handler interface in conjunction with surface and render."""
 
