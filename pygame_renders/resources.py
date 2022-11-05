@@ -1,27 +1,20 @@
 from dataclasses import dataclass
 from typing import Iterable
 
+from simengine.basic_render_resources import *
 from simengine.geometry import Vector
 from simengine.tools import RGBAColor
 
 
 @dataclass
-class GraphicPrimitive:
-    """Dataclass of pygame render resources with color."""
-
-    color: RGBAColor
-
-
-@dataclass
-class Polygon(GraphicPrimitive):
+class PygamePolygon(Polygon):
     """Dataclass containing data for pygame polygon drawing function."""
 
-    points: Iterable[Vector, ]
     border_width: int | float = 0
 
 
 @dataclass
-class Line(GraphicPrimitive):
+class PygameLine(Line):
     """
     Dataclass containing data for pygame line and aaline drawing functions.
 
@@ -29,14 +22,12 @@ class Line(GraphicPrimitive):
     True - aaline, False - line.
     """
 
-    start_point: Vector
-    end_point: Vector
     border_width: int | float = 1
     is_smooth: bool = False
 
 
 @dataclass
-class Lines(GraphicPrimitive):
+class PygameLines(ColorRenderResource):
     """
     Dataclass containing data for pygame lines and aalines drawing functions.
 
@@ -51,37 +42,28 @@ class Lines(GraphicPrimitive):
 
 
 @dataclass
-class Circle(GraphicPrimitive):
+class PygameCircle(Circle):
     """Dataclass containing data for pygame circle drawing function."""
 
-    radius: int | float
     border_width: int | float = 0
 
 
 @dataclass
-class CornerZone(GraphicPrimitive):
-    """GraphicPrimitive dataclass containing the size of the area of the drawn figure."""
-
-    width: int | float
-    height: int | float
-
-
-@dataclass
-class Rectangle(CornerZone):
+class PygameRectangle(Rectangle):
     """Dataclass containing data for pygame rect drawing function."""
 
     border_width: int | float = 0
 
 
 @dataclass
-class Ellipse(CornerZone):
+class PygameEllipse(Rectangle):
     """Dataclass containing data for pygame ellipse drawing function."""
 
     border_width: int | float = 0
 
 
 @dataclass
-class Arc(CornerZone):
+class PygameArc(Rectangle):
     """Dataclass containing data for pygame arc drawing function."""
 
     start_angle: int | float

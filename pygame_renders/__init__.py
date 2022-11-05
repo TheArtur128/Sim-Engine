@@ -32,7 +32,7 @@ class PygameSurfaceRender(SurfaceKeeper, Render):
     def _handle_pygame_surface(resource_pack: ResourcePack, surface: Surface, render: Self) -> None:
         surface.blit(resource_pack.resource, resource_pack.point.coordinates)
 
-    @resource_handler(Polygon)
+    @resource_handler(PygamePolygon)
     def _handle_pygame_polygon(resource_pack: ResourcePack, surface: Surface, render: Self) -> None:
         draw.polygon(
             surface,
@@ -44,7 +44,7 @@ class PygameSurfaceRender(SurfaceKeeper, Render):
             resource_pack.resource.border_width
         )
 
-    @resource_handler(Line)
+    @resource_handler(PygameLine)
     def _handle_pygame_line(resource_pack: ResourcePack, surface: Surface, render: Self) -> None:
         (draw.line if not resource_pack.resource.is_smooth else draw.aaline)(
             surface,
@@ -54,7 +54,7 @@ class PygameSurfaceRender(SurfaceKeeper, Render):
             resource_pack.resource.border_width
         )
 
-    @resource_handler(Lines)
+    @resource_handler(PygameLines)
     def _handle_pygame_lines(resource_pack: ResourcePack, surface: Surface, render: Self) -> None:
         (draw.lines if not resource_pack.resource.is_smooth else draw.aalines)(
             surface,
@@ -67,7 +67,7 @@ class PygameSurfaceRender(SurfaceKeeper, Render):
             resource_pack.resource.border_width
         )
 
-    @resource_handler(Circle)
+    @resource_handler(PygameCircle)
     def _handle_pygame_circle(resource_pack: ResourcePack, surface: Surface, render: Self) -> None:
         draw.circle(
             surface,
@@ -77,7 +77,7 @@ class PygameSurfaceRender(SurfaceKeeper, Render):
             resource_pack.resource.border_width
         )
 
-    @resource_handler(Rectangle)
+    @resource_handler(PygameRectangle)
     def _handle_pygame_rect(resource_pack: ResourcePack, surface: Surface, render: Self) -> None:
         draw.rect(
             surface,
@@ -90,7 +90,7 @@ class PygameSurfaceRender(SurfaceKeeper, Render):
             resource_pack.resource.border_width
         )
 
-    @resource_handler(Ellipse)
+    @resource_handler(PygameEllipse)
     def _handle_pygame_ellipse(resource_pack: ResourcePack, surface: Surface, render: Self) -> None:
         draw.ellipse(
             surface,
@@ -103,7 +103,7 @@ class PygameSurfaceRender(SurfaceKeeper, Render):
             resource_pack.resource.border_width
         )
 
-    @resource_handler(Arc)
+    @resource_handler(PygameArc)
     def _handle_pygame_arc(resource_pack: ResourcePack, surface: Surface, render: Self) -> None:
         draw.arc(
             surface,
