@@ -25,10 +25,10 @@ class ResourcePack:
 
 
 @dataclass
-class ColorResourcePack(ResourcePack):
-    """ResourcePack dataclass with color annotation."""
+class StylishResourcePack(ResourcePack):
+    """ResourcePack dataclass with style annotation."""
 
-    color: RGBAColor
+    style: any
 
 
 class IRenderResourceHandler(ABC):
