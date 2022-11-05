@@ -27,10 +27,6 @@ class IProcessState(IUpdatable, ABC):
     def is_valid(self) -> Report:
         pass
 
-    @abstractmethod
-    def update(self) -> None:
-        pass
-
 
 class ProcessState(StrictToStateMixin, IProcessState, ABC):
     _state_report_analyzer = ReportAnalyzer((BadReportHandler(
