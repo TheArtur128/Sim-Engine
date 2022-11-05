@@ -45,7 +45,7 @@ class Lines(GraphicPrimitive):
     """
 
     is_closed: bool
-    points: Iterable[Vector, ]
+    points: Iterable[Vector]
     border_width: int | float = 1
     is_smooth: bool = False
 
