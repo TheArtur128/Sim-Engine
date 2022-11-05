@@ -11,24 +11,35 @@ from simengine.geometry import Vector, Figure, Site, DynamicTransporter, IPointC
 
 
 class IProcessState(IUpdatable, ABC):
+    """Interface for public process behavior."""
+
     @property
     def process(self) -> 'Process':
-        pass
+        """Property for process that has this state."""
 
     @abstractmethod
     def get_next_state(self) -> Optional[Self]:
-        pass
+        """Property of the next state of the process."""
 
     @abstractmethod
     def is_compelling_to_handle(self) -> bool:
-        pass
+        """Flag property defining the internal behavior of the process."""
 
     @abstractmethod
     def is_valid(self) -> Report:
-        pass
+        """
+        Property denoting the validity of the state of the process for further
+        exploitation.
+        """
 
 
 class ProcessState(StrictToStateMixin, IProcessState, ABC):
+    """
+    Basic implementation of the ProcessState interface.
+
+    Raises an error when attempting to call with an invalid state.
+    """
+
     _state_report_analyzer = ReportAnalyzer((BadReportHandler(
         ProcessStateIsNotValidError,
         "Process state is not valid to update"
@@ -50,13 +61,15 @@ class ProcessState(StrictToStateMixin, IProcessState, ABC):
 
     @abstractmethod
     def _handle(self) -> None:
-        pass
+        """Method for handling the public state of the process."""
 
     def _is_correct(self) -> Report:
         return self.is_valid()
 
 
 class CompletedProcessState(ProcessState):
+    """Completed process state class. Raises an error during updating."""
+
     is_compelling_to_handle = False
 
     def get_next_state(self) -> None:
@@ -72,6 +85,11 @@ class CompletedProcessState(ProcessState):
 
 
 class ActiveProcessState(ProcessState):
+    """
+    Standard process state class that allows an internal state to flow without
+    the need for an public one.
+    """
+
     is_compelling_to_handle = True
 
     def get_next_state(self) -> None:
@@ -85,6 +103,13 @@ class ActiveProcessState(ProcessState):
 
 
 class NewStateByValidationProcessStateMixin(IProcessState, ABC):
+    """
+    Process state mixin that defines a new state when the current one is invalid.
+
+    Provides for the creation of the next process using the _new_state_factory
+    attribute.
+    """
+
     _new_state_factory: Callable[['Process'], ProcessState | None] = CustomFactory(ActiveProcessState)
 
     def get_next_state(self) -> ProcessState | None:
@@ -92,6 +117,11 @@ class NewStateByValidationProcessStateMixin(IProcessState, ABC):
 
 
 class SleepProcessState(ProcessState, NewStateByValidationProcessStateMixin):
+    """
+    Process state class the freezing action of the internal state of the process
+    for the specified number of runs of the update method.
+    """
+
     is_compelling_to_handle = False
 
     def __init__(
@@ -117,6 +147,11 @@ class SleepProcessState(ProcessState, NewStateByValidationProcessStateMixin):
 
 
 class FlagProcessState(ProcessState, NewStateByValidationProcessStateMixin):
+    """
+    Process state class that doesn't handle anything but annotates handling to
+    something else.
+    """
+
     is_compelling_to_handle = True
     _is_standing: bool = False
 
@@ -134,6 +169,8 @@ class FlagProcessState(ProcessState, NewStateByValidationProcessStateMixin):
         bases: Iterable[type] = tuple(),
         attributes: dict = dict()
     ) -> Self:
+        """Process state flag class dynamic creation method."""
+
         return type(
             name,
             bases + (cls, ),
@@ -142,21 +179,33 @@ class FlagProcessState(ProcessState, NewStateByValidationProcessStateMixin):
 
 
 class IProcess(IUpdatable, ABC):
+    """
+    Process class, which is the removal of the processing logic of something
+    into an object to systematize work with this logic.
+
+    It has two states: internal - which is the logic rendered into the object
+    and public - the state imposed from outside to control this process. Public
+    state is expressed by an object and lies in the state attribute.
+    """
+
     state: IProcessState | None
 
     @property
     @abstractmethod
     def original_process(self) -> Self:
-        pass
+        """
+        Crutch property that ensures the availability of the original process
+        behind a layer of proxy processes.
+        """
 
     @property
     @abstractmethod
     def participants(self) -> tuple:
-        pass
+        """Property of objects involved in the process."""
 
     @abstractmethod
     def start(self) -> None:
-        pass
+        """Process start method."""
 
 
 class Process(StrictToStateMixin, IProcess, ABC):
@@ -195,7 +244,7 @@ class Process(StrictToStateMixin, IProcess, ABC):
 
     @abstractmethod
     def _handle(self) -> None:
-        pass
+        """Process internal state method."""
 
     def _get_next_state(self) -> ProcessState | None:
         return None
@@ -204,6 +253,8 @@ class Process(StrictToStateMixin, IProcess, ABC):
         return Report(True)
 
     def __reset_state(self) -> None:
+        """Method for updating its public state."""
+
         next_state = self.state.get_next_state()
 
         if next_state is None:
@@ -214,6 +265,8 @@ class Process(StrictToStateMixin, IProcess, ABC):
 
 
 class ProxyProcess(IProcess, ABC):
+    """Process class that changes the logic of another process."""
+
     def __init__(self, process: IProcess):
         self._process = process
 
@@ -247,16 +300,27 @@ class ProxyProcess(IProcess, ABC):
 
 
 class StrictToParticipantsProcess(Process, ABC):
+    """Process class that has strict restrictions on the states of its participants."""
+
     def _is_correct(self) -> Report:
         self.is_support_participants(self.participants)
 
     @classmethod
     @abstractmethod
     def is_support_participants(cls, participants: Iterable) -> Report:
-        pass
+        """
+        Method for validating the state of participants without taking into
+        account the state of the process itself.
+        """
 
 
 class ManyPassProcess(Process, ABC):
+    """
+    Process class that natively ends after a certain number of updates.
+
+    Сertain number of updates is specified by the _passes attribute.
+    """
+
     _passes: int
 
     def update(self) -> None:
@@ -268,6 +332,11 @@ class ManyPassProcess(Process, ABC):
 
 
 class WorldProcess(Process, ABC):
+    """
+    Process world handling class.
+    Before starting, the world attribute must be filled with the defined world.
+    """
+
     world: Optional['World'] = None
 
     def start(self) -> None:
@@ -278,6 +347,8 @@ class WorldProcess(Process, ABC):
 
 
 class Event(Process, ABC):
+    """Process class with homogeneous unrestricted participants."""
+
     def __init__(self, participants: Iterable[IUpdatable]):
         self.__participants = tuple(participants)
         super().__init__()
@@ -288,16 +359,20 @@ class Event(Process, ABC):
 
 
 class FocusedEvent(Event, ABC):
+    """Event class that handles each of its participants in the same way."""
+
     def _handle(self) -> None:
         for participant in self.participants:
             self._handle_participant(participant)
 
     @abstractmethod
     def _handle_participant(self, participant: IUpdatable) -> None:
-        pass
+        """Participant handling method applied to each participant."""
 
 
 class UnitSpawnProcess(FocusedEvent, WorldProcess, ManyPassProcess):
+    """Process class that adds its participants to the existing world, after it ends."""
+
     _passes = 1
 
     def _handle_participant(self, participant: IUpdatable) -> None:
@@ -305,6 +380,11 @@ class UnitSpawnProcess(FocusedEvent, WorldProcess, ManyPassProcess):
 
 
 class UnitKillProcess(FocusedEvent, WorldProcess, ManyPassProcess):
+    """
+    Process class that removes its participants from the existing world, after
+    it ends.
+    """
+
     _passes = 1
 
     def _handle_participant(self, participant: IUpdatable) -> None:
@@ -312,16 +392,27 @@ class UnitKillProcess(FocusedEvent, WorldProcess, ManyPassProcess):
 
 
 class DelayedProcess(Process, ABC):
+    """
+    Process class that delays the execution of its logic for a certain number of
+    updates.
+
+    Number of updates is set by the _ticks_of_inactivity attribute.
+    """
+
     _ticks_of_inactivity: int
 
     def start(self) -> None:
         self.activate_delay()
 
     def activate_delay(self) -> None:
+        """Logic execution delay resume method."""
+
         self.state = SleepProcessState(self, self._ticks_of_inactivity)
 
 
 class CustomBilateralProcessFactory(IBilateralProcessFactory, ABC):
+    """BilateralProcessFactory interface implementation class."""
+
     def __init__(self, process_type: type):
         self._process_type = process_type
 
@@ -334,36 +425,41 @@ class CustomBilateralProcessFactory(IBilateralProcessFactory, ABC):
 
 
 class IProcessKeeper(ABC):
+    """Class interface that implements logic as input processes and manages them."""
+
     @property
     @abstractmethod
     def processes(self) -> frozenset[IProcess]:
-        pass
+        """Active processes property."""
 
     @property
     @abstractmethod
     def completed_processes(self) -> frozenset[IProcess]:
-        pass
+        """Property of processes that have completed their work."""
 
     @abstractmethod
     def add_process(self, process: IProcess) -> None:
-        pass
+        """Method for adding a new process."""
 
     @abstractmethod
     def remove_process(self, process: IProcess) -> None:
+        """Method for forcibly removing an existing process."""
 
     def is_support_process(self, process: IProcess) -> Report:
-        pass
+        """Method for determining input process support as internal."""
 
     @abstractmethod
     def activate_processes(self) -> None:
-        pass
+        """Process management method."""
 
     @abstractmethod
     def clear_completed_processes(self) -> None:
-        pass
+        """Method for cleaning up completed processes."""
 
 
 class ProcessKeeper(IProcessKeeper, ABC):
+    """ProcessKeeper interface implementation class."""
+
     _process_adding_report_analyzer = ReportAnalyzer((BadReportHandler(
         UnsupportedProcessError,
         "Process keeper unsupported process"
@@ -406,34 +502,50 @@ class ProcessKeeper(IProcessKeeper, ABC):
 
 
 class MultitaskingUnit(ProcessKeeper, IUpdatable, ABC):
-    pass
+    """Unit class implementing process support."""
 
 
 class InteractiveUnit(IUpdatable, ABC):
+    """Unit class that can interact with other units."""
+
     _interaction_report_analyzer = ReportAnalyzer((BadReportHandler(
         UnitRelationError,
         "Unit can't interact"
     ), ))
 
     def interact_with(self, unit: IUpdatable) -> None:
+        """Method for starting interaction with the input unit."""
+
         self._interaction_report_analyzer(self.is_support_interaction_with(unit))
         self._handle_interaction_with(unit)
 
     @abstractmethod
     def is_support_interaction_with(self, unit: IUpdatable) -> Report:
-        pass
+        """Method describing unit support for interacting with it."""
 
     @abstractmethod
     def _handle_interaction_with(self, unit: IUpdatable) -> None:
-        pass
+        """Method that implements the logic of interaction with a particular unit."""
 
 
 class _ObjectFactoriesCash(NamedTuple):
+    """Factory cache storage structure for a unit."""
+
     object_: object
     factories: tuple[IBilateralProcessFactory | StrictToParticipantsProcess]
 
 
 class ProcessInteractiveUnit(InteractiveUnit, MultitaskingUnit, ABC):
+    """
+    Unit class that implements interaction with units by creating two-way
+    processes by unit type.
+
+    The two-way process factories for interaction are stored in the
+    _bilateral_process_factories attribute. The content of the attribute can
+    represent the factories of the corresponding processes, or process types
+    strictly related to the state of the participants.
+    """
+
     _bilateral_process_factories: Iterable[IBilateralProcessFactory | type]
 
     def is_support_interaction_with(self, unit: IUpdatable) -> Report:
@@ -452,9 +564,13 @@ class ProcessInteractiveUnit(InteractiveUnit, MultitaskingUnit, ABC):
             self.add_process(process)
 
     def _get_suported_process_factories_for(self, unit: IUpdatable) -> tuple[IBilateralProcessFactory]:
+        """Method for getting corresponding factories by unit."""
+
         return self.__get_cachedly_suported_process_factories_for(unit)
 
     def __get_cachedly_suported_process_factories_for(self, unit: IUpdatable) -> tuple[IBilateralProcessFactory]:
+        """Method for getting matching factories by unit using cache."""
+
         if unit is self.__cashed_factories_for_object.object_:
             return self.__cashed_factories_for_object.factories
 
@@ -472,10 +588,14 @@ class ProcessInteractiveUnit(InteractiveUnit, MultitaskingUnit, ABC):
 
 
 class DependentUnit(IUpdatable, ABC):
+    """Unit class that has a reference to another unit."""
+
     master: IUpdatable | None = None
 
 
 class PartUnit(DependentUnit, StrictToStateMixin, StylizedMixin, ABC):
+    """Unit class that is part of another unit. Cannot be computed without a principal."""
+
     _repr_fields = (Field("master"), )
     _state_report_analyzer = ReportAnalyzer((BadReportHandler(UnitPartError), ))
 
@@ -487,6 +607,8 @@ class PartUnit(DependentUnit, StrictToStateMixin, StylizedMixin, ABC):
 
 
 class MixinDiscrete(IDiscretable, ABC):
+    """Mixin with the implementation of getting all parts for the Discrete interface."""
+
     @property
     def deep_parts(self) -> frozenset[IUpdatable]:
         found_parts = set()
@@ -501,35 +623,47 @@ class MixinDiscrete(IDiscretable, ABC):
 
 
 class DiscreteUnit(MixinDiscrete, IUpdatable, ABC):
+    """Discrete unit class containing other units."""
+
     @property
     def parts(self) -> frozenset[DependentUnit]:
         return frozenset(self._parts)
 
     @abstractmethod
     def __create_parts__(self) -> Iterable[DependentUnit]:
-        pass
+        """Method for creating parts."""
 
     def init_parts(self, *args, **kwargs) -> None:
+        """Method for Parts Initialization."""
+
         self._parts = set()
 
         for part in self.__create_parts__(*args, **kwargs):
             self._add_part(part)
 
     def _add_part(self, part: DependentUnit) -> None:
+        """Atomic method for adding parts structurally."""
+
         part.master = self
         self._parts.add(part)
 
     def _remove_part(self, part: DependentUnit) -> None:
+        """Atomic method for removing parts structurally."""
+
         part.master = None
         self._parts.remove(part)
 
 
 class AnyPartMixin:
+    """Mixin for illegible addition of parts."""
+
     def __create_parts__(self, *parts) -> Iterable[IUpdatable]:
         return parts
 
 
 class TactileUnit(IUpdatable, ABC):
+    """Unit class having a specific body."""
+
     _zone_factory: IZoneFactory
 
     def __init__(self):
@@ -541,6 +675,8 @@ class TactileUnit(IUpdatable, ABC):
 
 
 class PositionalUnit(TactileUnit, StylizedMixin, ABC):
+    """Unit class having position and visual representation."""
+
     _repr_fields = (Field('position'), )
     _zone_factory = CustomFactory(lambda unit: Site(unit.position))
 
@@ -562,18 +698,22 @@ class PositionalUnit(TactileUnit, StylizedMixin, ABC):
 
 
 class MovableUnit(PositionalUnit, IMovable, ABC):
+    """Unit class providing dynamic position."""
+
     def __init__(self, position: Vector):
         super().__init__(position)
         self.__previous_position = self.position
 
     @property
     def previous_position(self) -> Vector:
+        """Property of the position the unit had before the start of the last move."""
+
         return self.__previous_position
 
     @property
     @abstractmethod
     def next_position(self) -> Vector:
-        pass
+        """Property that defines the next position when moving."""
 
     def move(self) -> None:
         self.__previous_position = self._position
@@ -582,10 +722,21 @@ class MovableUnit(PositionalUnit, IMovable, ABC):
         self._update_zone_position()
 
     def _update_zone_position(self) -> None:
+        """
+        Method of movement of a unit's zone according to the vector of the last
+        movement of the unit itself.
+        """
+
         self._zone.move_by(DynamicTransporter(self.position - self.previous_position))
 
 
 class ProcessMovableUnit(MovableUnit, ABC):
+    """
+    Movable unit class delegating calculation of next position to a special process.
+
+    Creates a moving process by the corresponding _moving_process_factory attribute.
+    """
+
     _moving_process_factory: Callable[[Self], 'IMovingProcess']
 
     def __init__(self, position: Vector):
@@ -606,18 +757,22 @@ class ProcessMovableUnit(MovableUnit, ABC):
 
 
 class IMovingProcess(IProcess, ABC):
+    """Process interface that calculates the next position of the unit."""
+
     @property
     @abstractmethod
     def movable_unit(self) -> ProcessMovableUnit:
-        pass
+        """Unit property for which the next position is calculated."""
 
     @property
     @abstractmethod
     def next_unit_position(self) -> Vector:
-        pass
+        """Unit's computed next position property."""
 
 
 class MovingProcess(Process, IMovingProcess, ABC):
+    """MovingProcess Interface Implementation."""
+
     is_support_participants = CallableProxyReporter((TypeReporter((ProcessMovableUnit, )), ))
 
     def __init__(self, movable_unit: ProcessMovableUnit):
@@ -633,6 +788,8 @@ class MovingProcess(Process, IMovingProcess, ABC):
 
 
 class ProxyMovingProcess(ProxyProcess, IMovingProcess, ABC):
+    """Process proxy class for a mobile process."""
+
     @property
     def movable_unit(self) -> ProcessMovableUnit:
         return self.process.movable_unit
@@ -643,12 +800,16 @@ class ProxyMovingProcess(ProxyProcess, IMovingProcess, ABC):
 
 
 class SpeedLimitedProxyMovingProcess(ProxyMovingProcess):
+    """Proxy moving process that limits the length of the motion vector."""
+
     def __init__(self, process: MovingProcess, speed_limit: int | float):
         super().__init__(process)
         self._speed_limit = speed_limit
 
     @property
     def speed_limit(self) -> int | float:
+        """Motion vector length constraint property."""
+
         return self._speed_limit
 
     @property
@@ -669,10 +830,12 @@ class SpeedLimitedProxyMovingProcess(ProxyMovingProcess):
 
 
 class UnitMovingProcessState(FlagProcessState):
-    pass
+    """Flag of the moving process indicating the movement of the unit."""
 
 
 class DirectedMovingProcess(MovingProcess):
+    """Moving process class using a public vector."""
+
     def __init__(self, movable_unit: ProcessMovableUnit):
         super().__init__(movable_unit)
         self.vector_to_next_unit_position = Vector()
@@ -686,6 +849,11 @@ class DirectedMovingProcess(MovingProcess):
 
 
 class ImpulseMovingProcess(DirectedMovingProcess, ABC):
+    """
+    Directed Moving Process class that changes the motion vector after the
+    movement has been made.
+    """
+
     _impulse_changer: IPointChanger
 
     def _handle(self):
@@ -694,10 +862,14 @@ class ImpulseMovingProcess(DirectedMovingProcess, ABC):
 
 
 class AbruptImpulseProcess(ImpulseMovingProcess):
+    """ImpulseMovingProcess class that resets the motion vector."""
+
     _impulse_changer = CustomFactory(lambda original_vector: Vector())
 
 
 class SpeedLimitedUnit(ProcessMovableUnit, ABC):
+    """Unit class with motion preconfiguration."""
+
     _speed_limit: int | float
     _moving_process_factory = CustomDecoratorFactory(
         CustomFactory(SpeedLimitedProxyMovingProcess, speed_limit=None),
@@ -710,6 +882,8 @@ class SpeedLimitedUnit(ProcessMovableUnit, ABC):
 
 
 class CustomSpeedLimitedUnit(SpeedLimitedUnit):
+    """SpeedLimitedUnit class for runtime creation."""
+
     def __init__(self, position: Vector, speed_limit: int | float):
         self._speed_limit = speed_limit
         super().__init__(position)
@@ -720,6 +894,8 @@ class CustomSpeedLimitedUnit(SpeedLimitedUnit):
 
 
 class UnitHandler(ABC):
+    """Class that handles units in the world."""
+
     _unit_suitabing_report_analyzer = ReportAnalyzer((BadReportHandler(UnsupportedUnitForHandlerError), ))
 
     def __init__(self, world: 'World'):
@@ -736,41 +912,53 @@ class UnitHandler(ABC):
 
     @abstractmethod
     def _handle_units(self, units: Iterable[IUpdatable]) -> None:
-        pass
+        """Handling method of world's units."""
 
 
 class TypeSuportingUnitHandler(UnitHandler, ABC, metaclass=TypeReporterKeeperMeta):
+    """UnitHandler class implementing unit support by delegating a type reporter."""
+
     def is_unit_suitable(self, unit: IUpdatable) -> Report:
         return self._type_reporter.create_report_of((unit, ))
 
 
 class FocusedUnitHandler(UnitHandler, ABC):
+    """UnitHandler class uniformly handles units."""
+
     def _handle_units(self, units: Iterable[IUpdatable]) -> None:
         for unit in units:
             self._handle_unit(unit)
 
     @abstractmethod
     def _handle_unit(self, unit: IUpdatable) -> None:
-        pass
+        """Single unit handling method."""
 
 
 class UnitUpdater(FocusedUnitHandler):
+    """UnitHandler updating units."""
+
     def _handle_unit(self, unit: IUpdatable) -> None:
         unit.update()
 
 
 class ProcessKeeperHandler(UnitHandler, ABC):
+    """UnitHandler handling the process keepers."""
+
     def is_unit_suitable(self, unit: IUpdatable) -> Report:
         return super().is_unit_suitable(unit) and Report(isinstance(unit, ProcessKeeper))
 
 
 class UnitProcessesActivator(FocusedUnitHandler, ProcessKeeperHandler):
+    """UnitHandler activating processes inside process keepers."""
+
     def _handle_unit(self, unit: IUpdatable) -> None:
         unit.clear_completed_processes()
         unit.activate_processes()
 
 
 class WorldProcessesActivator(ProcessKeeper, ProcessKeeperHandler):
+    """UnitHandler connecting world processes with the world."""
+
     def __init__(self, world: 'World'):
         super().__init__()
         super(ProcessKeeperHandler, self).__init__(world)
@@ -798,7 +986,12 @@ class WorldProcessesActivator(ProcessKeeper, ProcessKeeperHandler):
                 self.add_process(process)
 
 
-class RenderResourceParser(FocusedUnitHandler, IRenderRersourceKeeper):
+class RenderResourceParser(FocusedUnitHandler, IRenderRersourceKeeper, ABC):
+    """
+    RenderRersourceKeeper class that takes its render resource packs thanks to
+    handling the inhabitants of the world.
+    """
+
     def __init__(self, world: 'World'):
         super().__init__(world)
         self._parsed_resource_packs = list()
@@ -816,6 +1009,8 @@ class RenderResourceParser(FocusedUnitHandler, IRenderRersourceKeeper):
 
 
 class UnitAvatarRenderResourceParser(RenderResourceParser, TypeSuportingUnitHandler):
+    """RenderResourceParser taking packs from positional unit avatars."""
+
     _suported_types = PositionalUnit,
 
     def _handle_unit(self, unit: IUpdatable) -> None:
@@ -824,6 +1019,8 @@ class UnitAvatarRenderResourceParser(RenderResourceParser, TypeSuportingUnitHand
 
 
 class AvatarRenderResourceParser(RenderResourceParser, TypeSuportingUnitHandler):
+    """RenderResourceParser taking packs from avatars inhabited in the world."""
+
     _suported_types = IAvatar,
 
     def _handle_unit(self, unit: IAvatar) -> None:
@@ -831,6 +1028,8 @@ class AvatarRenderResourceParser(RenderResourceParser, TypeSuportingUnitHandler)
 
 
 class UnitRelationsActivator(UnitHandler):
+    """UnitHandler activating the relations of the units inhabited in the world."""
+
     def _handle_units(self, units: Iterable[IUpdatable]) -> None:
         for active_unit in units:
             if not isinstance(active_unit, InteractiveUnit):
@@ -844,6 +1043,8 @@ class UnitRelationsActivator(UnitHandler):
 
 
 class UnitMover(FocusedUnitHandler):
+    """UnitHandler activating movement of moving units."""
+
     def is_unit_suitable(self, unit: IMovable) -> Report:
         return super().is_unit_suitable(unit) and Report(isinstance(unit, IMovable))
 
@@ -852,6 +1053,13 @@ class UnitMover(FocusedUnitHandler):
 
 
 class World(IUpdatable, MixinDiscrete, ABC):
+    """
+    The domain object habitat class.
+
+    Delegates processing of domain entities to special handlers.
+    Creates handlers using factories stored in _unit_handler_factories attribute.
+    """
+
     _unit_handler_factories: Iterable[Callable[[Self], UnitHandler]]
 
     def __init__(self, inhabitants: Iterable = tuple()):
@@ -870,6 +1078,8 @@ class World(IUpdatable, MixinDiscrete, ABC):
 
     @property
     def unit_handlers(self) -> tuple[UnitHandler]:
+        """Property of handlers for world objects."""
+
         return self._unit_handlers
 
     def is_inhabited_for(self, inhabitant: IUpdatable) -> bool:
@@ -895,6 +1105,8 @@ class World(IUpdatable, MixinDiscrete, ABC):
 
 
 class CustomWorld(World):
+    """World class using input handler factories."""
+
     def __init__(
         self,
         inhabitants: Iterable = tuple(),
@@ -905,6 +1117,8 @@ class CustomWorld(World):
 
 
 class AppFactory(IAppFactory, metaclass=AttributesTransmitterMeta):
+    """Class that implements the application factory interface."""
+
     _attribute_names_to_parse = ('_loop_handler_factories', )
 
     _loop_handler_factories: Iterable[LoopHandler] = tuple()
@@ -941,6 +1155,8 @@ class AppFactory(IAppFactory, metaclass=AttributesTransmitterMeta):
 
 
 class CustomAppFactory(AppFactory):
+    """AppFactory class with input factories."""
+    
     def __init__(
         self,
         loop_handler_factories: Iterable[LoopHandler] = tuple(),
