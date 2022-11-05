@@ -278,7 +278,7 @@ class WorldProcess(Process, ABC):
 
 
 class Event(Process, ABC):
-    def __init__(self, participants: Iterable[IUpdatable, ]):
+    def __init__(self, participants: Iterable[IUpdatable]):
         self.__participants = tuple(participants)
         super().__init__()
 
@@ -336,12 +336,12 @@ class CustomBilateralProcessFactory(IBilateralProcessFactory, ABC):
 class IProcessKeeper(ABC):
     @property
     @abstractmethod
-    def processes(self) -> frozenset[IProcess, ]:
+    def processes(self) -> frozenset[IProcess]:
         pass
 
     @property
     @abstractmethod
-    def completed_processes(self) -> frozenset[IProcess, ]:
+    def completed_processes(self) -> frozenset[IProcess]:
         pass
 
     @abstractmethod
@@ -487,11 +487,11 @@ class PartUnit(DependentUnit, StrictToStateMixin, StylizedMixin, ABC):
 class MixinDiscrete(IDiscretable, ABC):
     @property
     @abstractmethod
-    def parts(self) -> frozenset[IUpdatable, ]:
+    def parts(self) -> frozenset[IUpdatable]:
         pass
 
     @property
-    def deep_parts(self) -> frozenset[IUpdatable, ]:
+    def deep_parts(self) -> frozenset[IUpdatable]:
         found_parts = set()
 
         for part in self.parts:
@@ -505,11 +505,11 @@ class MixinDiscrete(IDiscretable, ABC):
 
 class DiscreteUnit(MixinDiscrete, IUpdatable, ABC):
     @property
-    def parts(self) -> frozenset[DependentUnit, ]:
+    def parts(self) -> frozenset[DependentUnit]:
         return frozenset(self._parts)
 
     @abstractmethod
-    def __create_parts__(self) -> Iterable[DependentUnit, ]:
+    def __create_parts__(self) -> Iterable[DependentUnit]:
         pass
 
     def init_parts(self, *args, **kwargs) -> None:
@@ -528,7 +528,7 @@ class DiscreteUnit(MixinDiscrete, IUpdatable, ABC):
 
 
 class AnyPartMixin:
-    def __create_parts__(self, *parts) -> Iterable[IUpdatable, ]:
+    def __create_parts__(self, *parts) -> Iterable[IUpdatable]:
         return parts
 
 
@@ -728,7 +728,7 @@ class UnitHandler(ABC):
     def __init__(self, world: 'World'):
         self.world = world
 
-    def __call__(self, units: Iterable[IUpdatable, ]) -> None:
+    def __call__(self, units: Iterable[IUpdatable]) -> None:
         for unit in units:
             self._unit_suitabing_report_analyzer(self.is_unit_suitable(unit))
 
@@ -738,7 +738,7 @@ class UnitHandler(ABC):
         return Report(isinstance(unit, IUpdatable))
 
     @abstractmethod
-    def _handle_units(self, units: Iterable[IUpdatable, ]) -> None:
+    def _handle_units(self, units: Iterable[IUpdatable]) -> None:
         pass
 
 
@@ -748,7 +748,7 @@ class TypeSuportingUnitHandler(UnitHandler, ABC, metaclass=TypeReporterKeeperMet
 
 
 class FocusedUnitHandler(UnitHandler, ABC):
-    def _handle_units(self, units: Iterable[IUpdatable, ]) -> None:
+    def _handle_units(self, units: Iterable[IUpdatable]) -> None:
         for unit in units:
             self._handle_unit(unit)
 
@@ -785,12 +785,12 @@ class WorldProcessesActivator(ProcessKeeper, ProcessKeeperHandler):
         process.world = self.world
         super().add_process(process)
 
-    def _handle_units(self, units: Iterable[MultitaskingUnit, ]) -> None:
+    def _handle_units(self, units: Iterable[MultitaskingUnit]) -> None:
         self.clear_completed_processes()
         self.__parse_world_processes_from(units)
         self.activate_processes()
 
-    def __parse_world_processes_from(self, units: Iterable[MultitaskingUnit, ]) -> None:
+    def __parse_world_processes_from(self, units: Iterable[MultitaskingUnit]) -> None:
         for unit in units:
             self.__handle_unit_processes(unit)
 
@@ -807,13 +807,13 @@ class RenderResourceParser(FocusedUnitHandler, IRenderRersourceKeeper):
         self._parsed_resource_packs = list()
 
     @property
-    def render_resource_packs(self) -> tuple[ResourcePack, ]:
+    def render_resource_packs(self) -> tuple[ResourcePack]:
         return tuple(self._parsed_resource_packs)
 
     def clear_parsed_resource_packs(self) -> None:
         self._parsed_resource_packs = list()
 
-    def _handle_units(self, units: Iterable[IUpdatable, ]) -> None:
+    def _handle_units(self, units: Iterable[IUpdatable]) -> None:
         self.clear_parsed_resource_packs()
         super()._handle_units(units)
 
@@ -834,7 +834,7 @@ class AvatarRenderResourceParser(RenderResourceParser, TypeSuportingUnitHandler)
 
 
 class UnitRelationsActivator(UnitHandler):
-    def _handle_units(self, units: Iterable[IUpdatable, ]) -> None:
+    def _handle_units(self, units: Iterable[IUpdatable]) -> None:
         for active_unit in units:
             if not isinstance(active_unit, InteractiveUnit):
                 continue
@@ -855,7 +855,7 @@ class UnitMover(FocusedUnitHandler):
 
 
 class World(IUpdatable, MixinDiscrete, ABC):
-    _unit_handler_factories: Iterable[Callable[[Self], UnitHandler], ]
+    _unit_handler_factories: Iterable[Callable[[Self], UnitHandler]]
 
     def __init__(self, inhabitants: Iterable = tuple()):
         self.__inhabitant = set()
@@ -868,11 +868,11 @@ class World(IUpdatable, MixinDiscrete, ABC):
             self.add_inhabitant(inhabitant)
 
     @property
-    def parts(self) -> frozenset[IUpdatable, ]:
+    def parts(self) -> frozenset[IUpdatable]:
         return frozenset(self.__inhabitant)
 
     @property
-    def unit_handlers(self) -> tuple[UnitHandler, ]:
+    def unit_handlers(self) -> tuple[UnitHandler]:
         return self._unit_handlers
 
     def is_inhabited_for(self, inhabitant: IUpdatable) -> bool:
@@ -901,7 +901,7 @@ class CustomWorld(World):
     def __init__(
         self,
         inhabitants: Iterable = tuple(),
-        unit_handler_factories: Iterable[Callable[[World], UnitHandler], ] = tuple()
+        unit_handler_factories: Iterable[Callable[[World], UnitHandler]] = tuple()
     ):
         self._unit_handler_factories = tuple(unit_handler_factories)
         super().__init__(inhabitants)
@@ -919,7 +919,7 @@ class AppFactory(IAppFactory, metaclass=AttributesTransmitterMeta):
     def __call__(
         self,
         world: World,
-        renders: Iterable[IRender, ]
+        renders: Iterable[IRender]
     ) -> ILoop:
         render_activator = self._render_activator_factory(
             self._get_resource_parsers_from(world),
