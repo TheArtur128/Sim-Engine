@@ -21,7 +21,7 @@ class PygameSurfaceRender(SurfaceKeeper, Render):
 
     _resource_handler_wrapper_factory = TypedResourceHandler
 
-    def __init__(self, surfaces: Iterable[Surface, ], background_color: RGBAColor = RGBAColor()):
+    def __init__(self, surfaces: Iterable[Surface], background_color: RGBAColor = RGBAColor()):
         super().__init__(surfaces)
         self.background_color = background_color
 
@@ -156,7 +156,7 @@ class PygameEventHandlerWrapper(PygameEventHandler):
     single object.
     """
 
-    def __init__(self, handlers: Iterable[IPygameEventHandler, ]):
+    def __init__(self, handlers: Iterable[IPygameEventHandler]):
         self.handlers = tuple(handlers)
 
     def _handle(self, event: PygameEvent, controller: 'PygameEventController') -> None:
@@ -238,7 +238,7 @@ class PygameDisplayUpdater(LoopHandler):
 
 class PygameClockSleepLoopHandler(TicksSleepLoopHandler, AlwaysReadyForSleepLoopHandler):
     """TicksSleepLoopHandler class that implements waiting through pygame clock."""
-    
+
     _clock_factory: Callable[[Self], time.Clock] = CustomFactory(
         lambda pygame_sleep_handler: time.Clock()
     )
