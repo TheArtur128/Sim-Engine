@@ -759,7 +759,7 @@ class UnitUpdater(FocusedUnitHandler):
         unit.update()
 
 
-class ProcessKeeperHandler(UnitHandler):
+class ProcessKeeperHandler(UnitHandler, ABC):
     def is_unit_suitable(self, unit: IUpdatable) -> Report:
         return super().is_unit_suitable(unit) and Report(isinstance(unit, ProcessKeeper))
 
