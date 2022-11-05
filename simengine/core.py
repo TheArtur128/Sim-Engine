@@ -350,6 +350,8 @@ class IProcessKeeper(ABC):
 
     @abstractmethod
     def remove_process(self, process: IProcess) -> None:
+
+    def is_support_process(self, process: IProcess) -> Report:
         pass
 
     @abstractmethod
