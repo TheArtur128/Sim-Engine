@@ -661,36 +661,8 @@ class DeepPartDiscreteMixin(IDiscretable, ABC):
         return found_parts
 
 
-class DiscreteUnit(MixinDiscrete, IUpdatable, ABC):
+class DiscreteUnit(IUpdatable, StructuredPartDiscreteMixin, DeepPartDiscreteMixin, ABC):
     """Discrete unit class containing other units."""
-
-    @property
-    def parts(self) -> frozenset[DependentUnit]:
-        return frozenset(self._parts)
-
-    @abstractmethod
-    def __create_parts__(self) -> Iterable[DependentUnit]:
-        """Method for creating parts."""
-
-    def init_parts(self, *args, **kwargs) -> None:
-        """Method for Parts Initialization."""
-
-        self._parts = set()
-
-        for part in self.__create_parts__(*args, **kwargs):
-            self._add_part(part)
-
-    def _add_part(self, part: DependentUnit) -> None:
-        """Atomic method for adding parts structurally."""
-
-        part.master = self
-        self._parts.add(part)
-
-    def _remove_part(self, part: DependentUnit) -> None:
-        """Atomic method for removing parts structurally."""
-
-        part.master = None
-        self._parts.remove(part)
 
 
 class AnyPartMixin:
@@ -1195,7 +1167,7 @@ class AppFactory(IAppFactory, metaclass=AttributesTransmitterMeta):
 
 class CustomAppFactory(AppFactory):
     """AppFactory class with input factories."""
-    
+
     def __init__(
         self,
         loop_handler_factories: Iterable[LoopHandler] = tuple(),
