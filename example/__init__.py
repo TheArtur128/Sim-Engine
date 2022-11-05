@@ -125,7 +125,7 @@ CustomAppFactory((
             MainHeroManagement(black_unit)
         )
     ),
-    CustomFactory(PygameDisplayUpdater),
+    PygameDisplayUpdater,
     CustomFactory(PygameClockSleepLoopHandler, 60)
 ))(
     CustomWorld(
