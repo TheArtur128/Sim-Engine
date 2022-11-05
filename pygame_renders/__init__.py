@@ -12,6 +12,13 @@ from simengine.tools import *
 
 
 class PygameSurfaceRender(SurfaceKeeper, Render):
+    """
+    Pygame surface render class.
+
+    Uses pygame render function attribute representations as a function definer
+    with appropriate attributes.
+    """
+
     _resource_handler_wrapper_factory = TypedResourceHandler
 
     def __init__(self, surfaces: Iterable[Surface, ], background_color: RGBAColor = RGBAColor()):
@@ -116,16 +123,20 @@ PygameEvent: NewType = object
 
 
 class IPygameEventHandler(ABC):
+    """Pygame event handler interface."""
+
     @abstractmethod
     def __call__(self, event: PygameEvent, controller: 'PygameEventController') -> None:
-        pass
+        """Handling logic start method."""
 
     @abstractmethod
     def is_support_handling_for(self, event: PygameEvent, controller: 'PygameEventController') -> bool:
-        pass
+        """Method for reporting a possible handling call."""
 
 
 class PygameEventHandler(IPygameEventHandler, ABC):
+    """Implementing the PygameEventHandler Interface."""
+
     def __call__(self, event: PygameEvent, controller: 'PygameEventController') -> None:
         if not self.is_support_handling_for(event, controller):
             raise PygameEventHandlerError(
@@ -136,10 +147,15 @@ class PygameEventHandler(IPygameEventHandler, ABC):
 
     @abstractmethod
     def _handle(self, event: PygameEvent, controller: 'PygameEventController') -> None:
-        pass
+        """Event handling logic method."""
 
 
 class PygameEventHandlerWrapper(PygameEventHandler):
+    """
+    Pygame Event Handler class allows you to operate multiple handlers as a
+    single object.
+    """
+
     def __init__(self, handlers: Iterable[IPygameEventHandler, ]):
         self.handlers = tuple(handlers)
 
@@ -150,6 +166,11 @@ class PygameEventHandlerWrapper(PygameEventHandler):
 
 
 class EventSupportStackHandler(IPygameEventHandler, ABC):
+    """
+    Implementation of the PygameEventHandler interface with automatic support for
+    determining support for event handling by configured attributes.
+    """
+
     _support_event_types: Iterable
     _support_keys: Optional[Iterable] = None
     _support_buttons: Optional[Iterable] = None
@@ -163,6 +184,8 @@ class EventSupportStackHandler(IPygameEventHandler, ABC):
 
 
 class ExitEventHandler(PygameEventHandler, EventSupportStackHandler):
+    """PygameEventHandler class that handles the exit event with appropriate logic."""
+
     _support_event_types = (QUIT, )
 
     def _handle(self, event: PygameEvent, controller: 'PygameEventController') -> None:
@@ -170,12 +193,20 @@ class ExitEventHandler(PygameEventHandler, EventSupportStackHandler):
 
 
 class IPygameEventGetter(ABC):
+    """Pygame keeper interface."""
+
     @abstractmethod
     def get(self) -> Iterable[PygameEvent]:
-        pass
+        """Method to get events."""
 
 
 class PygameEventController(LoopHandler):
+    """
+    LoopHandler class delegating the handling of pygame events.
+
+    Gets events using the event getter and delegates them to input event handlers.
+    """
+
     _event_getter: IPygameEventGetter
 
     def __init__(self, loop: HandlerLoop, handlers: Iterable[PygameEventHandler]):
@@ -193,15 +224,21 @@ class PygameEventController(LoopHandler):
 
 
 class SyncPygameEventController(PygameEventController):
+    """Pygame Event Controller class using the standard pygame event store."""
+
     _event_getter = event
 
 
 class PygameDisplayUpdater(LoopHandler):
+    """LoopHandler class that updates the main window created by pygame."""
+
     def update(self) -> None:
         display.flip()
 
 
 class PygameClockSleepLoopHandler(TicksSleepLoopHandler, AlwaysReadyForSleepLoopHandler):
+    """TicksSleepLoopHandler class that implements waiting through pygame clock."""
+    
     _clock_factory: Callable[[Self], time.Clock] = CustomFactory(
         lambda pygame_sleep_handler: time.Clock()
     )
