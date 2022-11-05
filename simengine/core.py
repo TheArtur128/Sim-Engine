@@ -606,6 +606,45 @@ class PartUnit(DependentUnit, StrictToStateMixin, StylizedMixin, ABC):
         )
 
 
+class StructuredPartDiscreteMixin(IDiscretable, ABC, metaclass=AttributesTransmitterMeta):
+    """
+    Class that allows you to structure attributes that have parts of an object.
+
+    The names of the attributes that store the parts of an object are in the
+    _part_attribute_names attribute.
+    """
+
+    _attribute_names_to_parse = '_part_attribute_names',
+    _part_attribute_names: tuple[str]
+
+    @property
+    def parts(self) -> frozenset[DependentUnit]:
+        parts = self._get_parts()
+
+        for part in parts:
+            part.master = self
+
+        return parts
+
+    def _get_parts(self) -> frozenset[DependentUnit]:
+        parts = list()
+
+        for part_attribute_name in self._part_attribute_names:
+            if not hasattr(self, part_attribute_name):
+                continue
+
+            attribute_value = getattr(self, part_attribute)
+
+            append_method = getattr(
+                parts,
+                'extend' if isinstance(attribute_value, Iterable) else 'append'
+            )
+
+            append_method(attribute_value)
+
+        return frozenset(parts)
+
+
 class DeepPartDiscreteMixin(IDiscretable, ABC):
     """Mixin with the implementation of getting all parts for the Discrete interface."""
 
