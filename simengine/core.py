@@ -488,11 +488,6 @@ class PartUnit(DependentUnit, StrictToStateMixin, StylizedMixin, ABC):
 
 class MixinDiscrete(IDiscretable, ABC):
     @property
-    @abstractmethod
-    def parts(self) -> frozenset[IUpdatable]:
-        pass
-
-    @property
     def deep_parts(self) -> frozenset[IUpdatable]:
         found_parts = set()
 
