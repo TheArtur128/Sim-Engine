@@ -8,7 +8,7 @@ from colorama import Style
 from simengine.geometry import Vector
 from simengine.interfaces import IUpdatable, IRenderRersourceKeeper, IAvatar, IRenderActivatorFactory
 from simengine.errors.render_errors import UnsupportedResourceError
-from simengine.tools import ReportAnalyzer, BadReportHandler, Report, Arguments, CustomArgumentFactory
+from simengine.tools import ReportAnalyzer, BadReportHandler, Report, Arguments, CustomArgumentFactory, get_collection_with_reduced_nesting_level_by
 
 
 @dataclass
@@ -288,6 +288,79 @@ class ConsoleCell:
     @style.setter
     def style(self, style: Iterable[str]) -> None:
         self.__style = str().join(style)
+
+
+class ConsoleScene:
+    """
+    Content class of the active console \"frame\".
+    Stores data as a two-dimensional missive.
+    """
+
+    def __init__(self, size: Iterable[int], default_empty_cell: ConsoleCell):
+        self.reset(size, default_empty_cell)
+
+    def __str__(self) -> str:
+        return str().join(map(str, get_collection_with_reduced_nesting_level_by(3, self.__cell_table)))
+
+    @property
+    def default_empty_cell(self) -> ConsoleCell:
+        """Cell property defining all unoccupied."""
+
+        return self.__default_empty_cell
+
+    @default_empty_cell.setter
+    def default_empty_cell(self, default_empty_cell: ConsoleCell) -> None:
+        for y in range(size[1]):
+            for x in range(size[0]):
+                if self[(x, y)] is self.__default_empty_cell:
+                    self[(x, y)] = default_empty_cell
+
+        self.__default_empty_cell = default_empty_cell
+
+    @property
+    def size(self) -> tuple[int, int]:
+        """Scene size as 2D array size."""
+
+        return self.__size
+
+    @size.setter
+    def size(self, size: Iterable[int]) -> None:
+        if size[1] < self.__size[1]:
+            self.__cell_table[size[1] - 1:] = tuple()
+
+        if size[0] > self.__size[0]:
+            for column in self.__cell_table:
+                column.extend((self.default_empty_cell, ) * (size[0] - self.__size[0]))
+        elif size[0] < self.__size[0]:
+            for column in self.__cell_table:
+                column[size[0] - 1:] = tuple()
+
+        if size[1] > self.__size[1]:
+            self.__cell_table.extend((self.default_empty_cell, ) * size[0])
+
+        self.__size = tuple(size)
+
+    def __getitem__(self, key: Iterable[int]) -> ConsoleCell:
+        return self.__cell_table[key[1]][key[0]]
+
+    def __setitem__(self, key: Iterable[int], value: ConsoleCell) -> None:
+        if key[0] < self.size[0] and key[1] < self.size[1]:
+            self.__cell_table[key[1]][key[0]] = value
+
+    def reset(self, size: Optional[Iterable[int]] = None, default_empty_cell: Optional[ConsoleCell] = None) -> None:
+        """Scene data reset and override method."""
+
+        self.__size = tuple(size) if size is not None else self.__size
+
+        self.__default_empty_cell = (
+            default_empty_cell if default_empty_cell is not None
+            else self.__default_empty_cell
+        )
+
+        self.__cell_table = [
+            [self.__default_empty_cell] * self.__size[0]
+            for _ in range(self.__size[1])
+        ]
 
 
 class RenderActivator(IUpdatable):
