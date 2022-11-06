@@ -113,7 +113,7 @@ class NewStateByValidationProcessStateMixin(IProcessState, ABC):
     _new_state_factory: Callable[['Process'], ProcessState | None] = CustomFactory(ActiveProcessState)
 
     def get_next_state(self) -> ProcessState | None:
-        return self._new_state_factory(self.process) if self.is_valid() else None
+        return self._new_state_factory(self.process) if not self.is_valid() else None
 
 
 class SleepProcessState(ProcessState, NewStateByValidationProcessStateMixin):
@@ -1159,7 +1159,7 @@ class AppFactory(IAppFactory, metaclass=AttributesTransmitterMeta):
 
     def _get_resource_parsers_from(self, world: World) -> tuple[RenderResourceParser]:
         resource_parsers = tuple(filter(
-            lambda handler: isinstance(unit_handler, RenderResourceParser),
+            lambda handler: isinstance(handler, RenderResourceParser),
             world.unit_handlers
         ))
 
