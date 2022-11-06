@@ -551,6 +551,12 @@ class TicksSleepLoopHandler(SleepLoopHandler):
         self._sleep_function(self.ticks_to_sleep)
 
 
+class StandardSleepLoopHandler(TicksSleepLoopHandler, AlwaysReadyForSleepLoopHandler):
+    """TicksSleepLoopHandler child class using the standard sleep function."""
+
+    _sleep_function = sleep
+
+
 class CustomTicksSleepLoopHandler(TicksSleepLoopHandler):
     """TicksSleepLoopHandler child class using the input _sleep_function."""
 
