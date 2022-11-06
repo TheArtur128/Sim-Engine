@@ -158,9 +158,6 @@ class FlagProcessState(ProcessState, NewStateByValidationProcessStateMixin):
     def is_valid(self) -> Report:
         return Report(self._is_standing)
 
-    def update(self) -> None:
-        pass
-
     @classmethod
     def create_flag_state(
         cls,
@@ -176,6 +173,9 @@ class FlagProcessState(ProcessState, NewStateByValidationProcessStateMixin):
             bases + (cls, ),
             {'is_standing': is_standing} | attributes
         )
+
+    def _handle(self) -> None:
+        pass
 
 
 class IProcess(IUpdatable, ABC):
