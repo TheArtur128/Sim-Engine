@@ -767,7 +767,9 @@ class ProcessMovableUnit(MovableUnit, ABC):
         return self._moving_process.next_unit_position
 
     def move(self) -> None:
+        self._moving_process.update()
         super().move()
+        
         self._moving_process.state = UnitMovingProcessState(self._moving_process)
 
 
