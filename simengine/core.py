@@ -664,6 +664,10 @@ class DeepPartDiscreteMixin(IDiscretable, ABC):
 class DiscreteUnit(IUpdatable, StructuredPartDiscreteMixin, DeepPartDiscreteMixin, ABC):
     """Discrete unit class containing other units."""
 
+    @abstractmethod
+    def init_parts(self, *args, **kwargs) -> None:
+        pass
+
 
 class AnyPartMixin:
     """Mixin for illegible addition of parts."""

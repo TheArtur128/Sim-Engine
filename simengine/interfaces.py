@@ -27,10 +27,6 @@ class IDiscretable(ABC):
     def deep_parts(self) -> frozenset[IUpdatable]:
         """Property to get all parts including parts of the parts themselves."""
 
-    @abstractmethod
-    def init_parts(self, *args, **kwargs) -> None:
-        pass
-
 
 class IMovable(ABC):
     """Interface for objects capable of moving."""
