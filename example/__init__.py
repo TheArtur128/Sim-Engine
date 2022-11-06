@@ -130,7 +130,7 @@ CustomAppFactory((
 ))(
     CustomWorld(
         [black_unit, red_unit, unit_spawner],
-        [UnitUpdater, WorldProcessesActivator, UnitMover, RenderResourceParser]
+        [UnitMover, WorldProcessesActivator, UnitMover, UnitAvatarRenderResourceParser]
     ),
     (
         PygameSurfaceRender(
