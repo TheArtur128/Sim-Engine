@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Callable, Iterable, Optional, Generator, Self
 
 from beautiful_repr import StylizedMixin, Field
+from colorama import Style
 
 from simengine.geometry import Vector
 from simengine.interfaces import IUpdatable, IRenderRersourceKeeper, IAvatar, IRenderActivatorFactory
@@ -253,6 +254,40 @@ class SurfaceKeeper:
     @property
     def surfaces(self) -> tuple:
         return self._surfaces
+
+
+class ConsoleCell:
+    """Console cell view class. Stores the immediate content and its style."""
+
+    def __init__(self, sign: str, style: Iterable[str] = tuple()):
+        self.sign = sign
+        self.style = style
+
+    def __str__(self) -> str:
+        return str().join((self.style, self.sign, Style.RESET_ALL if self.style else ''))
+
+    @property
+    def sign(self) -> str:
+        """Cell content property."""
+
+        return self.__sign
+
+    @sign.setter
+    def sign(self, sign: str) -> None:
+        self.__sign = sign[:1]
+
+    @property
+    def style(self) -> str:
+        """
+        Cell style property.
+        By definition, be an ANSI code or something based on it.
+        """
+
+        return self.__style
+
+    @style.setter
+    def style(self, style: Iterable[str]) -> None:
+        self.__style = str().join(style)
 
 
 class RenderActivator(IUpdatable):
