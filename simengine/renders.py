@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod, ABCMeta
 from dataclasses import dataclass
 from typing import Callable, Iterable, Optional, Generator, Self
+from os import get_terminal_size
 
 from beautiful_repr import StylizedMixin, Field
 from colorama import Style
@@ -363,6 +364,132 @@ class ConsoleScene:
         ]
 
 
+class ConsoleRender(IRender):
+    """
+    Console rendering class.
+
+    In the absence of access to the console by the system or due to some other
+    reason, it can still be active, but without any results. Not designed for
+    high fps rendering since the console may flash in the first and last line
+    due to slow output (relative to the difference in time between two \"frames\")
+    to this very console.
+
+    Accepts strings and a ConsoleCell as atomic render data.
+    """
+
+    def __init__(
+        self,
+        default_filled_cell: ConsoleCell = ConsoleCell('#'),
+        empty_cell: ConsoleCell = ConsoleCell(' ')
+    ):
+        self.default_filled_cell = default_filled_cell
+        self.__scene = ConsoleScene(self._console_size, empty_cell)
+
+    @property
+    def empty_cell(self) -> ConsoleCell:
+        """Cell property that defines unoccupied other cells."""
+
+        return self.__scene.default_empty_cell
+
+    @empty_cell.setter
+    def empty_cell(self, empty_cell: ConsoleCell) -> None:
+        self.__scene.default_empty_cell = empty_cell
+
+    def __call__(self, resource_pack: ResourcePack) -> None:
+        self.draw_resource_pack(resource_pack)
+
+    def draw_resource_pack(self, resource_pack: ResourcePack) -> None:
+        self._insert_resource_pack_into_scene(resource_pack)
+        self._draw_current_scene()
+
+    def draw_scene(self, resource_packs: Iterable[ResourcePack]) -> None:
+        self._clear_scene()
+
+        for resource_pack in resource_packs:
+            self._insert_resource_pack_into_scene(resource_pack)
+
+        self._draw_current_scene()
+
+    def clear_surfaces(self) -> None:
+        self._clear_scene()
+
+    @property
+    def _scene(self) -> ConsoleScene:
+        """Active render scene property."""
+
+        return self.__scene
+
+    @property
+    def _console_size(self) -> tuple[int, int]:
+        """Real size property of the console."""
+
+        try:
+            terminal_size = get_terminal_size()
+            return (terminal_size.columns, terminal_size.lines - 1)
+        except OSError:
+            return (0, 0)
+
+    def _draw_current_scene(self) -> None:
+        """Method for outputting a saved frame to the console."""
+
+        if all(self.__scene.size):
+            print('\n' + str(self.__scene))
+
+    def _clear_scene(self) -> None:
+        """Method for clearing the active frame from all elements lying on it."""
+
+        self.__scene.reset(self._console_size)
+
+    def _insert_resource_pack_into_scene(self, resource_pack: ResourcePack) -> None:
+        """Method for inserting data from the resource pack into the active frame."""
+
+        resource_pack = self._get_usable_resource_pack(resource_pack)
+
+        self.__scene[resource_pack.point] = str(resource_pack.resource)
+
+    def _get_usable_resource_pack(self, resource_pack: ResourcePack) -> ResourcePack:
+        """Method for getting the given resource pack into the correct form for rendering."""
+
+        return ResourcePack(
+            resource=self._get_usable_cell_from(resource_pack),
+            point=tuple(map(
+                int,
+                (
+                    resource_pack.point.coordinates[:2]
+                    if isinstance(resource_pack.point, Vector) else resource_pack.point
+                )
+            ))
+        )
+
+    def _get_usable_cell_from(self, resource_pack: ResourcePack) -> ConsoleCell:
+        """
+        Atomic method for converting data from a resource pack into the correct
+        form of ConsoleCell.
+        """
+
+        sign = None
+        style = None
+
+        if isinstance(resource_pack.resource, ConsoleCell):
+            sign = resource_pack.resource.sign
+            if resource_pack.resource.style:
+                style = resource_pack.resource.style
+        else:
+            if hasattr(resource_pack, 'style') and isinstance(resource_pack.style, str) and resource_pack.style:
+                style = resource_pack.style
+
+            sign = (
+                resource_pack.resource
+                if isinstance(resource_pack.resource, str) and resource_pack.resource
+                else elf.default_filled_cell.sign
+            )
+
+        if not style:
+            style = self.default_filled_cell.style
+
+        return ConsoleCell(sign, style)
+
+
 class RenderActivator(IUpdatable):
     """
     Unit class that activates the rendering of scenes from resource packs.
@@ -388,7 +515,7 @@ class RenderActivator(IUpdatable):
 
 class CustomRenderActivatorFactory(CustomArgumentFactory, IRenderActivatorFactory):
     """Class of factory render activators."""
-    
+
     def __call__(
         self,
         render_resource_keepers: Iterable[IRenderRersourceKeeper],
