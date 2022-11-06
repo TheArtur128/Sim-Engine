@@ -179,6 +179,12 @@ def get_collection_with_reduced_nesting_level_by(
     return collection
 
 
+def convert_fps_to_seconds(seconds: int | float) -> float:
+    """Function that converts seconds to fps."""
+    
+    return 1 / seconds
+
+
 class IValueTransformer(ABC):
     """
     Interface representing an atomic value converter to reduce dependencies on
