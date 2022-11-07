@@ -633,7 +633,7 @@ class StructuredPartDiscreteMixin(IDiscretable, ABC, metaclass=AttributesTransmi
             if not hasattr(self, part_attribute_name):
                 continue
 
-            attribute_value = getattr(self, part_attribute)
+            attribute_value = getattr(self, part_attribute_name)
 
             append_method = getattr(
                 parts,
@@ -769,7 +769,7 @@ class ProcessMovableUnit(MovableUnit, ABC):
     def move(self) -> None:
         self._moving_process.update()
         super().move()
-        
+
         self._moving_process.state = UnitMovingProcessState(self._moving_process)
 
 

@@ -481,7 +481,7 @@ class ConsoleRender(IRender):
             sign = (
                 resource_pack.resource
                 if isinstance(resource_pack.resource, str) and resource_pack.resource
-                else elf.default_filled_cell.sign
+                else self.default_filled_cell.sign
             )
 
         if not style:
