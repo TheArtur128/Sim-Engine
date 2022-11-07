@@ -379,8 +379,8 @@ class ConsoleRender(IRender):
 
     def __init__(
         self,
-        default_filled_cell: ConsoleCell = ConsoleCell('#'),
-        empty_cell: ConsoleCell = ConsoleCell(' ')
+        empty_cell: ConsoleCell,
+        default_filled_cell: ConsoleCell = ConsoleCell('#')
     ):
         self.default_filled_cell = default_filled_cell
         self.__scene = ConsoleScene(self._console_size, empty_cell)
