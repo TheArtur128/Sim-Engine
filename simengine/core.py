@@ -620,7 +620,8 @@ class StructuredPartDiscreteMixin(IDiscretable, ABC, metaclass=AttributesTransmi
         parts = self._get_parts()
 
         for part in parts:
-            part.master = self
+            if isinstance(part, Dependent):
+                part.master = self
 
         return parts
 
