@@ -81,9 +81,7 @@ class SnakeEvent(Process, ABC):
         return (self.snake, )
 
 
-class SnakeTailLengthKepeerEvent(SnakeEvent, DelayedProcess):
-    _ticks_of_inactivity = 1
-
+class SnakeTailLengthKepeerEvent(SnakeEvent):
     def __init__(self, snake: Snake, tail_length_diapason: Diapason, tail_number: int = 1):
         super().__init__(snake)
         self.tail_number = tail_number
@@ -97,8 +95,6 @@ class SnakeTailLengthKepeerEvent(SnakeEvent, DelayedProcess):
             self.__is_growing_mode = False
 
         getattr(self.snake, 'grow_tail' if self.__is_growing_mode else 'cut_tail')(self.tail_number)
-
-        self.activate_delay()
 
     __is_growing_mode: bool = True
 
