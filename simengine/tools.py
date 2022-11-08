@@ -23,6 +23,11 @@ class Arguments:
     args: tuple
     kwargs: dict
 
+    def call_for(self, function: Callable) -> any:
+        """Method for calling a function with arguments in a dataclass object."""
+
+        return function(*self.args, **self.kwargs)
+
     @classmethod
     def create_via_call(cls, *args, **kwargs) -> Self:
         """
