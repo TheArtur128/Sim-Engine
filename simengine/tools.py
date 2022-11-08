@@ -31,7 +31,7 @@ class Arguments:
     @classmethod
     def create_via_call(cls, *args, **kwargs) -> Self:
         """
-        method that allows you to create Arguments with args and kwargs as
+        Method that allows you to create Arguments with args and kwargs as
         inputs to this function.
         """
 
@@ -186,7 +186,7 @@ def get_collection_with_reduced_nesting_level_by(
 
 def convert_fps_to_seconds(seconds: int | float) -> float:
     """Function that converts seconds to fps."""
-    
+
     return 1 / seconds
 
 
