@@ -783,6 +783,10 @@ class BadReportHandler(ReportHandler):
     def is_supported_report(self, report: Report) -> bool:
         return not report.sign
 
+    @classmethod
+    def create_from_error(cls, error: Exception) -> Self:
+        return cls(type(error), str(error))
+
 
 class ReportAnalyzer:
     """Action chain class from report handlers for, respectively, reports."""
