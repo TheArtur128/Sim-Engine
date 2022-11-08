@@ -298,6 +298,9 @@ class ProxyProcess(IProcess, ABC):
     def start(self) -> None:
         self.process.start()
 
+    def update(self) -> None:
+        self._process.update()
+
 
 class StrictToParticipantsProcess(Process, ABC):
     """Process class that has strict restrictions on the states of its participants."""
@@ -834,9 +837,6 @@ class SpeedLimitedProxyMovingProcess(ProxyMovingProcess):
             if vector_to_next_position.length <= self.speed_limit
             else vector_to_next_position.get_reduced_to_length(self.speed_limit)
         )
-
-    def update(self) -> None:
-        pass
 
 
 class UnitMovingProcessState(FlagProcessState):
