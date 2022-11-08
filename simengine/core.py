@@ -657,6 +657,8 @@ class DeepPartDiscreteMixin(IDiscretable, ABC):
 
             if hasattr(part, "deep_parts"):
                 found_parts.update(part.deep_parts)
+            elif hasattr(part, "parts"):
+                found_parts.update(part.parts)
 
         return found_parts
 
