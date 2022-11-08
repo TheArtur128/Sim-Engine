@@ -401,9 +401,6 @@ class DelayedProcess(Process, ABC):
 
     _ticks_of_inactivity: int
 
-    def start(self) -> None:
-        self.activate_delay()
-
     def activate_delay(self) -> None:
         """Logic execution delay resume method."""
 
