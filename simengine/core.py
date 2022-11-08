@@ -669,11 +669,7 @@ class DiscreteUnit(IUpdatable, StructuredPartDiscreteMixin, DeepPartDiscreteMixi
         pass
 
 
-class AnyPartMixin:
-    """Mixin for illegible addition of parts."""
 
-    def __create_parts__(self, *parts) -> Iterable[IUpdatable]:
-        return parts
 
 
 class TactileUnit(IUpdatable, ABC):
