@@ -10,27 +10,31 @@ class UnsupportedProcessError(ProcessKeeperError):
     pass
 
 
+class InteractionError(SimulationError):
+    pass
+
+
+class UnmetDependencyError(SimulationError):
+    pass
+
+
+class WorldInhabitantsHandlerError(SimulationError):
+    pass
+
+
+class UnsupportedInhabitantForHandlerError(WorldInhabitantsHandlerError):
+    pass
+
+
 class UnitError(SimulationError):
     pass
 
 
-class UnitRelationError(UnitError):
+class DiscreteError(SimulationError):
     pass
 
 
-class DiscreteUnitError(UnitError):
-    pass
-
-
-class NotSupportPartError(DiscreteUnitError):
-    pass
-
-
-class UnitPartError(UnitError):
-    pass
-
-
-class UnsupportedUnitForHandlerError(UnitError):
+class NotSupportPartError(DiscreteError):
     pass
 
 

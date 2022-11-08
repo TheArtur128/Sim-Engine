@@ -20,12 +20,24 @@ class IDiscretable(ABC):
 
     @property
     @abstractmethod
-    def parts(self) -> frozenset[IUpdatable]:
+    def parts(self) -> frozenset[object]:
         """The property of getting objects directly lying in this object."""
 
     @property
-    def deep_parts(self) -> frozenset[IUpdatable]:
+    def deep_parts(self) -> frozenset[object]:
         """Property to get all parts including parts of the parts themselves."""
+
+
+class IInteractive(ABC):
+    """Interface of an object capable of responding to another object."""
+
+    @abstractmethod
+    def interact_with(self, passive: object) -> None:
+        """Method for starting interaction with the input object."""
+
+    @abstractmethod
+    def is_support_interaction_with(self, passive: object) -> 'Report':
+        """Method describing object support for interacting with it."""
 
 
 class IMovable(ABC):
@@ -136,7 +148,7 @@ class IZoneFactory(ABC):
 class IBilateralProcessFactory(ABC):
     """
     Interface for creating a separate process that implements the relationship
-    of two units.
+    of two objects.
     """
 
     @property
@@ -145,7 +157,7 @@ class IBilateralProcessFactory(ABC):
         """Property holding the type of the subsequently created process."""
 
     @abstractmethod
-    def __call__(self, active_unit: IUpdatable, passive_unit: IUpdatable) -> 'IProcess':
+    def __call__(self, active: object, passive: object) -> 'IProcess':
         """
         Process creation method that has two arguments: a process's exciter and
         its acceptor.

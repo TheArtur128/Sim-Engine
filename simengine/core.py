@@ -505,26 +505,20 @@ class MultitaskingUnit(ProcessKeeper, IUpdatable, ABC):
     """Unit class implementing process support."""
 
 
-class InteractiveUnit(IUpdatable, ABC):
-    """Unit class that can interact with other units."""
+class InteractiveMixin(IInteractive, ABC):
+    """Interactive base implementation class."""
 
     _interaction_report_analyzer = ReportAnalyzer((BadReportHandler(
-        UnitRelationError,
-        "Unit can't interact"
+        InteractionError,
+        "Object can't interact"
     ), ))
 
-    def interact_with(self, unit: IUpdatable) -> None:
-        """Method for starting interaction with the input unit."""
-
-        self._interaction_report_analyzer(self.is_support_interaction_with(unit))
-        self._handle_interaction_with(unit)
+    def interact_with(self, passive: object) -> None:
+        self._interaction_report_analyzer(self.is_support_interaction_with(passive))
+        self._handle_interaction_with(passive)
 
     @abstractmethod
-    def is_support_interaction_with(self, unit: IUpdatable) -> Report:
-        """Method describing unit support for interacting with it."""
-
-    @abstractmethod
-    def _handle_interaction_with(self, unit: IUpdatable) -> None:
+    def _handle_interaction_with(self, passive: object) -> None:
         """Method that implements the logic of interaction with a particular unit."""
 
 
@@ -535,10 +529,10 @@ class _ObjectFactoriesCash(NamedTuple):
     factories: tuple[IBilateralProcessFactory | StrictToParticipantsProcess]
 
 
-class ProcessInteractiveUnit(InteractiveUnit, MultitaskingUnit, ABC):
+class ProcessInteractiveMixin(InteractiveMixin, ProcessKeeper, ABC):
     """
-    Unit class that implements interaction with units by creating two-way
-    processes by unit type.
+    Mixin that implements interaction by creating two-way processes by object
+    type.
 
     The two-way process factories for interaction are stored in the
     _bilateral_process_factories attribute. The content of the attribute can
@@ -548,61 +542,65 @@ class ProcessInteractiveUnit(InteractiveUnit, MultitaskingUnit, ABC):
 
     _bilateral_process_factories: Iterable[IBilateralProcessFactory | type]
 
-    def is_support_interaction_with(self, unit: IUpdatable) -> Report:
+    def is_support_interaction_with(self, passive: object) -> Report:
         return (
             Report(
-                bool(self._get_suported_process_factories_for(unit)),
+                bool(self._get_suported_process_factories_for(passive)),
                 error=IncorrectUnitInteractionError("No possible processes to occur")
             )
         )
 
-    def _handle_interaction_with(self, unit: IUpdatable) -> None:
-        for factory in self._get_suported_process_factories_for(unit):
-            process = factory(self, unit)
+    def _handle_interaction_with(self, passive: object) -> None:
+        for factory in self._get_suported_process_factories_for(passive):
+            process = factory(self, passive)
             process.start()
 
             self.add_process(process)
 
-    def _get_suported_process_factories_for(self, unit: IUpdatable) -> tuple[IBilateralProcessFactory]:
-        """Method for getting corresponding factories by unit."""
+    def _get_suported_process_factories_for(self, passive: object) -> tuple[IBilateralProcessFactory]:
+        """Method for getting corresponding factories by object."""
 
-        return self.__get_cachedly_suported_process_factories_for(unit)
+        return self.__get_cachedly_suported_process_factories_for(passive)
 
-    def __get_cachedly_suported_process_factories_for(self, unit: IUpdatable) -> tuple[IBilateralProcessFactory]:
+    def __get_cachedly_suported_process_factories_for(self, passive: object) -> tuple[IBilateralProcessFactory]:
         """Method for getting matching factories by unit using cache."""
 
-        if unit is self.__cashed_factories_for_object.object_:
+        if passive is self.__cashed_factories_for_object.object_:
             return self.__cashed_factories_for_object.factories
 
         factories = tuple(
             (
                 factory.process_type if hasattr(factory, 'process_type') else factory
-            ).is_support_participants((self, unit))
+            ).is_support_participants((self, passive))
             for factory in self._bilateral_process_factories
         )
-        self.__cashed_factories_for_object = _ObjectFactoriesCash(unit, factories)
+        self.__cashed_factories_for_object = _ObjectFactoriesCash(passive, factories)
 
         return factories
 
     __cashed_factories_for_object: _ObjectFactoriesCash = _ObjectFactoriesCash(object(), tuple())
 
 
-class DependentUnit(IUpdatable, ABC):
-    """Unit class that has a reference to another unit."""
+class InteractiveUnit(InteractiveMixin, IUpdatable, ABC):
+    """Unit class that can interact with other units."""
+
+
+class Dependent:
+    """Class annotating the need for a dependency on another object."""
 
     master: IUpdatable | None = None
 
 
-class PartUnit(DependentUnit, StrictToStateMixin, StylizedMixin, ABC):
-    """Unit class that is part of another unit. Cannot be computed without a principal."""
+class StrictDependent(Dependent, StrictToStateMixin, StylizedMixin):
+    """Dependent child class that must have a master for the correct state."""
 
     _repr_fields = (Field("master"), )
-    _state_report_analyzer = ReportAnalyzer((BadReportHandler(UnitPartError), ))
+    _state_report_analyzer = ReportAnalyzer((BadReportHandler(UnmetDependencyError), ))
 
     def _is_correct(self) -> Report:
         return Report(
             self.master is not None,
-            error=UnitPartError(f"Part unit {self} must have a master")
+            message=f"{self} must have a master"
         )
 
 
@@ -618,7 +616,7 @@ class StructuredPartDiscreteMixin(IDiscretable, ABC, metaclass=AttributesTransmi
     _part_attribute_names: tuple[str]
 
     @property
-    def parts(self) -> frozenset[DependentUnit]:
+    def parts(self) -> frozenset[object]:
         parts = self._get_parts()
 
         for part in parts:
@@ -626,7 +624,7 @@ class StructuredPartDiscreteMixin(IDiscretable, ABC, metaclass=AttributesTransmi
 
         return parts
 
-    def _get_parts(self) -> frozenset[DependentUnit]:
+    def _get_parts(self) -> frozenset[object]:
         parts = list()
 
         for part_attribute_name in self._part_attribute_names:
@@ -649,7 +647,7 @@ class DeepPartDiscreteMixin(IDiscretable, ABC):
     """Mixin with the implementation of getting all parts for the Discrete interface."""
 
     @property
-    def deep_parts(self) -> frozenset[IUpdatable]:
+    def deep_parts(self) -> frozenset[object]:
         found_parts = set()
 
         for part in self.parts:
@@ -668,14 +666,41 @@ class DiscreteUnit(IUpdatable, StructuredPartDiscreteMixin, DeepPartDiscreteMixi
 
     @abstractmethod
     def init_parts(self, *args, **kwargs) -> None:
-        pass
+        """Method for initializing parts of a unit."""
 
 
+class DiscreteUnitFactory(ABC):
+    """
+    Factory class for simultaneous creation and initialization of parts of a
+    discrete unit.
+
+    Creates a unit from the input arguments and initializes the parts using the
+    stored.
+
+    Stores the unit's factory in the _unit_factory attribute and the arguments
+    to initialize its parts in the _unit_part_initialization_arguments attribute.
+    """
+
+    _unit_factory: Callable[[], DiscreteUnit]
+    _unit_part_initialization_arguments: Arguments
+
+    def __call__(self, *args, **kwargs) -> DiscreteUnit:
+        unit = self._unit_factory(*args, **kwargs)
+        self._unit_part_initialization_arguments.call_for(unit.init_parts)
+
+        return unit
 
 
+class CustomDiscreteUnitFactory(DiscreteUnitFactory):
+    """DiscreteUnitFactory with input attributes to create a unit and its parts."""
 
-class TactileUnit(IUpdatable, ABC):
-    """Unit class having a specific body."""
+    def __init__(self, unit_factory: Callable[[], DiscreteUnit], unit_part_initialization_arguments: Arguments):
+        self._unit_factory = unit_factory
+        self._unit_part_initialization_arguments = unit_part_initialization_arguments
+
+
+class ZoneKeeper(ABC):
+    """Class having a specific body as a zone."""
 
     _zone_factory: IZoneFactory
 
@@ -687,31 +712,42 @@ class TactileUnit(IUpdatable, ABC):
         return self._zone
 
 
-class PositionalUnit(TactileUnit, StylizedMixin, ABC):
-    """Unit class having position and visual representation."""
+class PositionalKeeper(ZoneKeeper, StylizedMixin, ABC):
+    """Class having position and visual representation."""
 
     _repr_fields = (Field('position'), )
     _zone_factory = CustomFactory(lambda unit: Site(unit.position))
 
-    _avatar_factory: IAvatarFactory = CustomFactory(lambda unit: None)
-
     def __init__(self, position: Vector):
         self._position = position
         super().__init__()
-
-        self._avatar = self._avatar_factory(self)
-
-    @property
-    def avatar(self) -> IAvatar | None:
-        return self._avatar
 
     @property
     def position(self) -> Vector:
         return self._position
 
 
-class MovableUnit(PositionalUnit, IMovable, ABC):
-    """Unit class providing dynamic position."""
+class AvatarKeeper(PositionalKeeper, ABC):
+    """
+    Class that allows an avatar to build visual projections based on objects of
+    this class.
+
+    Creates its own avatar using the factory in the _avatar_factory attribute.
+    """
+
+    _avatar_factory: IAvatarFactory
+
+    def __init__(self, position: Vector):
+        super().__init__()
+        self._avatar = self._avatar_factory(self)
+
+    @property
+    def avatar(self) -> IAvatar:
+        return self._avatar
+
+
+class MovablePositionalKeeper(PositionalKeeper, IMovable, ABC):
+    """Сlass providing dynamic position."""
 
     def __init__(self, position: Vector):
         super().__init__(position)
@@ -736,16 +772,16 @@ class MovableUnit(PositionalUnit, IMovable, ABC):
 
     def _update_zone_position(self) -> None:
         """
-        Method of movement of a unit's zone according to the vector of the last
-        movement of the unit itself.
+        Method of movement of a object's zone according to the vector of the last
+        movement of the object itself.
         """
 
         self._zone.move_by(DynamicTransporter(self.position - self.previous_position))
 
 
-class ProcessMovableUnit(MovableUnit, ABC):
+class ProcessMovablePositionalKeeper(MovablePositionalKeeper, ABC):
     """
-    Movable unit class delegating calculation of next position to a special process.
+    Movable class delegating calculation of next position to a special process.
 
     Creates a moving process by the corresponding _moving_process_factory attribute.
     """
@@ -762,7 +798,7 @@ class ProcessMovableUnit(MovableUnit, ABC):
 
     @property
     def next_position(self) -> Vector:
-        return self._moving_process.next_unit_position
+        return self._moving_process.next_subject_position
 
     def move(self) -> None:
         self._moving_process.update()
@@ -772,46 +808,46 @@ class ProcessMovableUnit(MovableUnit, ABC):
 
 
 class IMovingProcess(IProcess, ABC):
-    """Process interface that calculates the next position of the unit."""
+    """Process interface that calculates the next position of an object."""
 
     @property
     @abstractmethod
-    def movable_unit(self) -> ProcessMovableUnit:
-        """Unit property for which the next position is calculated."""
+    def subject(self) -> ProcessMovablePositionalKeeper:
+        """Subject property for which the next position is calculated."""
 
     @property
     @abstractmethod
-    def next_unit_position(self) -> Vector:
-        """Unit's computed next position property."""
+    def next_subject_position(self) -> Vector:
+        """Subject's computed next position property."""
 
 
 class MovingProcess(Process, IMovingProcess, ABC):
     """MovingProcess Interface Implementation."""
 
-    is_support_participants = CallableProxyReporter((TypeReporter((ProcessMovableUnit, )), ))
+    is_support_participants = CallableProxyReporter((TypeReporter((ProcessMovablePositionalKeeper, )), ))
 
-    def __init__(self, movable_unit: ProcessMovableUnit):
-        self._movable_unit = movable_unit
-
-    @property
-    def participants(self) -> tuple[ProcessMovableUnit]:
-        return self._movable_unit
+    def __init__(self, subject: ProcessMovablePositionalKeeper):
+        self._subject = subject
 
     @property
-    def movable_unit(self) -> ProcessMovableUnit:
-        return self._movable_unit
+    def participants(self) -> tuple[ProcessMovablePositionalKeeper]:
+        return self._subject
+
+    @property
+    def subject(self) -> ProcessMovablePositionalKeeper:
+        return self._subject
 
 
 class ProxyMovingProcess(ProxyProcess, IMovingProcess, ABC):
     """Process proxy class for a mobile process."""
 
     @property
-    def movable_unit(self) -> ProcessMovableUnit:
-        return self.process.movable_unit
+    def subject(self) -> ProcessMovablePositionalKeeper:
+        return self.process.subject
 
     @property
-    def next_unit_position(self) -> Vector:
-        return self.process.next_unit_position
+    def next_subject_position(self) -> Vector:
+        return self.process.next_subject_position
 
 
 class SpeedLimitedProxyMovingProcess(ProxyMovingProcess):
@@ -828,13 +864,13 @@ class SpeedLimitedProxyMovingProcess(ProxyMovingProcess):
         return self._speed_limit
 
     @property
-    def next_unit_position(self) -> Vector:
+    def next_subject_position(self) -> Vector:
         vector_to_next_position = (
-            self.process.next_unit_position
-            - self.process.movable_unit.previous_position
+            self.process.next_subject_position
+            - self.process.subject.previous_position
         )
 
-        return self.process.movable_unit.position + (
+        return self.process.subject.position + (
             vector_to_next_position
             if vector_to_next_position.length <= self.speed_limit
             else vector_to_next_position.get_reduced_to_length(self.speed_limit)
@@ -848,13 +884,13 @@ class UnitMovingProcessState(FlagProcessState):
 class DirectedMovingProcess(MovingProcess):
     """Moving process class using a public vector."""
 
-    def __init__(self, movable_unit: ProcessMovableUnit):
-        super().__init__(movable_unit)
-        self.vector_to_next_unit_position = Vector()
+    def __init__(self, subject: ProcessMovablePositionalKeeper):
+        super().__init__(subject)
+        self.vector_to_next_subject_position = Vector()
 
     @property
-    def next_unit_position(self) -> Vector:
-        return self.movable_unit.position + self.vector_to_next_unit_position
+    def next_subject_position(self) -> Vector:
+        return self.subject.position + self.vector_to_next_subject_position
 
     def _handle(self):
         pass
@@ -879,126 +915,148 @@ class AbruptImpulseProcess(ImpulseMovingProcess):
     _impulse_changer = CustomFactory(lambda original_vector: Vector())
 
 
-class SpeedLimitedUnit(ProcessMovableUnit, ABC):
-    """Unit class with motion preconfiguration."""
+class MultilayerProcessMovablePositionalKeeperMeta(AttributesTransmitterMeta):
+    """
+    Meta class for combining all factories of proxy moving processes into one.
 
-    _speed_limit: int | float
-    _moving_process_factory = CustomDecoratorFactory(
-        CustomFactory(SpeedLimitedProxyMovingProcess, speed_limit=None),
-        AbruptImpulseProcess
-    )
+    Merges factories from the _proxy_moving_process_factories attribute into the
+    _multilayer_proxy_process_factory attribute.
+    """
+
+    _attribute_names_to_parse = ('_proxy_moving_process_factories', )
+
+    _proxy_moving_process_factories: Iterable[Callable[[IProcess], IProcess]]
+    _multilayer_proxy_process_factory: Callable[[Self], IMovingProcess]
+
+    def __new__(cls, class_name: str, super_classes: tuple, attributes: dict):
+        isinstance_type = super().__new__(cls, class_name, super_classes, attributes)
+
+        for proxy_moving_process_factory in isinstance_type._proxy_moving_process_factories:
+            isinstance_type._multilayer_proxy_process_factory = CustomDecoratorFactory(
+                proxy_moving_process_factory,
+                isinstance_type._multilayer_proxy_process_factory
+            )
+
+        return isinstance_type
+
+
+class MultilayerProcessMovablePositionalKeeper(ProcessMovablePositionalKeeper, ABC, metaclass=MultilayerProcessMovablePositionalKeeperMeta):
+    """
+    Child class ProcessMovablePositionalKeeper with native implementation of
+    building a motion process factory by the proxy process factories.
+    """
 
     def __init__(self, position: Vector):
-        self._moving_process_factory.decorator_factory.arguments_for_factory.kwargs['speed_limit'] = self._speed_limit
+        self._moving_process_factory = CustomDecoratorFactory(
+            self._multilayer_proxy_process_factory,
+            self._moving_process_factory
+        )
+
         super().__init__(position)
 
 
-class CustomSpeedLimitedUnit(SpeedLimitedUnit):
-    """SpeedLimitedUnit class for runtime creation."""
+class WorldInhabitantsHandler(ABC):
+    """Class that handles objects in a world."""
 
-    def __init__(self, position: Vector, speed_limit: int | float):
-        self._speed_limit = speed_limit
-        super().__init__(position)
-
-    @property
-    def speed_limit(self) -> int | float:
-        return self._speed_limit
-
-
-class UnitHandler(ABC):
-    """Class that handles units in the world."""
-
-    _unit_suitabing_report_analyzer = ReportAnalyzer((BadReportHandler(UnsupportedUnitForHandlerError), ))
+    _inhabitant_suitabing_report_analyzer = ReportAnalyzer(
+        (BadReportHandler(UnsupportedInhabitantForHandlerError), )
+    )
 
     def __init__(self, world: 'World'):
         self.world = world
 
-    def __call__(self, units: Iterable[IUpdatable]) -> None:
-        for unit in units:
-            self._unit_suitabing_report_analyzer(self.is_unit_suitable(unit))
+    def __call__(self, inhabitants: Iterable) -> None:
+        for inhabitant in inhabitants:
+            self._inhabitant_suitabing_report_analyzer(self.is_inhabitant_suitable(inhabitant))
 
-        self._handle_units(units)
-
-    def is_unit_suitable(self, unit: IUpdatable) -> Report:
-        return Report(isinstance(unit, IUpdatable))
+        self._handle_inhabitants(inhabitants)
 
     @abstractmethod
-    def _handle_units(self, units: Iterable[IUpdatable]) -> None:
-        """Handling method of world's units."""
-
-
-class TypeSuportingUnitHandler(UnitHandler, ABC, metaclass=TypeReporterKeeperMeta):
-    """UnitHandler class implementing unit support by delegating a type reporter."""
-
-    def is_unit_suitable(self, unit: IUpdatable) -> Report:
-        return self._type_reporter.create_report_of((unit, ))
-
-
-class FocusedUnitHandler(UnitHandler, ABC):
-    """UnitHandler class uniformly handles units."""
-
-    def _handle_units(self, units: Iterable[IUpdatable]) -> None:
-        for unit in units:
-            self._handle_unit(unit)
+    def is_inhabitant_suitable(self, inhabitant: object) -> Report:
+        """Method that returns a inhabitant support report for handling."""
 
     @abstractmethod
-    def _handle_unit(self, unit: IUpdatable) -> None:
-        """Single unit handling method."""
+    def _handle_inhabitants(self, inhabitants: Iterable[IUpdatable]) -> None:
+        """Handling method of world's inhabitants."""
 
 
-class UnitUpdater(FocusedUnitHandler):
-    """UnitHandler updating units."""
+class UnscrupulousWorldInhabitantsHandler(WorldInhabitantsHandler, ABC):
+    """WorldInhabitantsHandler child class that handles each inhabitant."""
 
-    def _handle_unit(self, unit: IUpdatable) -> None:
-        unit.update()
-
-
-class ProcessKeeperHandler(UnitHandler, ABC):
-    """UnitHandler handling the process keepers."""
-
-    def is_unit_suitable(self, unit: IUpdatable) -> Report:
-        return super().is_unit_suitable(unit) and Report(isinstance(unit, ProcessKeeper))
+    def is_inhabitant_suitable(self, inhabitant: object) -> Report:
+        return Report(True)
 
 
-class UnitProcessesActivator(FocusedUnitHandler, ProcessKeeperHandler):
-    """UnitHandler activating processes inside process keepers."""
+class TypeSuportingWorldInhabitantsHandler(WorldInhabitantsHandler, ABC, metaclass=TypeReporterKeeperMeta):
+    """
+    WorldInhabitantsHandler class implementing inhabitant support by delegating
+    a type reporter.
+    """
 
-    def _handle_unit(self, unit: IUpdatable) -> None:
-        unit.clear_completed_processes()
-        unit.activate_processes()
+    def is_inhabitant_suitable(self, inhabitant: object) -> Report:
+        return self._type_reporter.create_report_of((inhabitant, ))
 
 
-class WorldProcessesActivator(ProcessKeeper, ProcessKeeperHandler):
-    """UnitHandler connecting world processes with the world."""
+class FocusedWorldInhabitantsHandler(WorldInhabitantsHandler, ABC):
+    """WorldInhabitantsHandler child class uniformly handles inhabitants."""
+
+    def _handle_inhabitants(self, inhabitants: Iterable) -> None:
+        for inhabitant in inhabitants:
+            self._handle_inhabitant(inhabitant)
+
+    @abstractmethod
+    def _handle_inhabitant(self, inhabitant: object) -> None:
+        """Single inhabitant handling method."""
+
+
+class InhabitantUpdater(FocusedWorldInhabitantsHandler, TypeSuportingWorldInhabitantsHandler):
+    """WorldInhabitantsHandler child class updating inhabitants."""
+
+    _suported_types = (IUpdatable, )
+
+    def _handle_inhabitant(self, inhabitant: IUpdatable) -> None:
+        inhabitant.update()
+
+
+class InhabitantProcessesActivator(FocusedWorldInhabitantsHandler, TypeSuportingWorldInhabitantsHandler):
+    """WorldInhabitantsHandler child class activating processes inside process keepers."""
+
+    _suported_types = (IProcessKeeper, )
+
+    def _handle_inhabitant(self, inhabitant: object) -> None:
+        inhabitant.clear_completed_processes()
+        inhabitant.activate_processes()
+
+
+class WorldProcessesActivator(ProcessKeeper, FocusedWorldInhabitantsHandler, TypeSuportingWorldInhabitantsHandler):
+    """
+    WorldInhabitantsHandler child class connecting world processes from
+    inhabitants with the world.
+    """
+
+    _suported_types = (IProcessKeeper, )
 
     def __init__(self, world: 'World'):
         super().__init__()
-        super(ProcessKeeperHandler, self).__init__(world)
+        super(TypeSuportingWorldInhabitantsHandler, self).__init__(world)
 
-    def is_support_process(self, process: Process) -> Report:
-        return Report(isinstance(process, WorldProcess))
-
-    def add_process(self, process: Process) -> None:
+    def add_process(self, process: WorldProcess) -> None:
         process.world = self.world
         super().add_process(process)
 
-    def _handle_units(self, units: Iterable[MultitaskingUnit]) -> None:
+    def _handle_inhabitants(self, inhabitants: Iterable[WorldProcess]) -> None:
         self.clear_completed_processes()
-        self.__parse_world_processes_from(units)
+        super()._handle_inhabitants(inhabitants)
         self.activate_processes()
 
-    def __parse_world_processes_from(self, units: Iterable[MultitaskingUnit]) -> None:
-        for unit in units:
-            self.__handle_unit_processes(unit)
-
-    def __handle_unit_processes(self, unit: MultitaskingUnit) -> None:
-        for process in unit.processes:
+    def _handle_inhabitant(self, inhabitant: WorldProcess) -> None:
+        for process in inhabitant.processes:
             if isinstance(process, WorldProcess):
-                unit.remove_process(process)
+                inhabitant.remove_process(process)
                 self.add_process(process)
 
 
-class RenderResourceParser(FocusedUnitHandler, IRenderRersourceKeeper, ABC):
+class RenderResourceParser(WorldInhabitantsHandler, IRenderRersourceKeeper, ABC):
     """
     RenderRersourceKeeper class that takes its render resource packs thanks to
     handling the inhabitants of the world.
@@ -1015,53 +1073,55 @@ class RenderResourceParser(FocusedUnitHandler, IRenderRersourceKeeper, ABC):
     def clear_parsed_resource_packs(self) -> None:
         self._parsed_resource_packs = list()
 
-    def _handle_units(self, units: Iterable[IUpdatable]) -> None:
+    def _handle_inhabitants(self, inhabitants: Iterable) -> None:
         self.clear_parsed_resource_packs()
-        super()._handle_units(units)
+        super()._handle_inhabitants(inhabitants)
 
 
-class UnitAvatarRenderResourceParser(RenderResourceParser, TypeSuportingUnitHandler):
-    """RenderResourceParser taking packs from positional unit avatars."""
+class InhabitantAvatarRenderResourceParser(RenderResourceParser, FocusedWorldInhabitantsHandler, TypeSuportingWorldInhabitantsHandler):
+    """RenderResourceParser taking packs from avatars of avatar keeper inhabitants."""
 
-    _suported_types = PositionalUnit,
+    _suported_types = (AvatarKeeper, )
 
-    def _handle_unit(self, unit: IUpdatable) -> None:
-        unit.avatar.update()
-        self._parsed_resource_packs.extend(unit.avatar.render_resource_packs)
+    def _handle_inhabitant(self, inhabitant: AvatarKeeper) -> None:
+        inhabitant.avatar.update()
+        self._parsed_resource_packs.extend(inhabitant.avatar.render_resource_packs)
 
 
-class AvatarRenderResourceParser(RenderResourceParser, TypeSuportingUnitHandler):
+class AvatarRenderResourceParser(RenderResourceParser, FocusedWorldInhabitantsHandler, TypeSuportingWorldInhabitantsHandler):
     """RenderResourceParser taking packs from avatars inhabited in the world."""
 
-    _suported_types = IAvatar,
+    _suported_types = (IAvatar, )
 
-    def _handle_unit(self, unit: IAvatar) -> None:
-        self._parsed_resource_packs.extend(unit.render_resource_packs)
+    def _handle_inhabitant(self, inhabitant: IAvatar) -> None:
+        self._parsed_resource_packs.extend(inhabitant.render_resource_packs)
 
 
-class UnitRelationsActivator(UnitHandler):
-    """UnitHandler activating the relations of the units inhabited in the world."""
+class UnitRelationsActivator(WorldInhabitantsHandler):
+    """
+    WorldInhabitantsHandler activating the relations of the objects inhabited in
+    the world.
+    """
 
-    def _handle_units(self, units: Iterable[IUpdatable]) -> None:
-        for active_unit in units:
-            if not isinstance(active_unit, InteractiveUnit):
+    def _handle_inhabitants(self, inhabitants: Iterable) -> None:
+        for active_inhabitants in inhabitants:
+            if not isinstance(active_inhabitants, IInteractive):
                 continue
 
-            passive_units = set(units)
-            passive_units.remove(active_unit)
+            passive_inhabitants = set(inhabitants)
+            passive_inhabitants.remove(active_inhabitants)
 
-            for passive_unit in passive_units:
-                active_unit.interact_with(passive_unit)
+            for passive_inhabitant in passive_inhabitants:
+                active_inhabitants.interact_with(passive_inhabitant)
 
 
-class UnitMover(FocusedUnitHandler):
-    """UnitHandler activating movement of moving units."""
+class InhabitantMover(FocusedWorldInhabitantsHandler, TypeSuportingWorldInhabitantsHandler):
+    """WorldInhabitantsHandler activating movement of moving inhabitants."""
 
-    def is_unit_suitable(self, unit: IMovable) -> Report:
-        return super().is_unit_suitable(unit) and Report(isinstance(unit, IMovable))
+    _suported_types = ('IMovable', )
 
-    def _handle_unit(self, unit: IMovable) -> None:
-        unit.move()
+    def _handle_inhabitant(self, inhabitant: IMovable) -> None:
+        inhabitant.move()
 
 
 class World(IUpdatable, DeepPartDiscreteMixin, ABC):
@@ -1069,33 +1129,34 @@ class World(IUpdatable, DeepPartDiscreteMixin, ABC):
     The domain object habitat class.
 
     Delegates processing of domain entities to special handlers.
-    Creates handlers using factories stored in _unit_handler_factories attribute.
+    Creates handlers using factories stored in _inhabitant_handler_factories
+    attribute.
     """
 
-    _unit_handler_factories: Iterable[Callable[[Self], UnitHandler]]
+    _inhabitant_handler_factories: Iterable[Callable[[Self], WorldInhabitantsHandler]]
 
     def __init__(self, inhabitants: Iterable = tuple()):
         self.__inhabitant = set()
-        self._unit_handlers = tuple(
-            unit_handler_factory(self)
-            for unit_handler_factory in self._unit_handler_factories
+        self._inhabitant_handlers = tuple(
+            inhabitant_handler_factory(self)
+            for inhabitant_handler_factory in self._inhabitant_handler_factories
         )
 
         for inhabitant in inhabitants:
             self.add_inhabitant(inhabitant)
 
     @property
-    def parts(self) -> frozenset[IUpdatable]:
+    def parts(self) -> frozenset:
         return frozenset(self.__inhabitant)
 
     @property
-    def unit_handlers(self) -> tuple[UnitHandler]:
+    def inhabitant_handlers(self) -> tuple[WorldInhabitantsHandler]:
         """Property of handlers for world objects."""
 
-        return self._unit_handlers
+        return self._inhabitant_handlers
 
-    def is_inhabited_for(self, inhabitant: IUpdatable) -> bool:
-        return isinstance(inhabitant, IUpdatable) and not isinstance(inhabitant, World)
+    def is_inhabited_for(self, inhabitant: object) -> Report:
+        return Report(not isinstance(inhabitant, World))
 
     def add_inhabitant(self, inhabitant: IUpdatable) -> None:
         if not self.is_inhabited_for(inhabitant):
@@ -1107,11 +1168,11 @@ class World(IUpdatable, DeepPartDiscreteMixin, ABC):
         self.__inhabitant.remove(inhabitant)
 
     def update(self) -> None:
-        for unit_handler in self._unit_handlers:
-            unit_handler(
+        for inhabitant_handler in self._inhabitant_handlers:
+            inhabitant_handler(
                 tuple(
-                    unit for unit in self.deep_parts
-                    if unit_handler.is_unit_suitable(unit)
+                    inhabitant for inhabitant in self.deep_parts
+                    if inhabitant_handler.is_unit_suitable(inhabitant)
                 )
             )
 
@@ -1122,9 +1183,9 @@ class CustomWorld(World):
     def __init__(
         self,
         inhabitants: Iterable = tuple(),
-        unit_handler_factories: Iterable[Callable[[World], UnitHandler]] = tuple()
+        inhabitant_handler_factories: Iterable[Callable[[World], WorldInhabitantsHandler]] = tuple()
     ):
-        self._unit_handler_factories = tuple(unit_handler_factories)
+        self._inhabitant_handler_factories = tuple(inhabitant_handler_factories)
         super().__init__(inhabitants)
 
 
@@ -1156,8 +1217,8 @@ class AppFactory(IAppFactory, metaclass=AttributesTransmitterMeta):
 
     def _get_resource_parsers_from(self, world: World) -> tuple[RenderResourceParser]:
         resource_parsers = tuple(filter(
-            lambda handler: isinstance(handler, RenderResourceParser),
-            world.unit_handlers
+            lambda handler: isinstance(handler, IRenderRersourceKeeper),
+            world.inhabitant_handlers
         ))
 
         if resource_parsers:

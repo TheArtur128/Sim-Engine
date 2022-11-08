@@ -4,7 +4,7 @@ from typing import Callable, Iterable, Self
 
 from beautiful_repr import StylizedMixin, Field
 
-from simengine.core import PositionalUnit, MultitaskingUnit
+from simengine.core import AvatarKeeper, MultitaskingUnit
 from simengine.geometry import Vector
 from simengine.renders import ResourcePack
 from simengine.interfaces import IAvatar
@@ -12,14 +12,14 @@ from simengine.errors.avatar_errors import AnimationAlreadyFinishedError
 
 
 class Avatar(IAvatar, ABC):
-    """Base avatar with unit acquisition implementation."""
+    """Base avatar with domain object acquisition implementation."""
 
-    def __init__(self, unit: PositionalUnit):
-        self._unit = unit
+    def __init__(self, domain: AvatarKeeper):
+        self._domain = domain
 
     @property
-    def unit(self) -> PositionalUnit:
-        return self._unit
+    def domain(self) -> AvatarKeeper:
+        return self._domain
 
 
 class SingleResourcePackAvatar(Avatar, ABC):
@@ -32,7 +32,7 @@ class SingleResourcePackAvatar(Avatar, ABC):
         return (self._main_resource_pack, )
 
     def update(self) -> None:
-        self._main_resource_pack.point = self.unit.position
+        self._main_resource_pack.point = self.domain.position
 
 
 class ResourceAvatar(SingleResourcePackAvatar, StylizedMixin, ABC):
@@ -47,11 +47,11 @@ class ResourceAvatar(SingleResourcePackAvatar, StylizedMixin, ABC):
     _resource_factory: Callable[[Self], any]
     _resource_pack_factory: Callable[[any, Vector], ResourcePack] = ResourcePack
 
-    def __init__(self, unit: PositionalUnit):
-        super().__init__(unit)
+    def __init__(self, domain: AvatarKeeper):
+        super().__init__(domain)
         self._main_resource_pack = self._resource_pack_factory(
             self._resource_factory(self),
-            self.unit.position
+            self.domain.position
         )
 
     @property
@@ -62,11 +62,11 @@ class ResourceAvatar(SingleResourcePackAvatar, StylizedMixin, ABC):
 
 
 class PrimitiveAvatar(ResourceAvatar):
-    """Avatar class that wraps the position of a unit and an input render resource."""
+    """Avatar class that wraps the position of a domain and an input render resource."""
 
-    def __init__(self, unit: PositionalUnit, resource: any):
+    def __init__(self, domain: AvatarKeeper, resource: any):
         self._resource_factory = lambda _: resource
-        super().__init__(unit)
+        super().__init__(domain)
 
     @property
     def render_resource(self) -> any:
@@ -99,8 +99,8 @@ class Animation(SingleResourcePackAvatar, ABC):
     _sprites: tuple[Sprite]
     _current_sprite_index: int = 0
 
-    def __init__(self, unit: PositionalUnit):
-        super().__init__(unit)
+    def __init__(self, domain: AvatarKeeper):
+        super().__init__(domain)
         self._update_main_resource_pack()
 
     def update(self) -> None:
@@ -133,7 +133,7 @@ class Animation(SingleResourcePackAvatar, ABC):
 
         self._main_resource_pack = ResourcePack(
             self._sprites[self.__current_sprite_index].resource,
-            self.unit.position
+            self.domain.position
         )
 
     def _handle_finish(self) -> None:
@@ -148,8 +148,8 @@ class Animation(SingleResourcePackAvatar, ABC):
 class CustomAnimation(Animation):
     """Animation class with input sprites."""
 
-    def __init__(self, unit: PositionalUnit, sprites: Iterable[Sprite]):
-        super().__init__(unit)
+    def __init__(self, domain: AvatarKeeper, sprites: Iterable[Sprite]):
+        super().__init__(domain)
         self._sprites = tuple(sprites)
 
 
@@ -170,11 +170,11 @@ class CustomEndlessAnimation(EndlessAnimation, CustomAnimation):
 class AnimationAvatar(Avatar, ABC):
     """Avatar class delegating responsibilities to animations."""
 
-    _default_animation_factory: Callable[[PositionalUnit], EndlessAnimation]
+    _default_animation_factory: Callable[[AvatarKeeper], EndlessAnimation]
 
-    def __init__(self, unit: PositionalUnit):
-        super().__init__(unit)
-        self._current_animation = self._default_animation = self._default_animation_factory(unit)
+    def __init__(self, domain: AvatarKeeper):
+        super().__init__(domain)
+        self._current_animation = self._default_animation = self._default_animation_factory(domain)
 
     @property
     def render_resource_packs(self) -> tuple[ResourcePack]:
@@ -187,13 +187,13 @@ class AnimationAvatar(Avatar, ABC):
 class TopicAnimationAvatar(AnimationAvatar, ABC):
     """Animation Avatar class that implements selection of animations by topic."""
 
-    _animation_factory_by_topic: dict[str, Callable[[PositionalUnit], EndlessAnimation]]
+    _animation_factory_by_topic: dict[str, Callable[[AvatarKeeper], EndlessAnimation]]
 
-    def __init__(self, unit: PositionalUnit):
-        super().__init__(unit)
+    def __init__(self, domain: AvatarKeeper):
+        super().__init__(domain)
 
         self._animation_by_topic = {
-            topic: animation_factory(unit)
+            topic: animation_factory(domain)
             for topic, animation_factory in self._animation_factory_by_topic.items()
         }
 
@@ -217,36 +217,36 @@ class CustomTopicAnimationAvatar(TopicAnimationAvatar):
 
     def __init__(
         self,
-        unit: PositionalUnit,
-        animation_factory_by_topic: dict[str, Callable[[PositionalUnit], EndlessAnimation]]
+        domain: AvatarKeeper,
+        animation_factory_by_topic: dict[str, Callable[[AvatarKeeper], EndlessAnimation]]
     ):
         self._animation_factory_by_topic = animation_factory_by_topic
-        super().__init__(unit)
+        super().__init__(domain)
 
 
 class ProcessAnimationAvatar(AnimationAvatar):
     """
     Animation Avatar class that implements the choice of animations for the
-    processes running in the unit.
+    processes running in the domain.
     """
-    
+
     _animation_factory_by_process_type: dict[type, Callable[[MultitaskingUnit], EndlessAnimation]]
 
-    def __init__(self, unit: PositionalUnit):
-        super().__init__(unit)
+    def __init__(self, domain: AvatarKeeper):
+        super().__init__(domain)
 
-        self.__units_previous_processes = unit.processes
+        self.__domains_previous_processes = domain.processes
         self._animation_by_process_type = {
-            process_type: animation_factory(unit)
+            process_type: animation_factory(domain)
             for process_type, animation_factory in self._animation_factory_by_process_type.items()
         }
 
     def update(self) -> None:
-        for process in self.unit.processes - self.__units_previous_processes:
+        for process in self.domain.processes - self.__domains_previous_processes:
             if type(process) in self._animation_by_process_type:
                 self._current_animation = self._animation_by_process_type[type(process)]
                 break
 
-        self.__units_previous_processes = self.unit.processes
+        self.__domains_previous_processes = self.domain.processes
 
         super().update()
