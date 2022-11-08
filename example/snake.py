@@ -57,7 +57,7 @@ class Snake(DiscreteUnit):
 
 class SnakeHead(SpeedLimitedUnit):
     _avatar_factory = CustomFactory(PrimitiveAvatar, ConsoleCell('#', Fore.LIGHTBLUE_EX))
-    _speed_limit = 2
+    _speed_limit = 1
 
     def update(self) -> None:
         pass
@@ -65,7 +65,7 @@ class SnakeHead(SpeedLimitedUnit):
 
 class SnakeTail(SpeedLimitedUnit):
     _avatar_factory = CustomFactory(PrimitiveAvatar, ConsoleCell('#', Fore.LIGHTWHITE_EX))
-    _speed_limit = 3
+    _speed_limit = 1
 
     def update(self) -> None:
         pass
