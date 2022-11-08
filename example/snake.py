@@ -120,10 +120,12 @@ class SnakeHeadTurnEvent(SnakeEvent, DelayedProcess):
     __snake_head_vector = Vector((1, 0))
 
 
-snake = Snake()
-head = SnakeHead(Vector((10, 8)))
+snake_factory = CustomDiscreteUnitFactory(
+    Snake,
+    Arguments.create_via_call(SnakeHead(Vector((10, 8))), SnakeTail)
+)
 
-snake.init_parts(head, SnakeTail)
+snake = snake_factory()
 snake.grow_tail(5)
 
 
