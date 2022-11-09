@@ -588,7 +588,7 @@ class InteractiveUnit(InteractiveMixin, IUpdatable, ABC):
 class Dependent:
     """Class annotating the need for a dependency on another object."""
 
-    master: IUpdatable | None = None
+    master: Optional[object] = None
 
 
 class StrictDependent(Dependent, StrictToStateMixin, StylizedMixin):
