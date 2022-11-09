@@ -1245,6 +1245,3 @@ class CustomAppFactory(AppFactory):
         self._render_activator_factory = render_activator_factory
         self._loop_handler_factories = loop_handler_factories
         self._updater_loop_handler_factory = updater_loop_handler_factory
-
-
-default_app_factory = AppFactory()
