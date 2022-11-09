@@ -40,6 +40,15 @@ class IInteractive(ABC):
         """Method describing object support for interacting with it."""
 
 
+class IPositional(ABC):
+    """Interface of an object located at some point."""
+
+    @property
+    @abstractmethod
+    def position(self) -> 'Vector':
+        """Object location property."""
+
+
 class IMovable(ABC):
     """Interface for objects capable of moving."""
 

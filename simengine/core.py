@@ -714,7 +714,7 @@ class ZoneKeeper(ABC):
         return self._zone
 
 
-class PositionalKeeper(ZoneKeeper, ABC):
+class PositionalKeeper(ZoneKeeper, IPositional, ABC):
     """Class having position and visual representation."""
 
     _zone_factory = CustomFactory(lambda unit: Site(unit.position))
