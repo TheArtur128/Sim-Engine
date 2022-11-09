@@ -957,6 +957,17 @@ class MultilayerProcessMovablePositionalKeeper(ProcessMovablePositionalKeeper, A
         super().__init__(position)
 
 
+class MultilayerProcessMovableAvatarKeeper(MultilayerProcessMovablePositionalKeeper, AvatarKeeper):
+    """
+    AvatarKeeper child class that implements positioning by inheriting from
+    MultilayerProcessMovablePositionalKeeper.
+    """
+
+    def __init__(self, position: Vector):
+        super().__init__(position)
+        AvatarKeeper.__init__(self)
+
+
 class WorldInhabitantsHandler(ABC):
     """Class that handles objects in a world."""
 
