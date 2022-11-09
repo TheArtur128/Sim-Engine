@@ -926,7 +926,7 @@ class MultilayerProcessMovablePositionalKeeperMeta(AttributesTransmitterMeta):
     _attribute_names_to_parse = ('_proxy_moving_process_factories', )
 
     _proxy_moving_process_factories: Iterable[Callable[[IProcess], IProcess]]
-    _multilayer_proxy_process_factory: Callable[[Self], IMovingProcess]
+    _multilayer_proxy_process_factory: Optional[Callable[[Self], IMovingProcess]] = None
 
     def __new__(cls, class_name: str, super_classes: tuple, attributes: dict):
         isinstance_type = super().__new__(cls, class_name, super_classes, attributes)
@@ -934,7 +934,11 @@ class MultilayerProcessMovablePositionalKeeperMeta(AttributesTransmitterMeta):
         for proxy_moving_process_factory in isinstance_type._proxy_moving_process_factories:
             isinstance_type._multilayer_proxy_process_factory = CustomDecoratorFactory(
                 proxy_moving_process_factory,
-                isinstance_type._multilayer_proxy_process_factory
+                (
+                    isinstance_type._multilayer_proxy_process_factory
+                    if isinstance_type._multilayer_proxy_process_factory is not None
+                    else isinstance_type._proxy_moving_process_factories[0]
+                )
             )
 
         return isinstance_type
@@ -950,7 +954,7 @@ class MultilayerProcessMovablePositionalKeeper(ProcessMovablePositionalKeeper, A
         self._moving_process_factory = CustomDecoratorFactory(
             self._multilayer_proxy_process_factory,
             self._moving_process_factory
-        )
+        ) if self._multilayer_proxy_process_factory else self._moving_process_factory
 
         super().__init__(position)
 
