@@ -11,21 +11,21 @@ init(autoreset=True)
 class Snake(DiscreteUnit):
     _part_attribute_names = ('_head', '_tails')
 
-    _head: Optional[MovableUnit] = None
+    _head: Optional[MovablePositionalKeeper] = None
     _tails: Iterable = tuple()
 
     @property
-    def head(self) -> MovableUnit | None:
+    def head(self) -> Optional[MovablePositionalKeeper]:
         return self._head
 
     @property
-    def tails(self) -> tuple[ProcessMovableUnit]:
+    def tails(self) -> tuple[ProcessMovablePositionalKeeper]:
         return tuple(self._tails)
 
     def init_parts(
         self,
-        head: MovableUnit,
-        tail_factory: Callable[[Vector], ProcessMovableUnit],
+        head: MovablePositionalKeeper,
+        tail_factory: Callable[[Vector], ProcessMovablePositionalKeeper],
     ) -> None:
         self._tails = list()
         self._head = head
@@ -47,28 +47,26 @@ class Snake(DiscreteUnit):
 
             previous_unit = self.__get_prevous_node_by(tail_index)
 
-            tail.moving_process.original_process.vector_to_next_unit_position = (
+            tail.moving_process.original_process.vector_to_next_subject_position = (
                 previous_unit.position - tail.position
             )
 
-    def __get_prevous_node_by(self, tail_index: int) -> MovableUnit | None:
+    def __get_prevous_node_by(self, tail_index: int) -> MovablePositionalKeeper:
         return self._head if tail_index - 1 < 0 else self._tails[tail_index - 1]
 
 
-class SnakeHead(SpeedLimitedUnit):
+class SnakeHead(MultilayerProcessMovableAvatarKeeper):
     _avatar_factory = CustomFactory(PrimitiveAvatar, ConsoleCell('#', Fore.LIGHTBLUE_EX))
-    _speed_limit = 1
 
-    def update(self) -> None:
-        pass
+    _moving_process_factory = AbruptImpulseProcess
+    _proxy_moving_process_factories = (CustomFactory(SpeedLimitedProxyMovingProcess, 1), )
 
 
-class SnakeTail(SpeedLimitedUnit):
+class SnakeTail(MultilayerProcessMovableAvatarKeeper):
     _avatar_factory = CustomFactory(PrimitiveAvatar, ConsoleCell('#', Fore.LIGHTWHITE_EX))
-    _speed_limit = 1
 
-    def update(self) -> None:
-        pass
+    _moving_process_factory = DirectedMovingProcess
+    _proxy_moving_process_factories = (CustomFactory(SpeedLimitedProxyMovingProcess, 1), )
 
 
 class SnakeEvent(Process, ABC):
@@ -115,7 +113,7 @@ class SnakeHeadTurnEvent(SnakeEvent, DelayedProcess):
         self.activate_delay()
 
     def _activate_snake_head_moving(self) -> None:
-        self.snake.head.moving_process.original_process.vector_to_next_unit_position = self.__snake_head_vector
+        self.snake.head.moving_process.original_process.vector_to_next_subject_position = self.__snake_head_vector
 
     __snake_head_vector = Vector((1, 0))
 
@@ -132,7 +130,7 @@ snake.grow_tail(5)
 CustomAppFactory([CustomFactory(StandardSleepLoopHandler, 0.5)])(
     CustomWorld(
         [SnakeHeadTurnEvent(snake), SnakeTailLengthKepeerEvent(snake, Diapason(2, 9)), snake],
-        [UnitMover, UnitUpdater, UnitAvatarRenderResourceParser]
+        [InhabitantMover, InhabitantUpdater, InhabitantAvatarRenderResourceParser]
     ),
     (ConsoleRender(ConsoleCell('.')), )
 ).run()

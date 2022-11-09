@@ -37,10 +37,13 @@ class MainHeroManagement(PygameEventHandler, EventSupportStackHandler):
         if event.key in self._down_movement_keys:
             impulse += Vector((0, self.main_hero._speed_limit))
 
-        self.main_hero.moving_process.original_process.vector_to_next_point = impulse
+        self.main_hero.moving_process.original_process.vector_to_next_subject_position = impulse
 
 
-class TestUnit(SpeedLimitedUnit):
+class TestObject(MultilayerProcessMovableAvatarKeeper):
+    _moving_process_factory = AbruptImpulseProcess
+    _proxy_moving_process_factories = (CustomFactory(SpeedLimitedProxyMovingProcess, 2), )
+
     _avatar_factory = CustomFactory(
         lambda unit: PrimitiveAvatar(
             unit,
@@ -50,73 +53,78 @@ class TestUnit(SpeedLimitedUnit):
             )
         )
     )
-    _speed_limit = 2
-
-    def update(self) -> None:
-        pass
 
 
-class ObserveUnitAvatar(ResourceAvatar):
+class ObserveAvatar(ResourceAvatar):
     _resource_factory = CustomFactory(lambda _: Circle(RGBAColor(255, 0, 50), 0))
 
     def update(self) -> None:
         super().update()
-        vector_to_observed_unit = self.unit.position - self.unit.observed_unit.position
-        self.render_resource.radius = vector_to_observed_unit.length
+        vector_to_observed = self.domain.position - self.domain.observed.position
+        self.render_resource.radius = vector_to_observed.length
 
 
-class ObserveUnit(SpeedLimitedUnit):
-    _avatar_factory = ObserveUnitAvatar
-    _speed_limit = 1
+class ObserveUnit(MultilayerProcessMovableAvatarKeeper, IUpdatable):
+    _avatar_factory = ObserveAvatar
 
-    def __init__(self, position: Vector, observed_unit: PositionalUnit):
+    _moving_process_factory = AbruptImpulseProcess
+    _proxy_moving_process_factories = (CustomFactory(SpeedLimitedProxyMovingProcess, 1), )
+
+    def __init__(self, position: Vector, observed: IPositional):
         super().__init__(position)
-        self.observed_unit = observed_unit
+        self.observed = observed
 
     def update(self) -> None:
-        self._moving_process.original_process.vector_to_next_point = (
-            self.observed_unit.position
+        self._moving_process.original_process.vector_to_next_subject_position = (
+            self.observed.position
             - self.position
         )
 
 
-class UnitSpawner(PositionalUnit, MultitaskingUnit):
+class SpawnerUnit(StaticAvatarKeeper, MultitaskingUnit):
     _avatar_factory = CustomFactory(lambda unit: PrimitiveAvatar(unit, None))
 
     def __init__(
         self,
         position: Vector,
-        unit_factory: Callable[[Vector], PositionalUnit],
-        spawn_zone: Iterable[range, ],
+        factory: Callable[[Vector], IPositional],
+        spawn_zone: Iterable[Diapason],
         timer: Timer
     ):
         super().__init__(position)
         super(MultitaskingUnit, self).__init__()
 
-        self.unit_factory = unit_factory
+        self.factory = factory
         self.spawn_zone = tuple(spawn_zone)
         self.timer = timer
 
     def update(self) -> None:
         if self.timer.is_time_over():
             generate_point = Vector(tuple(
-                randint(coordinate_range.start, coordinate_range.stop)
-                for coordinate_range in self.spawn_zone
+                randint(coordinate_diapason.start, coordinate_diapason.end)
+                for coordinate_diapason in self.spawn_zone
             ))
 
             self.add_process(
-                UnitSpawnProcess((self.unit_factory(generate_point), ))
+                UnitSpawnProcess((self.factory(generate_point), ))
             )
             self.timer.start()
 
 
-black_unit = TestUnit(Vector((200, 240)))
+black_unit = TestObject(Vector((200, 240)))
 black_unit.avatar.render_resource = Circle(RGBAColor(), 20)
 
 red_unit = ObserveUnit(Vector((100, 240)), black_unit)
 
-unit_spawner = UnitSpawner(Vector((320, 240)), CustomFactory(TestUnit), (range(640), range(480)), Timer(3))
+unit_spawner = SpawnerUnit(
+    Vector((320, 240)),
+    CustomFactory(TestObject),
+    (Diapason(640), Diapason(480)),
+    Timer(3)
+)
+
 unit_spawner.avatar.render_resource = Circle(RGBAColor(red=255, green=243), 30)
+
 
 CustomAppFactory((
     CustomFactory(
@@ -130,7 +138,7 @@ CustomAppFactory((
 ))(
     CustomWorld(
         [black_unit, red_unit, unit_spawner],
-        [UnitMover, WorldProcessesActivator, UnitMover, UnitAvatarRenderResourceParser]
+        [InhabitantUpdater, WorldProcessesActivator, InhabitantMover, InhabitantAvatarRenderResourceParser]
     ),
     (
         PygameSurfaceRender(
