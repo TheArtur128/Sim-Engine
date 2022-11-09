@@ -1122,7 +1122,7 @@ class RelationsActivator(WorldInhabitantsHandler):
 class InhabitantMover(FocusedWorldInhabitantsHandler, TypeSuportingWorldInhabitantsHandler):
     """WorldInhabitantsHandler activating movement of moving inhabitants."""
 
-    _suported_types = ('IMovable', )
+    _suported_types = (IMovable, )
 
     def _handle_inhabitant(self, inhabitant: IMovable) -> None:
         inhabitant.move()
