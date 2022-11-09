@@ -713,10 +713,9 @@ class ZoneKeeper(ABC):
         return self._zone
 
 
-class PositionalKeeper(ZoneKeeper, StylizedMixin, ABC):
+class PositionalKeeper(ZoneKeeper, ABC):
     """Class having position and visual representation."""
 
-    _repr_fields = (Field('position'), )
     _zone_factory = CustomFactory(lambda unit: Site(unit.position))
 
     def __init__(self, position: Vector):
