@@ -70,6 +70,18 @@ class IAvatar(IUpdatable, IRenderRersourceKeeper, ABC):
     """Interface for processing and directly storing processed render resources."""
 
 
+class IAvatarKeeper(IPositional, ABC):
+    """
+    Interface that allows an avatar to build visual projections based on objects
+    that implement this interface.
+    """
+
+    @property
+    @abstractmethod
+    def avatar(self) -> IAvatar:
+        """Property of the object processing the visual representation."""
+
+
 class ILoop(ABC):
     """
     Loop class representation interface for abstracting dependencies on how an

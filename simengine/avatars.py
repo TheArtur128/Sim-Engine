@@ -4,21 +4,21 @@ from typing import Callable, Iterable, Self
 
 from beautiful_repr import StylizedMixin, Field
 
-from simengine.core import AvatarKeeper, MultitaskingUnit
+from simengine.core import MultitaskingUnit
 from simengine.geometry import Vector
 from simengine.renders import ResourcePack
-from simengine.interfaces import IAvatar
+from simengine.interfaces import IAvatar, IAvatarKeeper
 from simengine.errors.avatar_errors import AnimationAlreadyFinishedError
 
 
 class Avatar(IAvatar, ABC):
     """Base avatar with domain object acquisition implementation."""
 
-    def __init__(self, domain: AvatarKeeper):
+    def __init__(self, domain: IAvatarKeeper):
         self._domain = domain
 
     @property
-    def domain(self) -> AvatarKeeper:
+    def domain(self) -> IAvatarKeeper:
         return self._domain
 
 
@@ -47,7 +47,7 @@ class ResourceAvatar(SingleResourcePackAvatar, StylizedMixin, ABC):
     _resource_factory: Callable[[Self], any]
     _resource_pack_factory: Callable[[any, Vector], ResourcePack] = ResourcePack
 
-    def __init__(self, domain: AvatarKeeper):
+    def __init__(self, domain: IAvatarKeeper):
         super().__init__(domain)
         self._main_resource_pack = self._resource_pack_factory(
             self._resource_factory(self),
@@ -64,7 +64,7 @@ class ResourceAvatar(SingleResourcePackAvatar, StylizedMixin, ABC):
 class PrimitiveAvatar(ResourceAvatar):
     """Avatar class that wraps the position of a domain and an input render resource."""
 
-    def __init__(self, domain: AvatarKeeper, resource: any):
+    def __init__(self, domain: IAvatarKeeper, resource: any):
         self._resource_factory = lambda _: resource
         super().__init__(domain)
 
@@ -99,7 +99,7 @@ class Animation(SingleResourcePackAvatar, ABC):
     _sprites: tuple[Sprite]
     _current_sprite_index: int = 0
 
-    def __init__(self, domain: AvatarKeeper):
+    def __init__(self, domain: IAvatarKeeper):
         super().__init__(domain)
         self._update_main_resource_pack()
 
@@ -148,7 +148,7 @@ class Animation(SingleResourcePackAvatar, ABC):
 class CustomAnimation(Animation):
     """Animation class with input sprites."""
 
-    def __init__(self, domain: AvatarKeeper, sprites: Iterable[Sprite]):
+    def __init__(self, domain: IAvatarKeeper, sprites: Iterable[Sprite]):
         super().__init__(domain)
         self._sprites = tuple(sprites)
 
@@ -170,9 +170,9 @@ class CustomEndlessAnimation(EndlessAnimation, CustomAnimation):
 class AnimationAvatar(Avatar, ABC):
     """Avatar class delegating responsibilities to animations."""
 
-    _default_animation_factory: Callable[[AvatarKeeper], EndlessAnimation]
+    _default_animation_factory: Callable[[IAvatarKeeper], EndlessAnimation]
 
-    def __init__(self, domain: AvatarKeeper):
+    def __init__(self, domain: IAvatarKeeper):
         super().__init__(domain)
         self._current_animation = self._default_animation = self._default_animation_factory(domain)
 
@@ -187,9 +187,9 @@ class AnimationAvatar(Avatar, ABC):
 class TopicAnimationAvatar(AnimationAvatar, ABC):
     """Animation Avatar class that implements selection of animations by topic."""
 
-    _animation_factory_by_topic: dict[str, Callable[[AvatarKeeper], EndlessAnimation]]
+    _animation_factory_by_topic: dict[str, Callable[[IAvatarKeeper], EndlessAnimation]]
 
-    def __init__(self, domain: AvatarKeeper):
+    def __init__(self, domain: IAvatarKeeper):
         super().__init__(domain)
 
         self._animation_by_topic = {
@@ -217,8 +217,8 @@ class CustomTopicAnimationAvatar(TopicAnimationAvatar):
 
     def __init__(
         self,
-        domain: AvatarKeeper,
-        animation_factory_by_topic: dict[str, Callable[[AvatarKeeper], EndlessAnimation]]
+        domain: IAvatarKeeper,
+        animation_factory_by_topic: dict[str, Callable[[IAvatarKeeper], EndlessAnimation]]
     ):
         self._animation_factory_by_topic = animation_factory_by_topic
         super().__init__(domain)
@@ -232,7 +232,7 @@ class ProcessAnimationAvatar(AnimationAvatar):
 
     _animation_factory_by_process_type: dict[type, Callable[[MultitaskingUnit], EndlessAnimation]]
 
-    def __init__(self, domain: AvatarKeeper):
+    def __init__(self, domain: IAvatarKeeper):
         super().__init__(domain)
 
         self.__domains_previous_processes = domain.processes
