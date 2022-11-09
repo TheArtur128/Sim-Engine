@@ -1101,7 +1101,7 @@ class AvatarRenderResourceParser(RenderResourceParser, FocusedWorldInhabitantsHa
         self._parsed_resource_packs.extend(inhabitant.render_resource_packs)
 
 
-class UnitRelationsActivator(WorldInhabitantsHandler):
+class RelationsActivator(WorldInhabitantsHandler):
     """
     WorldInhabitantsHandler activating the relations of the objects inhabited in
     the world.
