@@ -744,6 +744,14 @@ class PositionalKeeper(ZoneKeeper, IPositional, ABC):
         return self._position
 
 
+class StaticAvatarKeeper(PositionalKeeper, AvatarKeeper):
+    """Avatar keeper child class having a statically assigned position."""
+
+    def __init__(self, position: Vector):
+        super().__init__(position)
+        AvatarKeeper.__init__(self)
+
+
 class MovablePositionalKeeper(PositionalKeeper, IMovable, ABC):
     """Сlass providing dynamic position."""
 
