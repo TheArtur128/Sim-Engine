@@ -230,17 +230,18 @@ class Process(StrictToStateMixin, IProcess, ABC):
         if not self.state:
             self.start()
 
-        self.state.update()
-
-        if self.state.is_compelling_to_handle:
-            self._handle()
-
         while True:
+            if self.state.is_valid():
+                self.state.update()
+
             old_state = self.state
             self.__reset_state()
 
             if hash(old_state) == hash(self.state):
                 break
+
+        if self.state.is_compelling_to_handle:
+            self._handle()
 
     @abstractmethod
     def _handle(self) -> None:
