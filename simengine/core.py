@@ -1176,7 +1176,7 @@ class World(IUpdatable, DeepPartDiscreteMixin, ABC):
             inhabitant_handler(
                 tuple(
                     inhabitant for inhabitant in self.deep_parts
-                    if inhabitant_handler.is_unit_suitable(inhabitant)
+                    if inhabitant_handler.is_inhabitant_suitable(inhabitant)
                 )
             )
 
