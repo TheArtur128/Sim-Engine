@@ -6,8 +6,8 @@ class IUpdatable(ABC):
     """
     The interface of anything that can handle its state.
 
-    Objects that are upcast to this interface and implementer classes that are
-    implemented with a focus on self-calculation are called units.
+    Objects that are upcast to this interface and implemented with a focus on
+    self-computation are called units.
     """
 
     @abstractmethod
