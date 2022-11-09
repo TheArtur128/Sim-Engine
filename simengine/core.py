@@ -804,7 +804,7 @@ class ProcessMovablePositionalKeeper(MovablePositionalKeeper, ABC):
         self._moving_process.update()
         super().move()
 
-        self._moving_process.state = UnitMovingProcessState(self._moving_process)
+        self._moving_process.state = MovingProcessState(self._moving_process)
 
 
 class IMovingProcess(IProcess, ABC):
@@ -877,8 +877,8 @@ class SpeedLimitedProxyMovingProcess(ProxyMovingProcess):
         )
 
 
-class UnitMovingProcessState(FlagProcessState):
-    """Flag of the moving process indicating the movement of the unit."""
+class MovingProcessState(FlagProcessState):
+    """Flag of the moving process indicating the movement of a movable object."""
 
 
 class DirectedMovingProcess(MovingProcess):
@@ -905,7 +905,7 @@ class ImpulseMovingProcess(DirectedMovingProcess, ABC):
     _impulse_changer: IPointChanger
 
     def _handle(self):
-        if isinstance(self.state, UnitMovingProcessState):
+        if isinstance(self.state, MovingProcessState):
             self.vector_to_next_point = self._impulse_changer(self.vector_to_next_point)
 
 
