@@ -701,6 +701,22 @@ class CustomDiscreteUnitFactory(DiscreteUnitFactory):
         self._unit_part_initialization_arguments = unit_part_initialization_arguments
 
 
+class AvatarKeeper(IAvatarKeeper, ABC):
+    """
+    Implementation of the avatar keeper interface that initializes the avatar
+    through the factory located in the _avatar_factory attribute.
+    """
+
+    _avatar_factory: IAvatarFactory
+
+    def __init__(self):
+        self._avatar = self._avatar_factory(self)
+
+    @property
+    def avatar(self) -> IAvatar:
+        return self._avatar
+
+
 class ZoneKeeper(ABC):
     """Class having a specific body as a zone."""
 
@@ -726,25 +742,6 @@ class PositionalKeeper(ZoneKeeper, IPositional, ABC):
     @property
     def position(self) -> Vector:
         return self._position
-
-
-class AvatarKeeper(PositionalKeeper, ABC):
-    """
-    Class that allows an avatar to build visual projections based on objects of
-    this class.
-
-    Creates its own avatar using the factory in the _avatar_factory attribute.
-    """
-
-    _avatar_factory: IAvatarFactory
-
-    def __init__(self, position: Vector):
-        super().__init__()
-        self._avatar = self._avatar_factory(self)
-
-    @property
-    def avatar(self) -> IAvatar:
-        return self._avatar
 
 
 class MovablePositionalKeeper(PositionalKeeper, IMovable, ABC):
