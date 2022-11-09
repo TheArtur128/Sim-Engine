@@ -600,7 +600,7 @@ class StrictDependent(Dependent, StrictToStateMixin, StylizedMixin):
     def _is_correct(self) -> Report:
         return Report(
             self.master is not None,
-            message=f"{self} must have a master"
+            error=UnmetDependencyError(f"{self} must have a master")
         )
 
 
