@@ -1,10 +1,10 @@
 from pygame import *
 from random import randint, choice
 
-from pygame_renders import *
-from simengine.avatars import ResourceAvatar, PrimitiveAvatar
-from simengine.core import *
-from simengine.tools import Timer
+from sim32.avatars import ResourceAvatar, PrimitiveAvatar
+from sim32.core import *
+from sim32.tools import Timer
+from sim32.pygame_integration import *
 
 
 class MainHeroManagement(PygameEventHandler, EventSupportStackHandler):

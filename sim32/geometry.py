@@ -7,9 +7,9 @@ from typing import Iterable, Callable, Union, Generator, Self
 from beautiful_repr import StylizedMixin, Field, TemplateFormatter, parse_length
 from pyoverload import overload
 
-from simengine.interfaces import IUpdatable, IZone, IZoneFactory
-from simengine.errors.geometry_errors import *
-from simengine.tools import *
+from sim32.interfaces import IUpdatable, IZone, IZoneFactory
+from sim32.errors.geometry_errors import *
+from sim32.tools import *
 
 
 class DegreeMeasure:

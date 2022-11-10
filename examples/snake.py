@@ -1,8 +1,13 @@
+from abc import ABC
 from typing import Optional, Callable, Iterable
 
 from colorama import init, Fore
 
-from simengine import *
+from sim32.avatars import PrimitiveAvatar
+from sim32.core import *
+from sim32.renders import ConsoleCell, ConsoleRender
+from sim32.geometry import Vector, AxisPlaneDegrees, DegreeMeasure
+from sim32.tools import CustomFactory, Diapason, Arguments
 
 
 init(autoreset=True)

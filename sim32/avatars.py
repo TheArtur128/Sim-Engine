@@ -4,11 +4,11 @@ from typing import Callable, Iterable, Self
 
 from beautiful_repr import StylizedMixin, Field
 
-from simengine.core import MultitaskingUnit
-from simengine.geometry import Vector
-from simengine.renders import ResourcePack
-from simengine.interfaces import IAvatar, IAvatarKeeper
-from simengine.errors.avatar_errors import AnimationAlreadyFinishedError
+from sim32.core import MultitaskingUnit
+from sim32.geometry import Vector
+from sim32.renders import ResourcePack
+from sim32.interfaces import IAvatar, IAvatarKeeper
+from sim32.errors.avatar_errors import AnimationAlreadyFinishedError
 
 
 class Avatar(IAvatar, ABC):

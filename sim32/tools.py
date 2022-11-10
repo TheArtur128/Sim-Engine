@@ -9,8 +9,8 @@ from functools import wraps
 
 from beautiful_repr import StylizedMixin, Field, TemplateFormatter
 
-from simengine.interfaces import IUpdatable, ILoop
-from simengine.errors.tool_errors import *
+from sim32.interfaces import IUpdatable, ILoop
+from sim32.errors.tool_errors import *
 
 
 @dataclass(frozen=True)

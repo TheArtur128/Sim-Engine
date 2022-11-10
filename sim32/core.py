@@ -3,11 +3,11 @@ from typing import Iterable, Callable, Optional, Self, NamedTuple
 
 from beautiful_repr import StylizedMixin, Field
 
-from simengine.interfaces import *
-from simengine.renders import ResourcePack, RenderActivator, IRender
-from simengine.errors.core_errors import *
-from simengine.tools import *
-from simengine.geometry import Vector, Figure, Site, DynamicTransporter, IPointChanger
+from sim32.interfaces import *
+from sim32.renders import ResourcePack, RenderActivator, IRender
+from sim32.errors.core_errors import *
+from sim32.tools import *
+from sim32.geometry import Vector, Figure, Site, DynamicTransporter, IPointChanger
 
 
 class IProcessState(IUpdatable, ABC):

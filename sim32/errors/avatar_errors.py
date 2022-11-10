@@ -1,4 +1,4 @@
-from simengine.errors.core_errors import UnitError
+from sim32.errors.core_errors import UnitError
 
 
 class AvatarError(UnitError):
